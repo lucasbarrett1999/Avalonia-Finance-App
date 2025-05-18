@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MyApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="MyApp.Views.AccountsView"
+             x:DataType="vm:AccountsViewModel">
+  <ScrollViewer>
+    <StackPanel Spacing="10" Margin="20">
+      <TextBlock Text="Accounts Overview" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+      
+      <!-- Empty state message -->
+      <Grid IsVisible="{Binding ShowEmptyState}"
+            MinHeight="200">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Spacing="15">
+          <TextBlock Text="No Accounts Found"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="Link a bank account to get started tracking your finances."
+                     TextWrapping="Wrap"
+                     HorizontalAlignment="Center"
+                     MaxWidth="400"/>
+          <Button Content="Link Bank Account"
+                  Command="{Binding LinkAccountCommand}"
+                  HorizontalAlignment="Center"
+                  Margin="0,10,0,0" 
+                  Classes="accent"/>
+        </StackPanel>
+      </Grid>
+      
+      <!-- Account listing -->
+      <Border Classes="ContentArea" 
+              CornerRadius="5" 
+              Padding="15" 
+              MinHeight="200"
+              IsVisible="{Binding HasAccounts}">
+        
+        <StackPanel Spacing="15">
+          
+          <!-- Header -->
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBlock Text="Account" FontWeight="SemiBold" />
+            <TextBlock Text="Balance" Grid.Column="1" FontWeight="SemiBold" />
+          </Grid>
+          
+          <!-- Separator -->
+          <Rectangle Height="1" Fill="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+          
+          <!-- Actual account list will be populated here when we have real accounts -->
+          <TextBlock Text="Your linked accounts will appear here after connecting a bank." 
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding !HasAccounts}"/>
+                     
+          <!-- Sample account for design purposes -->
+          <Grid ColumnDefinitions="*, Auto" IsVisible="{Binding HasAccounts}">
+            <StackPanel Grid.Column="0" Spacing="3">
+              <TextBlock Text="Chase Checking" FontWeight="SemiBold" />
+              <TextBlock Text="Chase Bank" Opacity="0.7" FontSize="12" />
+            </StackPanel>
+            <TextBlock Text="$1,234.56" 
+                       Grid.Column="1" 
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold" />
+          </Grid>
+          
+          <!-- Another sample account -->
+          <Grid ColumnDefinitions="*, Auto" IsVisible="{Binding HasAccounts}">
+            <StackPanel Grid.Column="0" Spacing="3">
+              <TextBlock Text="Savings Account" FontWeight="SemiBold" />
+              <TextBlock Text="Bank of America" Opacity="0.7" FontSize="12" />
+            </StackPanel>
+            <TextBlock Text="$5,678.90" 
+                       Grid.Column="1" 
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Account actions -->
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,20,0,0"
+                  IsVisible="{Binding HasAccounts}">
+        <Button Content="Add Manual Account"/>
+        <Button Content="Link Another Bank" 
+                Command="{Binding LinkAccountCommand}" 
+                Background="{DynamicResource SystemAccentColor}"
+                Foreground="White"/>
+        <Button Content="Refresh Accounts" 
+                Command="{Binding RefreshAccountsCommand}"/>
+      </StackPanel>
+      
+      <!-- Status message -->
+      <TextBlock Text="{Binding StatusMessage}" 
+                 Margin="0,10,0,0"
+                 IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+      
+      <!-- Loading indicator -->
+      <ProgressBar IsIndeterminate="True" 
+                   IsVisible="{Binding IsLoading}"
+                   Margin="0,10,0,0"
+                   Height="4"/>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl> 

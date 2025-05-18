@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MyApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="MyApp.Views.TransactionsView"
+             x:DataType="vm:TransactionsViewModel">
+  <ScrollViewer>
+    <StackPanel Spacing="10" Margin="20">
+      <TextBlock Text="Transactions" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+      
+      <!-- Placeholder for Filters/Search -->
+      <Border Classes="ContentArea" CornerRadius="5" Padding="10" Margin="0,0,0,15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Filters and Search" FontSize="16" FontWeight="SemiBold"/>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox Grid.Column="0" Watermark="Search transactions..." Margin="0,0,5,0"/>
+            <Button Grid.Column="1" Content="Search" Margin="5,0,0,0"/>
+          </Grid>
+          <!-- Add more filter controls here later e.g., DatePickers, ComboBox for accounts/categories -->
+        </StackPanel>
+      </Border>
+
+      <!-- Placeholder for transaction list -->
+      <Border Classes="ContentArea" CornerRadius="5" Padding="15" MinHeight="300">
+        <TextBlock Text="A list or grid of transactions (date, description, category, amount) will be displayed here."
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"/>
+      </Border>
+
+      <!-- Placeholder for actions -->
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,20,0,0">
+        <Button Content="Add Manual Transaction"/>
+        <Button Content="Export Transactions"/>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl> 

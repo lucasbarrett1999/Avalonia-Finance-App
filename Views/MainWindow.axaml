@@ -1,0 +1,122 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MyApp.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:rxui="http://reactiveui.net"
+        xmlns:local="using:MyApp"
+        xmlns:enums="using:MyApp.Core.Enums"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="MyApp.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="My Personal Finance App"
+        MinWidth="600" MinHeight="400"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome" 
+        ExtendClientAreaTitleBarHeightHint="-1">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid>
+        <!-- Acrylic Border for Dark Theme -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False" IsVisible="{Binding IsDarkThemeActive}">
+            <ExperimentalAcrylicBorder.Material>
+                <!-- Dark Gray Tint -->
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#222222"
+                    TintOpacity="0.8"
+                    MaterialOpacity="0.65" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <!-- Acrylic Border for Light Theme -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False" IsVisible="{Binding !IsDarkThemeActive}">
+            <ExperimentalAcrylicBorder.Material>
+                <!-- Light Gray Tint -->
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#FAFAFA"
+                    TintOpacity="0.8"
+                    MaterialOpacity="0.65" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <DockPanel LastChildFill="True">
+            <!-- Status Bar -->
+            <Border DockPanel.Dock="Bottom" Padding="5">
+                <TextBlock Text="Status Bar" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MyAppStatusBarForegroundColor}"/>
+            </Border>
+
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Padding="10" MinHeight="40">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Content="&lt; Back" Command="{Binding GoBackCommand}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Header Area" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource MyAppHeaderForegroundColor}"/>
+                    <!-- Theme Switcher -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBlock Text="Theme:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{DynamicResource MyAppHeaderForegroundColor}"/>
+                        <Button Content="Light"
+                                Command="{Binding SwitchThemeCommand}"
+                                CommandParameter="{x:Static enums:AppTheme.Light}"/>
+                        <Button Content="Dark"
+                                Command="{Binding SwitchThemeCommand}"
+                                CommandParameter="{x:Static enums:AppTheme.Dark}"/>
+                        <Button Content="System"
+                                Command="{Binding SwitchThemeCommand}"
+                                CommandParameter="{x:Static enums:AppTheme.Default}"/>
+                    </StackPanel>
+                    <!-- Temp Toggle Sidebar Button - REMOVED -->
+                    <!-- <Button Grid.Column="4" Content="Toggle SB" Command="{Binding ToggleSidebarCompactCommand}" VerticalAlignment="Center" Margin="5,0,0,0"/> -->
+                </Grid>
+            </Border>
+
+            <!-- Navigation Sidebar -->
+            <Border DockPanel.Dock="Left" Width="200" Padding="0"> <!-- Fixed Width -->
+                <ExperimentalAcrylicBorder IsHitTestVisible="True">
+                    <ExperimentalAcrylicBorder.Material>
+                        <ExperimentalAcrylicMaterial
+                            BackgroundSource="Digger"
+                            TintColor="{DynamicResource MyAppSidebarAcrylicTintColor}"
+                            TintOpacity="0.7"
+                            MaterialOpacity="0.65" />
+                    </ExperimentalAcrylicBorder.Material>
+                    <StackPanel Spacing="10" Margin="10">
+                        <Button Content="Dashboard" Command="{Binding GoToDashboardCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Content="Accounts" Command="{Binding GoToAccountsCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Content="Budgets" Command="{Binding GoToBudgetsCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Content="Transactions" Command="{Binding GoToTransactionsCommand}" HorizontalAlignment="Stretch"/>
+                        <Button Content="Goals" Command="{Binding GoToGoalsCommand}" HorizontalAlignment="Stretch"/>
+                        
+                        <Separator Margin="0,10" />
+                        
+                        <Button Content="Connect Bank" 
+                                Command="{Binding GoToPlaidLinkCommand}" 
+                                HorizontalAlignment="Stretch"
+                                Classes="accent"/>
+                    </StackPanel>
+                </ExperimentalAcrylicBorder>
+            </Border>
+
+            <!-- Main Content Area -->
+            <rxui:RoutedViewHost Router="{Binding Router}" Padding="10">
+                <rxui:RoutedViewHost.DefaultContent>
+                    <TextBlock Text="Default content"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </rxui:RoutedViewHost.DefaultContent>
+                <rxui:RoutedViewHost.ViewLocator>
+                    <local:AppViewLocator />
+                </rxui:RoutedViewHost.ViewLocator>
+            </rxui:RoutedViewHost>
+        </DockPanel>
+    </Grid>
+
+</Window>

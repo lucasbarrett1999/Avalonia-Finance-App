@@ -1,0 +1,62 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+
+# Dependency directories
+node_modules/
+
+# .NET Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Environment variables
+.env
+appsettings.*.json
+!appsettings.json
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS specific
+.DS_Store
+
+# Task files
+tasks.json
+tasks/
+
+# Tools and misc
+.cursor/
+.roo/
+.roomodes
+.taskmasterconfig
+.windsurfrules
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal

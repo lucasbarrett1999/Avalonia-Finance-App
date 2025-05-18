@@ -1,0 +1,92 @@
+# Overview
+This document outlines the Product Requirements for an MVP (Minimum Viable Product) of a personal finance application, built with Avalonia UI for cross-platform support (macOS, Windows). The application aims to help users manage their finances by connecting to their bank accounts via Plaid, adopting a budgeting methodology similar to YNAB ("You Need A Budget"), and allowing them to set and track financial goals. The target user is someone looking for a modern, desktop-first application to gain control over their spending and savings.
+
+# Core MVP Features
+
+1.  **Core Application Shell & Basic Setup:**
+    *   **What it does:** Establishes the main application window, basic navigation (e.g., sidebar for different sections), and project structure for the Avalonia UI application.
+    *   **Why it's important:** Provides the fundamental framework upon which all other features will be built.
+    *   **How it works:** Initialize an Avalonia project. Implement a main window with placeholders for key views (Dashboard, Accounts, Budgets, Transactions, Goals). Basic UI theming for a clean, modern look.
+
+2.  **Plaid Integration for Account Linking (MVP):**
+    *   **What it does:** Allows users to securely connect their US-based bank accounts and credit cards using Plaid Link. Fetches and displays a list of connected accounts and their current balances.
+    *   **Why it's important:** Automates the process of bringing financial data into the app, which is crucial for budgeting and tracking.
+    *   **How it works:** Integrate the Plaid SDK. Implement a UI flow to initiate Plaid Link. Securely store Plaid access tokens (locally for MVP). Fetch account list (name, type, balance) and display it. *MVP will focus on initial account linking and balance display; transaction fetching will be a fast follow.*
+
+3.  **Basic Transaction Listing (Post-Plaid Link):**
+    *   **What it does:** Once accounts are linked, fetch and display a list of recent transactions for the connected accounts.
+    *   **Why it's important:** Users need to see their spending to budget effectively.
+    *   **How it works:** After successful Plaid Link, use the access token to fetch transactions (date, payee, amount). Display in a simple, sortable list. *MVP will not include manual transaction entry or advanced categorization initially.*
+
+4.  **Budget Category Management (MVP):**
+    *   **What it does:** Allows users to create, name, and organize a basic list of budget categories (e.g., "Groceries", "Rent", "Transportation").
+    *   **Why it's important:** Forms the foundation of the YNAB-style budgeting method.
+    *   **How it works:** Simple UI for adding, editing, and deleting budget categories. Categories are stored locally.
+
+5.  **"Assign Funds" to Categories (MVP Core of YNAB):**
+    *   **What it does:** Users can manually input their available income or a starting "To Be Budgeted" amount. They can then allocate portions of this amount to their defined budget categories for the current period (e.g., month).
+    *   **Why it's important:** This is the central YNAB principle of "giving every dollar a job."
+    *   **How it works:** A UI section showing "To Be Budgeted." For each category, users can input an "Assigned" amount. The system tracks the remaining "To Be Budgeted" amount.
+
+6.  **Link Transactions to Budget Categories (Manual MVP):**
+    *   **What it does:** Allows users to manually assign each fetched transaction to one oftheir budget categories.
+    *   **Why it's important:** Connects actual spending to the budget plan.
+    *   **How it works:** In the transaction list, provide a way to select a category for each transaction. The system updates the "Activity" and "Available" balance for the respective category.
+
+7.  **Local Data Storage (MVP):**
+    *   **What it does:** Persistently store all user data (Plaid tokens, accounts, transactions, budgets, categories) locally on the user's machine.
+    *   **Why it's important:** Ensures data is saved between sessions.
+    *   **How it works:** Utilize SQLite or a similar local database solution compatible with Avalonia/.NET. Implement basic CRUD operations for all data entities.
+
+# User Experience (MVP)
+*   **User Personas:** Individuals comfortable with desktop applications who want a hands-on approach to budgeting, inspired by YNAB, and want to connect their bank accounts for easier data import.
+*   **Key User Flows (MVP):**
+    1.  First-time setup: Welcome, Plaid Link account connection.
+    2.  Budget setup: Create categories, assign funds.
+    3.  Ongoing use: View transactions, categorize transactions, see budget category balances.
+*   **UI/UX Considerations:** Clean, intuitive, modern design. Focus on clarity and ease of use for core budgeting tasks. Avalonia UI's capabilities will be leveraged for a native cross-platform feel.
+
+# Technical Architecture (MVP)
+*   **System Components:**
+    *   Avalonia UI Application (.NET)
+    *   Plaid Client Library
+    *   Local SQLite Database
+*   **Data Models (High-Level):**
+    *   User (for Plaid item linkage, if multiple users were supported - for MVP, implies single-user context)
+    *   PlaidItem (stores Plaid access token and related item ID)
+    *   Account (linked financial accounts: name, type, balance, Plaid account ID)
+    *   Transaction (date, payee, amount, category link, Plaid transaction ID)
+    *   BudgetCategory (name, assigned amount, activity, available amount)
+    *   BudgetPeriod (e.g., "October 2023", to group category data)
+*   **APIs and Integrations:** Plaid API (primarily for Link, Accounts, Transactions).
+*   **Infrastructure Requirements:** None beyond local machine execution for MVP.
+
+# Development Roadmap (MVP Phase 1)
+1.  **Foundation:** Avalonia project setup, basic window, navigation shell, local DB setup.
+2.  **Plaid Core:** Secure Plaid key handling, Plaid Link flow, fetch & display accounts and balances.
+3.  **Transaction Display:** Fetch and display recent transactions.
+4.  **Budgeting Engine Core:** Create/manage categories, UI for assigning funds to categories.
+5.  **Transaction Categorization:** Manually link transactions to budget categories and update budget balances.
+6.  **Data Persistence:** Ensure all data is saved and loaded correctly.
+
+# Logical Dependency Chain (MVP)
+1.  Core App Shell & DB (Foundation for everything)
+2.  Plaid Account Linking (Need accounts before transactions or budgeting related to them)
+3.  Transaction Fetching & Display (Need transactions to categorize)
+4.  Budget Category Management (Need categories to assign funds/transactions)
+5.  Assign Funds to Categories (Core budgeting step)
+6.  Manual Transaction Categorization (Connects spending to budget)
+
+# Risks and Mitigations (MVP)
+*   **Technical Challenges:**
+    *   Plaid API integration nuances: Mitigation - Thoroughly read Plaid documentation, start with minimal scope (Link, Balances, Transactions).
+    *   Avalonia UI learning curve for modern design: Mitigation - Leverage existing Avalonia themes/controls, focus on simplicity for MVP.
+    *   Cross-platform DB consistency: Mitigation - Use a well-supported library like Entity Framework Core with SQLite.
+*   **Figuring out the MVP scope:**
+    *   Risk of feature creep: Mitigation - Strictly adhere to this PRD for MVP. Defer features like advanced reporting, automatic categorization, goal tracking, cloud sync to post-MVP.
+*   **Resource Constraints:** (Implicit for a solo/small team)
+    *   Time to develop: Mitigation - Focus on the absolute core features defined above.
+
+# Appendix
+*   Reference: YNAB (https://www.ynab.com/) for budgeting philosophy.
+*   Reference: Plaid API Documentation. 

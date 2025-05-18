@@ -1,0 +1,75 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MyApp.App"
+             xmlns:local="using:MyApp"
+             RequestedThemeVariant="Dark">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <!-- Custom Theme Resources -->
+        <Styles>
+            <Style>
+                <Style.Resources>
+                    <ResourceDictionary>
+                        <ResourceDictionary.ThemeDictionaries>
+                            <ResourceDictionary x:Key="Dark">
+                                <Color x:Key="MyAppBackgroundColor">#1C1C1C</Color>
+                                <Color x:Key="MyAppForegroundColor">#E0E0E0</Color>
+                                <Color x:Key="MyAppControlBackgroundColor">#2E2E2E</Color>
+                                <Color x:Key="MyAppSidebarBackgroundColor">#333333</Color>
+                                <Color x:Key="MyAppSidebarAcrylicTintColor">#333333</Color>
+                                <Color x:Key="MyAppHeaderForegroundColor">#F0F0F0</Color>
+                                <Color x:Key="MyAppStatusBarForegroundColor">#D0D0D0</Color>
+                                <Color x:Key="MyAppAccentColor1">#007ACC</Color> <!-- Example Accent: Blue -->
+                                <Color x:Key="MyAppAccentColor2">#5C8A00</Color> <!-- Example Accent: Green -->
+                            </ResourceDictionary>
+                            <ResourceDictionary x:Key="Light">
+                                <Color x:Key="MyAppBackgroundColor">#F0F0F0</Color>
+                                <Color x:Key="MyAppForegroundColor">#1C1C1C</Color>
+                                <Color x:Key="MyAppControlBackgroundColor">#FFFFFF</Color>
+                                <Color x:Key="MyAppSidebarBackgroundColor">#EAEAEA</Color>
+                                <Color x:Key="MyAppSidebarAcrylicTintColor">#EAEAEA</Color>
+                                <Color x:Key="MyAppHeaderForegroundColor">#1C1C1C</Color>
+                                <Color x:Key="MyAppStatusBarForegroundColor">#2C2C2C</Color>
+                                <Color x:Key="MyAppAccentColor1">#007ACC</Color> <!-- Same Blue -->
+                                <Color x:Key="MyAppAccentColor2">#5C8A00</Color> <!-- Same Green -->
+                            </ResourceDictionary>
+                        </ResourceDictionary.ThemeDictionaries>
+                    </ResourceDictionary>
+                </Style.Resources>
+            </Style>
+        </Styles>
+
+        <!-- Base Fluent Theme -->
+        <FluentTheme />
+
+        <!-- Global Control Styles -->
+        <Styles>
+            <Style Selector="UserControl">
+                <Setter Property="Background" Value="{DynamicResource MyAppBackgroundColor}"/>
+            </Style>
+            <Style Selector="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource MyAppForegroundColor}"/>
+            </Style>
+            <Style Selector="Border.ContentArea">
+                <Setter Property="Background" Value="{DynamicResource MyAppControlBackgroundColor}"/>
+            </Style>
+            <Style Selector="Button">
+                <Setter Property="Background" Value="{DynamicResource MyAppAccentColor1}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="CornerRadius" Value="3"/>
+                <Setter Property="Padding" Value="10,5"/>
+            </Style>
+            <Style Selector="Button:pointerover">
+                <Setter Property="Background" Value="#005C9E"/> <!-- Darker Blue -->
+            </Style>
+            <Style Selector="Button:pressed">
+                <Setter Property="Background" Value="#004475"/> <!-- Even Darker Blue -->
+            </Style>
+        </Styles>
+    </Application.Styles>
+</Application>
