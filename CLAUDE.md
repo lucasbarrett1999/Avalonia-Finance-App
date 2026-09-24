@@ -44,6 +44,9 @@ dotnet ef migrations has-pending-model-changes --project src/Keel.Infrastructure
 
 # Render every screen to PNG (light and dark) for a visual check
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter RenderingTests
+
+# Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
+KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -57,14 +60,22 @@ Directory.Packages.props (central package versions, pinned by PRD 7.1), global.j
 src/
   Keel.Domain/          Pure domain, no packages. Money + Currency, entities for every PRD 6.2
                         table (Entities/), enums, AccountTypeInfo (PRD 6.3), SystemIds (seeded rows).
+                        Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
+                        JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
                         IAppSettingsStore/AppSettings, Messaging (IMessageBus, LedgerChanged, BudgetChanged).
+                        Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
+                        ImportWarning, CsvColumnMapping, DetectedCsvLayout.
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
                         DependencyInjection.AddKeelInfrastructure.
+                        Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
+                        DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
+                        OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
+                        AddKeelFileImportParsers (not yet wired into AddKeelInfrastructure).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -75,6 +86,7 @@ tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
                               indexes, soft delete, split-sum constraint, data dir, settings, logging.
+                              Import/: parser unit tests and Fixtures/ (bank files + .expected.json).
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
@@ -147,3 +159,12 @@ From PRD 15, plus decisions made while building M0.
   in `Styles/Icons.axaml` drawn with `controls:Icon` (ADR 0004).
 - Shortcuts use the platform command modifier via `PlatformShortcuts` (Cmd on macOS, Ctrl
   elsewhere) and display with `PlatformShortcuts.Format` (glyphs on macOS).
+
+**Import**
+- Parsers are pure (bytes + `ImportOptions` in, `ParseResult` out) and never throw on bad rows:
+  they add an `ImportWarning` with a code and line, never payee or amount text.
+- Every importer change needs a fixture: add the anonymized file to
+  `tests/Keel.Infrastructure.Tests/Import/Fixtures/` (bytes are kept exactly by the folder's
+  `.gitattributes`) and its reviewed `.expected.json`.
+- `PayeeNoiseTable` feeds stored fingerprints: bump `PayeeNormalizer.Version` when it changes
+  (ADR 0005). Every table entry has a test.
