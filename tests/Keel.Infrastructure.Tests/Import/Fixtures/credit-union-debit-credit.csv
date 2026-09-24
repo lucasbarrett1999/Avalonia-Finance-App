@@ -1,0 +1,8 @@
+﻿"Account Number","Post Date","Check","Description","Debit","Credit","Status","Balance"
+"XXXXXX4321","1/30/2026","","POS PURCHASE H-E-B #123 AUSTIN TX","$67.32","","Pending","$1,904.14"
+"XXXXXX4321","1/29/2026","","ACH DEPOSIT STATE OF TEXAS TAX REFUND","","$312.00","Posted","$1,971.46"
+"XXXXXX4321","1/27/2026","1044","CHECK 1044","$85.00","","Posted","$1,659.46"
+"XXXXXX4321","1/21/2026","","ATM WITHDRAWAL 000123 5TH ST AUSTIN TX","$60.00","","Posted","$1,744.46"
+"XXXXXX4321","1/16/2026","","POS DEBIT SQ *FARMERS MARKET AUSTIN TX","$23.50","","Posted","$1,804.46"
+"XXXXXX4321","1/12/2026","","ACH DEBIT GEICO AUTO INS","$118.40","","Posted","$1,827.96"
+"XXXXXX4321","1/02/2026","","SHARE DIVIDEND","","$0.87","Posted","$1,946.36"

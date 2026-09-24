@@ -154,3 +154,69 @@ All commands ran after `export PATH=/root/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPT
 - Windows and macOS builds and tests run only in the CI matrix; they were not run in the sandbox.
 - The windowed app was not launched (no display in the sandbox). The headless tests start the
   same host, open the same default file, and render the real window.
+
+## M3 — Import parsers
+
+Parsing half of Milestone 3 (file import): pure parsers, normalization, deduplication logic,
+layout detection, fixtures and tests. The DB-backed pipeline service, CSV mapping dialog and
+import preview come in a later task, so the M3 exit criteria are not yet claimed.
+
+### Added
+
+- **Keel.Domain/Import** (PRD 6.5, F-TXN-1 steps 1, 2 and 5): `PayeeNormalizer` with its data
+  table `PayeeNoiseTable` (merchant rewrites such as `AMZN MKTP` → `AMAZON`, processor prefixes
+  `SQ *`, `TST*`, `PAYPAL *` and 15 more, bank channel phrases, noise words, reference and card
+  number patterns); `ImportFingerprint` (SHA-256 of `AccountId|Date|Amount|NormalizedPayee`);
+  `JaroWinkler`; `DuplicateMatcher` (provider id, pending to posted, exact fingerprint, fuzzy
+  ±2 days / same amount / Jaro-Winkler ≥ 0.85 against Manual and Scheduled rows, insert);
+  `TransferDetector` (opposite amounts across accounts within ±3 days, one-to-one, closest first).
+- **Keel.Application/Import**: `ParsedTransaction` (implements `IImportRecord`), `ParsedSplit`,
+  `IFileImportParser`, `IFileImportParserResolver`, `ImportOptions`, `ParseResult`,
+  `DetectedAccount`, `ImportWarning`/`ImportWarningCode`, `CsvColumnMapping`,
+  `DetectedCsvLayout`. The M0 `IImportService` stub is unchanged.
+- **Keel.Infrastructure/Import**: encoding sniffing (UTF-8 BOM, UTF-16 LE/BE with or without
+  BOM, strict UTF-8, Windows-1252 or a declared code page); amount parsing (`$`, codes,
+  thousands separators, decimal comma, parentheses, trailing minus, `CR`/`DR`); date formats
+  ISO, `yyyyMMdd`, `MM/dd/yyyy`, `dd/MM/yyyy`, two-digit years, `MMM d, yyyy`, `d MMM yyyy`
+  with whole-column disambiguation and an ambiguity report; `CsvImportParser` on CsvHelper
+  (delimiter sniffing, header detection after preambles, headerless files, signed amount,
+  debit/credit, amount + type layouts, sign-convention guess, pending status, per-row
+  currency, deterministic explicit mapping); `OfxImportParser` (OFX 1.x SGML and 2.x XML, QFX,
+  bank and credit-card statements, several statements per file, `FITID`, `DTPOSTED` with
+  time-zone suffix, `TRNAMT`, `NAME`/`PAYEE`/`MEMO`, `CHECKNUM`, `TRNTYPE`, `CURDEF`,
+  `LEDGERBAL`/`AVAILBAL`, missing end tags, entities); `QifImportParser` (`Bank`, `CCard`,
+  `Cash`, `Oth A`, `Oth L`, `!Account` blocks, `D` date variants, `T`/`U`, `P`, `M`, `N`, `C`,
+  `L`, `A`, `S`/`E`/`$` splits); `FileImportParserResolver` and `AddKeelFileImportParsers`.
+- **Fixtures** (`tests/Keel.Infrastructure.Tests/Import/Fixtures`, each with `.expected.json`):
+  CSV `chase-style-credit-card`, `bofa-style-checking` (preamble, running balance),
+  `capitalone-style-360-checking` (amount + type, `MM/dd/yy`), `credit-union-debit-credit`
+  (debit/credit, `$`, pending, check, UTF-8 BOM), `european-semicolon` (`dd/MM/yyyy`, decimal
+  comma, Windows-1252), `wellsfargo-style-headerless`, `discover-style-card`
+  (outflow-positive), `savings-month-names` (`MMM d, yyyy`, `CR`, parentheses, trailing minus);
+  OFX `bank-sgml` (Windows-1252, CRLF, no `</OFX>`), `creditcard-xml`; QFX `savings`;
+  QIF `bank` (splits, `1/ 2'26` dates), `multi-account` (CCard, Cash, Oth L, skipped Invst).
+- **Tests**: payee table (every entry), fingerprint vector, Jaro-Winkler reference values,
+  every dedup rule and tie-break, transfer pairing, CsCheck properties (re-classifying an
+  identical batch after applying the first result inserts nothing; order-independence);
+  fixture-driven exact parse results, per-fixture import-twice idempotence, CSV re-parse with
+  the detected mapping; amount, date, CSV, OFX, QIF and resolver unit tests.
+- **Package**: CsCheck 4.9.1 (test only).
+
+### Decisions and deviations
+
+- [ADR 0005](docs/decisions/0005-import-dedup-matching-details.md): dedup runs as passes, matches
+  each existing row once (identical rows need identical counts), pending-to-posted also matches
+  a pending row's provider id, fuzzy matching skips rows already matched; normalizer additions.
+- [ADR 0006](docs/decisions/0006-file-import-parser-contracts.md): parser contracts, ambiguous
+  dates default to month-first plus a warning, CSV mapping by column index, sign heuristics,
+  OFX civil dates without time-zone conversion, OFX/QIF leniency rules.
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release --no-restore --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 481 passed, 0 failed: Domain 240, Infrastructure 227, Desktop 14 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages |
+| 10k-row CSV parse + dedup classification (ad-hoc, Release) | 233 ms parse, 310 ms classify (NFR: 10k rows < 5 s) |

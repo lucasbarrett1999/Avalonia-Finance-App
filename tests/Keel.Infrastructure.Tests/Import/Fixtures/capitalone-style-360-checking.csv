@@ -1,0 +1,8 @@
+Account Number,Transaction Description,Transaction Date,Transaction Type,Transaction Amount,Balance
+9876,Interest Paid,01/31/26,Credit,1.37,8420.55
+9876,Zelle money received from JOHN SMITH,01/28/26,Credit,125.00,8419.18
+9876,Debit Card Purchase - TRADER JOE S #552 AUSTIN TX,01/24/26,Debit,54.21,8294.18
+9876,Withdrawal to SAVINGS ...1234,01/20/26,Debit,500.00,8348.39
+9876,Deposit from ACME CORP PAYROLL,01/15/26,Credit,2750.00,8848.39
+9876,Debit Card Purchase - SPOTIFY USA NEW YORK NY,01/09/26,Debit,11.99,6098.39
+9876,Check #1043,01/06/26,Debit,300.00,6110.38

@@ -1,0 +1,82 @@
+{
+  "format": "Ofx",
+  "encoding": "windows-1252",
+  "accounts": [
+    {
+      "accountId": "000123456789",
+      "bankId": "111000025",
+      "accountType": "CHECKING",
+      "currency": "USD",
+      "ledgerBalance": 371233,
+      "ledgerBalanceDate": "2026-01-31",
+      "availableBalance": 365000,
+      "statementStart": "2026-01-01",
+      "statementEnd": "2026-01-31"
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-01-05",
+      "amount": -4217,
+      "payeeRaw": "SQ *CAFÉ LUNA",
+      "memo": "POS PURCHASE",
+      "providerTransactionId": "202601050001",
+      "currency": "USD",
+      "transactionType": "DEBIT",
+      "sourceAccountId": "000123456789",
+      "sourceIndex": 0,
+      "sourceLine": 43
+    },
+    {
+      "date": "2026-01-15",
+      "amount": 275000,
+      "payeeRaw": "ACME CORP PAYROLL",
+      "memo": "DIRECT DEP",
+      "providerTransactionId": "202601150001",
+      "currency": "USD",
+      "transactionType": "CREDIT",
+      "sourceAccountId": "000123456789",
+      "sourceIndex": 1,
+      "sourceLine": 51
+    },
+    {
+      "date": "2026-01-20",
+      "amount": -145000,
+      "payeeRaw": "CHECK 1045",
+      "providerTransactionId": "202601200001",
+      "checkNumber": "1045",
+      "currency": "USD",
+      "transactionType": "CHECK",
+      "sourceAccountId": "000123456789",
+      "sourceIndex": 2,
+      "sourceLine": 59
+    },
+    {
+      "date": "2026-01-22",
+      "amount": -8999,
+      "payeeRaw": "AT&T WIRELESS",
+      "providerTransactionId": "202601220001",
+      "currency": "USD",
+      "transactionType": "PAYMENT",
+      "sourceAccountId": "000123456789",
+      "extras": {
+        "DTUSER": "20260121120000.000[-5:EST]",
+        "REFNUM": "8837"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 67
+    },
+    {
+      "date": "2026-01-28",
+      "amount": -50000,
+      "payeeRaw": "TRANSFER TO SAVINGS",
+      "memo": "ONLINE TRANSFER REF 5541",
+      "providerTransactionId": "202601280001",
+      "currency": "USD",
+      "transactionType": "XFER",
+      "sourceAccountId": "000123456789",
+      "sourceIndex": 4,
+      "sourceLine": 77
+    }
+  ]
+}

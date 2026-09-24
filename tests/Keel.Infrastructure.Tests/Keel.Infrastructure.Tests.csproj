@@ -17,4 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Keel.Infrastructure\Keel.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Import/Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

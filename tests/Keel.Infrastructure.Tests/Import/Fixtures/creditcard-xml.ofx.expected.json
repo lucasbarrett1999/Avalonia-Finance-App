@@ -1,0 +1,74 @@
+{
+  "format": "Ofx",
+  "encoding": "utf-8",
+  "accounts": [
+    {
+      "accountId": "XXXXXXXXXXXX9012",
+      "accountType": "CREDITCARD",
+      "currency": "USD",
+      "ledgerBalance": -152361,
+      "ledgerBalanceDate": "2026-01-31",
+      "availableBalance": 647639,
+      "statementStart": "2026-01-01",
+      "statementEnd": "2026-01-31"
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-01-03",
+      "amount": -1825,
+      "payeeRaw": "UBER *EATS",
+      "memo": "HELP.UBER.COM CA",
+      "providerTransactionId": "2026010324692160003000123",
+      "currency": "USD",
+      "transactionType": "DEBIT",
+      "sourceAccountId": "XXXXXXXXXXXX9012",
+      "sourceIndex": 0,
+      "sourceLine": 29
+    },
+    {
+      "date": "2026-01-11",
+      "amount": -12999,
+      "payeeRaw": "COSTCO WHSE #0123",
+      "providerTransactionId": "2026011124692160003000456",
+      "currency": "USD",
+      "transactionType": "DEBIT",
+      "sourceAccountId": "XXXXXXXXXXXX9012",
+      "sourceIndex": 1,
+      "sourceLine": 37
+    },
+    {
+      "date": "2026-01-18",
+      "amount": 65000,
+      "payeeRaw": "PAYMENT - THANK YOU",
+      "providerTransactionId": "2026011824692160003000789",
+      "currency": "USD",
+      "transactionType": "CREDIT",
+      "sourceAccountId": "XXXXXXXXXXXX9012",
+      "sourceIndex": 2,
+      "sourceLine": 44
+    },
+    {
+      "date": "2026-01-25",
+      "amount": -750,
+      "payeeRaw": "Joe's Tacos & Café",
+      "providerTransactionId": "2026012524692160003000999",
+      "currency": "USD",
+      "transactionType": "DEBIT",
+      "sourceAccountId": "XXXXXXXXXXXX9012",
+      "sourceIndex": 3,
+      "sourceLine": 51
+    },
+    {
+      "date": "2026-01-31",
+      "amount": -387,
+      "payeeRaw": "FOREIGN TRANSACTION FEE",
+      "providerTransactionId": "2026013124692160003001111",
+      "currency": "USD",
+      "transactionType": "FEE",
+      "sourceAccountId": "XXXXXXXXXXXX9012",
+      "sourceIndex": 4,
+      "sourceLine": 59
+    }
+  ]
+}

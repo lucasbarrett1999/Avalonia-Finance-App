@@ -1,0 +1,74 @@
+{
+  "format": "Csv",
+  "encoding": "utf-8",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ",",
+      "skipRows": 0,
+      "hasHeader": true,
+      "dateColumn": 0,
+      "dateFormat": "MMM d, yyyy",
+      "payeeColumn": 1,
+      "amountLayout": "SignedAmount",
+      "amountColumn": 2,
+      "signConvention": "InflowPositive",
+      "decimalSeparator": "."
+    },
+    "headers": [
+      "Date",
+      "Description",
+      "Amount",
+      "Balance"
+    ],
+    "dateFormatCandidates": [
+      "MMM d, yyyy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "transactions": [
+    {
+      "date": "2026-01-31",
+      "amount": 412,
+      "payeeRaw": "INTEREST EARNED",
+      "currency": "USD",
+      "extras": {
+        "Balance": "$10,504.12"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-20",
+      "amount": 50000,
+      "payeeRaw": "TRANSFER FROM CHECKING",
+      "currency": "USD",
+      "extras": {
+        "Balance": "$10,500.00"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-09",
+      "amount": -25000,
+      "payeeRaw": "WITHDRAWAL TRANSFER TO CHECKING",
+      "currency": "USD",
+      "extras": {
+        "Balance": "$10,000.00"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-02",
+      "amount": -1000,
+      "payeeRaw": "EXCESS WITHDRAWAL FEE",
+      "currency": "USD",
+      "extras": {
+        "Balance": "$10,250.00"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    }
+  ]
+}

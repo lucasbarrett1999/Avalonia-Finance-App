@@ -1,0 +1,109 @@
+{
+  "format": "Csv",
+  "encoding": "utf-8",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ",",
+      "skipRows": 0,
+      "hasHeader": true,
+      "dateColumn": 0,
+      "dateFormat": "MM/dd/yyyy",
+      "payeeColumn": 2,
+      "amountLayout": "SignedAmount",
+      "amountColumn": 3,
+      "signConvention": "OutflowPositive",
+      "decimalSeparator": ".",
+      "categoryColumn": 4
+    },
+    "headers": [
+      "Trans. Date",
+      "Post Date",
+      "Description",
+      "Amount",
+      "Category"
+    ],
+    "dateFormatCandidates": [
+      "MM/dd/yyyy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "warnings": [
+    {
+      "code": "SignConventionGuessed"
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-01-29",
+      "amount": 35000,
+      "payeeRaw": "INTERNET PAYMENT - THANK YOU",
+      "currency": "USD",
+      "category": "Payments and Credits",
+      "extras": {
+        "Post Date": "01/29/2026"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-26",
+      "amount": -8214,
+      "payeeRaw": "H-E-B #123 AUSTIN TX",
+      "currency": "USD",
+      "category": "Supermarkets",
+      "extras": {
+        "Post Date": "01/26/2026"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-24",
+      "amount": -1199,
+      "payeeRaw": "SPOTIFY USA 877-778-1161 NY",
+      "currency": "USD",
+      "category": "Services",
+      "extras": {
+        "Post Date": "01/24/2026"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-19",
+      "amount": -3456,
+      "payeeRaw": "AMAZON.COM*RT7YB3AC1 AMZN.COM/BILL WA",
+      "currency": "USD",
+      "category": "Merchandise",
+      "extras": {
+        "Post Date": "01/20/2026"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    },
+    {
+      "date": "2026-01-12",
+      "amount": 1250,
+      "payeeRaw": "CASHBACK BONUS REDEMPTION PYMT/STMT CRDT",
+      "currency": "USD",
+      "category": "Awards and Rebate Credits",
+      "extras": {
+        "Post Date": "01/13/2026"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 6
+    },
+    {
+      "date": "2026-01-05",
+      "amount": -4500,
+      "payeeRaw": "CHEVRON 0098765 AUSTIN TX",
+      "currency": "USD",
+      "category": "Gasoline",
+      "extras": {
+        "Post Date": "01/06/2026"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 7
+    }
+  ]
+}

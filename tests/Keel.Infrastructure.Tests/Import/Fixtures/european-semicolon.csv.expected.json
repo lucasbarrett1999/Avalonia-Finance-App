@@ -1,0 +1,106 @@
+{
+  "format": "Csv",
+  "encoding": "windows-1252",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ";",
+      "skipRows": 0,
+      "hasHeader": true,
+      "dateColumn": 0,
+      "dateFormat": "dd/MM/yyyy",
+      "payeeColumn": 2,
+      "memoColumn": 3,
+      "amountLayout": "SignedAmount",
+      "amountColumn": 4,
+      "signConvention": "InflowPositive",
+      "decimalSeparator": ",",
+      "currencyColumn": 5
+    },
+    "headers": [
+      "Booking date",
+      "Value date",
+      "Payee",
+      "Description",
+      "Amount",
+      "Currency"
+    ],
+    "dateFormatCandidates": [
+      "dd/MM/yyyy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "transactions": [
+    {
+      "date": "2026-01-30",
+      "amount": -450,
+      "payeeRaw": "Café Crème Paris",
+      "memo": "CB CAFE CREME 29/01",
+      "currency": "EUR",
+      "extras": {
+        "Value date": "30/01/2026"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-28",
+      "amount": -2395,
+      "payeeRaw": "Müller Drogerie",
+      "memo": "Kartenzahlung",
+      "currency": "EUR",
+      "extras": {
+        "Value date": "28/01/2026"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-27",
+      "amount": -115000,
+      "payeeRaw": "Björk Ångström",
+      "memo": "Überweisung Miete Februar",
+      "currency": "EUR",
+      "extras": {
+        "Value date": "26/01/2026"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-15",
+      "amount": 325000,
+      "payeeRaw": "ACME GmbH",
+      "memo": "Gehalt Januar 2026",
+      "currency": "EUR",
+      "extras": {
+        "Value date": "15/01/2026"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    },
+    {
+      "date": "2026-01-08",
+      "amount": -8640,
+      "payeeRaw": "Stadtwerke München",
+      "memo": "Lastschrift Strom",
+      "currency": "EUR",
+      "extras": {
+        "Value date": "08/01/2026"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 6
+    },
+    {
+      "date": "2026-01-02",
+      "amount": -200,
+      "payeeRaw": "Crédit Agricole",
+      "memo": "Frais de tenue de compte",
+      "currency": "EUR",
+      "extras": {
+        "Value date": "02/01/2026"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 7
+    }
+  ]
+}
