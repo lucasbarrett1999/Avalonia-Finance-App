@@ -74,4 +74,10 @@ public class Transaction
 
     /// <summary>Whether the splits (if any) sum exactly to the amount.</summary>
     public bool SplitsBalance => !IsSplit || Splits.Sum(s => s.Amount) == Amount;
+
+    /// <summary>
+    /// True once an imported row was matched to this manual or scheduled row (PRD 6.5 step 4). Such a
+    /// row is never fuzzy-matched again, so one manual entry absorbs at most one imported row (ADR 0050).
+    /// </summary>
+    public bool HasImportMatch { get; set; }
 }

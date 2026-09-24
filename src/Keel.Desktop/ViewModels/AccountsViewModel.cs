@@ -12,6 +12,7 @@ using Keel.Application.Payees;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
+using Keel.Desktop.ViewModels.Import;
 using Keel.Desktop.ViewModels.Register;
 using Keel.Domain;
 using Keel.Domain.Ledger;
@@ -42,6 +43,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
     private readonly IBalanceSnapshotService _snapshots;
     private readonly DialogService _dialogs;
     private readonly StatusService _status;
+    private readonly ImportWorkflow _import;
     private IReadOnlyList<RegisterRowViewModel> _selection = [];
     private RegisterSort _sort = RegisterSort.Default;
     private Guid? _selectAfterRefresh;
@@ -58,9 +60,11 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         IBalanceSnapshotService snapshots,
         DialogService dialogs,
         StatusService status,
-        IMessenger messenger)
+        IMessenger messenger,
+        ImportWorkflow import)
     {
         ArgumentNullException.ThrowIfNull(messenger);
+        _import = import;
         _register = register;
         _transactions = transactions;
         _accounts = accounts;
@@ -98,7 +102,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
     /// <summary>The account shown, once loaded.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle), nameof(IsTracking), nameof(CanReconcile), nameof(IsAccountClosed))]
+    [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle), nameof(IsTracking), nameof(CanReconcile), nameof(IsAccountClosed), nameof(CanImportFile))]
     public partial AccountDto? Account { get; private set; }
 
     /// <summary>The virtual row list bound to the grid.</summary>
@@ -188,7 +192,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
     /// <summary>All Accounts with no accounts at all.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(EmptyHeading), nameof(EmptyMessage), nameof(ShowGrid), nameof(ShowEmptyState), nameof(CanAddTransaction))]
+    [NotifyPropertyChangedFor(nameof(EmptyHeading), nameof(EmptyMessage), nameof(ShowGrid), nameof(ShowEmptyState), nameof(CanAddTransaction), nameof(CanImportFile))]
     public partial bool HasNoAccounts { get; private set; }
 
     /// <summary>Whether the grid is shown.</summary>
@@ -199,6 +203,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
     /// <summary>Whether a transaction can be added here.</summary>
     public bool CanAddTransaction => !HasNoAccounts && !IsAccountClosed;
+
+    /// <summary>Whether "Import file" applies (F-TXN-2): an open account, or All Accounts with accounts.</summary>
+    public bool CanImportFile => !HasNoAccounts && !IsAccountClosed;
 
     /// <summary>Filter: search text (F-TXN-7 syntax).</summary>
     [ObservableProperty]
@@ -524,6 +531,13 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
         Reconcile = new ReconcileViewModel(_transactions, account.Id, account.Balance.Currency, Summary.Cleared, FinishedReconcileAsync, () => Reconcile = null);
     }
+
+    /// <summary>
+    /// Imports a bank file into this register's account, or into a chosen account from All
+    /// Accounts (F-TXN-2). The register refreshes through <see cref="LedgerChanged"/>.
+    /// </summary>
+    [RelayCommand]
+    public Task ImportFileAsync() => CanImportFile ? _import.ImportAsync(AccountId) : Task.CompletedTask;
 
     /// <summary>Opens the edit-account dialog.</summary>
     [RelayCommand]

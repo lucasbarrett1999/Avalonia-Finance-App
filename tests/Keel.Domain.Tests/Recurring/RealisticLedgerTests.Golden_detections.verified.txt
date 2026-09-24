@@ -1,0 +1,48 @@
+﻿ACME CORP PAYROLL @ Checking
+  cadence Biweekly, rule FREQ=WEEKLY;INTERVAL=2;BYDAY=FR (Every 2 weeks on Friday)
+  expected 2,450.00 +/- 245.00
+  seen 2025-07-11 .. 2026-09-18 (32 occurrences), next 2026-10-02
+  confidence 1.000 (fraction 1.000)
+  scores: Weekly 0.00/56.0d; Biweekly 1.00/0.0d; Semimonthly 1.00/9.8d; Monthly 0.00/131.5d; Quarterly 0.00/618.5d; Yearly 0.00/2810.0d;
+LANDLORD LLC RENT @ Checking
+  cadence Monthly, rule FREQ=MONTHLY;BYMONTHDAY=1 (Every month on the 1st)
+  expected -1,850.00 +/- 185.00
+  seen 2025-07-01 .. 2026-09-01 (15 occurrences), next 2026-10-01
+  confidence 1.000 (fraction 1.000)
+  scores: Weekly 0.00/87.1d; Biweekly 0.00/61.0d; Semimonthly 0.00/56.4d; Monthly 1.00/0.7d; Quarterly 0.00/227.9d; Yearly 0.00/1250.6d;
+NAMECHEAP @ Visa
+  cadence Yearly, rule FREQ=YEARLY;BYMONTH=8;BYMONTHDAY=4 (Every year on August 4)
+  expected -14.98 +/- 2.00
+  seen 2025-08-03 .. 2026-08-04 (2 occurrences), next 2027-08-04
+  confidence 1.000 (fraction 1.000)
+  scores: Weekly 0.00/179.5d; Biweekly 0.00/176.0d; Semimonthly 0.00/175.4d; Monthly 0.00/167.8d; Quarterly 0.00/137.3d; Yearly 1.00/0.4d;
+NETFLIX CA @ Visa
+  cadence Monthly, rule FREQ=MONTHLY;BYMONTHDAY=12 (Every month on the 12th)
+  expected -17.99 +/- 2.00, variable
+  seen 2025-07-12 .. 2026-09-12 (15 occurrences), next 2026-10-12
+  confidence 0.800 (fraction 1.000)
+  scores: Weekly 0.00/87.2d; Biweekly 0.00/61.1d; Semimonthly 0.00/56.5d; Monthly 1.00/0.6d; Quarterly 0.00/227.7d; Yearly 0.00/1250.4d;
+PACIFIC GAS AND ELECTRIC @ Checking
+  cadence Monthly, rule FREQ=MONTHLY;BYMONTHDAY=21 (Every month on the 21st)
+  expected -158.45 +/- 15.84, variable
+  seen 2025-07-21 .. 2026-09-21 (15 occurrences), next 2026-10-21
+  confidence 0.800 (fraction 1.000)
+  scores: Weekly 0.00/87.4d; Biweekly 0.00/61.3d; Semimonthly 0.00/56.7d; Monthly 1.00/1.1d; Quarterly 0.00/227.4d; Yearly 0.00/1250.1d;
+PLANET FITNESS CLUB FEES @ Checking
+  cadence Monthly, rule FREQ=MONTHLY;BYMONTHDAY=5 (Every month on the 5th)
+  expected -24.99 +/- 2.50
+  seen 2025-07-05 .. 2026-02-05 (8 occurrences), next 2026-03-05, LAPSED
+  confidence 1.000 (fraction 1.000)
+  scores: Weekly 0.00/47.2d; Biweekly 0.00/33.2d; Semimonthly 0.00/30.8d; Monthly 1.00/0.5d; Quarterly 0.00/121.4d; Yearly 0.00/669.2d;
+SPOTIFY USA @ Checking
+  cadence Monthly, rule FREQ=MONTHLY;BYMONTHDAY=28 (Every month on the 28th)
+  expected -11.99 +/- 2.00
+  seen 2025-07-28 .. 2026-08-28 (14 occurrences), next 2026-09-28
+  confidence 1.000 (fraction 1.000)
+  scores: Weekly 0.00/81.7d; Biweekly 0.00/57.2d; Semimonthly 0.00/52.9d; Monthly 1.00/0.6d; Quarterly 0.00/213.4d; Yearly 0.00/1172.2d;
+STATE FARM INSURANCE @ Checking
+  cadence Quarterly, rule FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=15 (Every 3 months on the 15th)
+  expected -312.40 +/- 31.24
+  seen 2025-07-15 .. 2026-07-15 (5 occurrences), next 2026-10-15
+  confidence 1.000 (fraction 1.000)
+  scores: Weekly 0.00/101.2d; Biweekly 0.00/92.8d; Semimonthly 0.00/91.3d; Monthly 0.00/73.1d; Quarterly 1.00/0.5d; Yearly 0.00/329.1d;

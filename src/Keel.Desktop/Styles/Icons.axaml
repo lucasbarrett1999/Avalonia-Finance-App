@@ -50,4 +50,5 @@
   <StreamGeometry x:Key="Icon.EyeOff">M17.94 17.94 A10.07 10.07 0 0 1 12 20 C5 20 1 12 1 12 A18.45 18.45 0 0 1 6.06 6.06 M9.9 4.24 A9.12 9.12 0 0 1 12 4 C19 4 23 12 23 12 A18.5 18.5 0 0 1 20.84 15.19 M14.12 14.12 A3 3 0 1 1 9.88 9.88 M1 1 L23 23</StreamGeometry>
   <StreamGeometry x:Key="Icon.List">M8 6 H21 M8 12 H21 M8 18 H21 M3 6 H3.01 M3 12 H3.01 M3 18 H3.01</StreamGeometry>
   <StreamGeometry x:Key="Icon.Info">M12 2 A10 10 0 1 0 12 22 A10 10 0 1 0 12 2 Z M12 16 V12 M12 8 H12.01</StreamGeometry>
+  <StreamGeometry x:Key="Icon.Import">M21 15 V19 A2 2 0 0 1 19 21 H5 A2 2 0 0 1 3 19 V15 M7 10 L12 15 L17 10 M12 15 V3</StreamGeometry>
 </ResourceDictionary>

@@ -62,4 +62,10 @@ internal sealed class LedgerSession(KeelDbContext db, TimeProvider time)
         await Db.SaveChangesAsync(ct).ConfigureAwait(false);
         _changes.AddRange(captured);
     }
+
+    /// <summary>
+    /// Adds changes written outside the change tracker in this transaction (the import's bulk
+    /// insert, ADR 0052), already audited, so they join the undo entry and the change message.
+    /// </summary>
+    public void AddWrittenChanges(IEnumerable<EntityChange> changes) => _changes.AddRange(changes);
 }

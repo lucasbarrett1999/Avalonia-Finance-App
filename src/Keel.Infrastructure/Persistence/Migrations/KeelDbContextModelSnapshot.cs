@@ -700,6 +700,9 @@ namespace Keel.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("HasImportMatch")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ImportFingerprint")
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");

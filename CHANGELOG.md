@@ -393,3 +393,236 @@ import preview come in a later task, so the M3 exit criteria are not yet claimed
 | `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
 | `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages |
 | 10k-row CSV parse + dedup classification (ad-hoc, Release) | 233 ms parse, 310 ms classify (NFR: 10k rows < 5 s) |
+
+## M3 — Import pipeline
+
+Second half of Milestone 3: the persisted, unified import pipeline (F-TXN-1) and the file import
+UI (F-TXN-2). Branch `claude/keel-m3-import-pipeline`. With the parser half, the M3 exit criteria
+are met: every fixture (8 CSV layouts, 2 OFX, 1 QFX, 2 QIF) imports completely and idempotently
+through the real service and database (`Every_fixture_imports_completely_and_idempotently`).
+
+### Added
+
+- **Application/Import**: `IImportService` implemented and extended (`ImportBatch` with reported
+  balance, per-row `ImportRowOverride`s and parse warnings; `ImportPreviewRow` with payee,
+  category, include/transfer defaults; `ImportSummary` with rows left out, warnings and the recorded
+  balance; `DedupOutcomes` maps the domain `DedupDecision`), `IImportCategorizationHook` +
+  `ImportDraft` (the M4 seam for payee rename, rules and learner), `IImportSettingsStore` with
+  `RememberedCsvMapping`, `ImportBatchBuilder`, `CsvDateFormats`, `LedgerAction.ImportTransactions`,
+  warning codes `ReconciledNotUpdated`, `CurrencyMismatch`, `OtherAccountsInFile`.
+- **Infrastructure/Import**: `ImportService` and `ImportPlanner`: PRD 6.5 dedup against the target
+  account's rows in the batch window ±3 days plus provider-id lookups (connection-scoped for future
+  sync batches), payee resolution (existing payee by normalized name, else a title-cased new one)
+  with default categories, hooks (no-op default registered), `TransferDetector` pairing with
+  existing imported rows in other accounts as proper transfer pairs, unapproved cleared inserts,
+  in-place updates, fuzzy matches marked `HasImportMatch`, OFX `LEDGERBAL` as a Provider
+  `BalanceSnapshot` and the account's reported balance. One `LedgerWriter` unit of work per import:
+  audited, one undo entry, one `LedgerChanged`. `BulkLedgerInsert` writes the new rows with the
+  same snapshots and audit rows. `ImportSettingsStore` (Setting table). Parsers, the service, the
+  hook and the store are registered in `AddKeelInfrastructure`. Migration `ImportMatchFlag` adds
+  `Transactions.HasImportMatch`.
+- **Desktop**: "Import file" in the register header and in the sidebar account menu (All Accounts
+  asks for the account); `ImportWorkflow` with the Avalonia storage file picker (csv/ofx/qfx/qif,
+  opens in the account's last folder); CSV mapping dialog (prefilled from the remembered mapping
+  when the header matches, else detection; date/payee/memo columns, signed, debit/credit or
+  amount + type, date format with the month-first/day-first prompt, sign, decimal separator, lines
+  to skip, header, live preview of the first 10 rows); preview dialog listing every row with its
+  status (New, Duplicate, Matched to existing, Updated, Transfer pair), import and transfer
+  checkboxes, live totals, reported balance, warnings, a statement chooser for multi-account files;
+  summary toast with Undo. Dialogs may widen the dialog layer (`PreferredMaxWidth`). New icon
+  `Icon.Import`; all text in `Strings.resx`.
+- **Tests**: Infrastructure (real SQLite): every fixture twice, same CSV twice, OFX FITID dedup and
+  update in place, signed / debit-credit / amount + type, ISO / US / EU / `Mon D, YYYY` dates and
+  the ambiguous-date answer, fuzzy match to a manual row (once only, survives re-import), transfer
+  pairing across two imports and to a tracking account, undo/redo of an import (matched row,
+  transfer partner, payees, snapshot restored), all-duplicate import not on the undo stack,
+  preview writes nothing and agrees with the import, overrides, payees and default categories,
+  hooks, pending to posted, reconciled rows kept, closed/missing account refused, bulk rows stored
+  like EF rows, mapping and folder memory, CsCheck property (25 generated batches with manual
+  entries, imported twice through the service: no new rows), 10k-row timing. Desktop headless:
+  register button to mapping, preview, import, toast and undo; ambiguous dates and live preview;
+  mapping memory; every preview status and overrides; sidebar menu and All Accounts chooser;
+  `Import_dialogs_render_in_light_and_dark`. Benchmarks: `ImportBenchmarks`.
+
+### Decisions and deviations
+
+- [ADR 0050](docs/decisions/0050-import-match-flag-column.md): stored `HasImportMatch` column.
+- [ADR 0051](docs/decisions/0051-import-memory-in-setting-table.md): CSV mapping (with its header)
+  and last folder per account in the `Setting` table.
+- [ADR 0052](docs/decisions/0052-bulk-insert-for-imports.md): new imported rows go through one
+  prepared command with full audit and undo (EF's per-row inserts missed the 10k-row NFR).
+- [ADR 0053](docs/decisions/0053-import-pipeline-interpretations.md): payee naming, status and
+  approval, dedup edge cases, transfer candidates, preview checkbox meaning, multi-account files,
+  reported balance, summary.
+- Small appends to M1 files: `LedgerSession.AddWrittenChanges`, `DialogViewModel.PreferredMaxWidth`
+  and `DialogService.CurrentMaxWidth`, `AccountsViewModel`/`ShellViewModel` take `ImportWorkflow`.
+## M5 — Recurring, scheduling and forecast
+
+Domain half of Milestone 5 (the Bills screen, notification center UI and database-backed
+services are a later task).
+
+### Added
+
+- **`RecurrenceRule`** (`Keel.Domain/Scheduling`): RFC 5545 subset for F-ACC-6 (DAILY, WEEKLY with
+  INTERVAL, MONTHLY on day D / last day / Nth weekday / twice monthly, YEARLY, COUNT, UNTIL, WKST);
+  parser with messages naming the offending part, canonical string form and equality, English
+  `Describe` ("Every 2 weeks on Friday", "Every month on the 2nd Tuesday"), lazy
+  `Occurrences(start, from, to)`, `NextAfter`, `First`; the 31st and February 29 clamp to short
+  months; pure `DateOnly` math.
+- **`RecurringDetector`** (`Keel.Domain/Recurring`): PRD 6.6 over (normalized payee, account)
+  groups in a 15-month window: gap windows per cadence, ≥ 0.7 fraction, ≥ 3 occurrences (2 for
+  yearly), median of the last 6, max($2, 10%) tolerance, `IsVariableAmount`, confidence, anchored
+  next expected date and projection rule, lapsed patterns, per-cadence scores for explanations.
+  `RecurringSchedule` (anchors, next date, `InferRule` for stored items), `RecurringReconciler`
+  (create/update/no-op decisions: one item per group, dismissed items untouched unless re-enabled,
+  lapsed patterns end items), `RecurringMath` (monthly/yearly equivalents, F-REC-2 totals, F-REC-4
+  set-aside target), `SubscriptionClassifier` (subscription groups or tags).
+- **`RecurringStatus.Detected`** appended: new detections await confirmation; only Active items
+  are forecast. Stored by name, no migration.
+- **`AlertEvaluator`** (`Keel.Domain/Alerts`): price increase (> 5% and > $1 vs the previous
+  charge), expected item missing 3+ days, new recurring item, first charge after a $0/trial
+  charge; idempotent through `(kind, item, occurrence)` keys stored in `Alert.PayloadJson`.
+- **`ForecastEngine`** (`Keel.Domain/Forecast`): F-REP-4 daily balances per on-budget cash account
+  and combined for N days (default 90) from the cleared balance, scheduled occurrences (transfers
+  on both sides), confirmed recurring items (skipped when a schedule covers the same payee and
+  account), optional average daily discretionary spend; overdue occurrences on day 0; lowest
+  balance, days below a floor, per-day explain, skipped sources with reasons.
+- **Application contracts** (`Keel.Application/{Recurring,Scheduling,Forecast,Alerts}`):
+  `IRecurringService`, `IScheduledTransactionService`, `IForecastService`, `IAlertService` with
+  DTOs and `RecurringChanged`/`AlertsChanged` messages (implementations come later).
+- **Tests** (345 new, all in `Keel.Domain.Tests`): rule parse/description/error tables, occurrence
+  tables with short-month, leap-day and RFC 5545 examples, CsCheck properties (strictly increasing,
+  within bounds, window slicing, `NextAfter`, round trip); detector for every cadence exact and with
+  jitter plus amount noise (150 seeded cases), thresholds, window, grouping via `PayeeNormalizer`,
+  refunds and $0 rows, next-date anchoring (early rent, 31st, 30th after February, holiday shift,
+  leap day), lapsed; a realistic ledger (biweekly paycheck, rent on the 1st, Netflix with a price
+  increase, quarterly insurance, annual domain, variable utility, cancelled gym, irregular coffee
+  and groceries not detected) with a Verify golden; labeled generated ledgers; reconciler, math,
+  alert rules and idempotence; forecast unit tests and three Verify goldens (with and without
+  discretionary spend, double-count guard on and off, floor detection).
+- **Performance**: `RecurringFixtureGenerator` (deterministic, 2k payees, ~123k transactions),
+  a timing test (< 500 ms; runs in a non-parallel collection) and `RecurringDetectorBenchmarks`.
+
+### Decisions and deviations
+
+- [ADR 0030](docs/decisions/0030-recurrence-rule-subset.md): the supported RFC 5545 subset, start
+  date as DTSTART, clamping instead of skipping short months, rejected parts.
+- [ADR 0031](docs/decisions/0031-recurring-detection-interpretations.md): $0 rows and minority-sign
+  rows are not occurrences, 2-occurrence groups judged for yearly only, semimonthly window 13–18,
+  biweekly vs semimonthly decided by schedule residual, anchored next date ("same day of month"),
+  lapsed patterns, the `Detected` status, merge and status rules, rounding of totals and targets.
+- [ADR 0032](docs/decisions/0032-recurring-alert-rules.md): alert keys, outflow-only price increases,
+  variable items skipped, missing for Active items only, $1 trial charges, 90-day trial window.
+- [ADR 0033](docs/decisions/0033-cash-flow-forecast-definitions.md): horizon (today + N days), overdue
+  occurrences, the double-count guard, the discretionary-spend definition, floor semantics.
+## M4 — Rules and learner
+
+Domain half of Milestone 4: the rules engine, the categorization learner and the categorization
+pipeline contract, all pure and persistence-free. The Review screen, the DB-backed rule and learner
+services and retroactive apply come in a later task, so the M4 exit criteria (review keyboard flow
+headless-tested) are not yet claimed.
+
+### Added
+
+- **Keel.Domain/Rules** (F-TXN-4, ADR 0020): `TransactionSnapshot`; `RuleDefinition` with
+  versioned `RuleJson` for `Rule.ConditionsJson`/`ActionsJson` (camelCase `type` discriminators,
+  newer versions refused with `RuleFormatException`); conditions payee contains/equals/starts
+  with/regex (raw or normalized via `PayeeNormalizer`, matching the renamed payee or the raw
+  descriptor), memo, amount equals/between/greater/less (magnitude or signed), direction, account
+  set, source set, date range, tag, combined with all/any; actions set payee, set category, set
+  memo, append memo, add tag, mark approved, flag, split by fixed amounts (last line takes the
+  rest) or percentages (banker's rounding, remainder last), set transfer account.
+  `RuleEngine.Compile/Apply` (sort order, first match wins unless continue, later rules see
+  earlier changes, regex compiled once with a 100 ms match timeout) returns `RuleMutations`
+  (result snapshot, changed fields, rule that set each field) and a `RuleTrace`. `RuleValidator`
+  (English messages, codes, paths, optional reference checks). `RuleSuggester.FromTransaction`
+  for "Create rule from this transaction".
+- **Keel.Domain/Categorization** (F-TXN-5, ADR 0021): `CategoryLearner.Train` → immutable
+  `LearnerModel` (naive Bayes with Laplace smoothing; exact-payee prior once a payee has 3
+  approved examples; payee tokens, log2 amount bucket, account, weekday, direction);
+  `Suggest`/`Predict` with confidence, explanation ("Suggested because 12 of 13 past 'TRADER
+  JOES' transactions were Groceries" or the driving words), 60% floor, hidden/system categories
+  only when the history is exclusively there; `WithExample`/`WithoutExample` (equal to a full
+  retrain); `WithCategories`; deterministic count-only JSON (`LearnerModelJson`).
+- **Keel.Application/Categorization** (ADR 0022): `ICategorizationEngine` and
+  `CategorizationEngine`: rules decide first (learner skipped), then the payee default category at
+  0.95 (F-TXN-9), then the learner; suggestions for the review queue and a `CategorizationTrace`.
+- **Tests** (Domain.Tests, which now also references Keel.Application): every condition and action,
+  ordering/continue/override, disabled and invalid rules, split exactness (CsCheck properties for
+  percentages and fixed amounts), invalid and overlong regex, regex timeout, pinned JSON format,
+  validator messages, suggester; learner thresholds, restricted categories, explanations,
+  determinism, incremental and removal equivalence, JSON round trip and errors, pipeline stages.
+  `LabeledHistoryGenerator`: deterministic 24-month history, 64 payees, 30 categories, 1,277
+  distinct descriptors for 2,452 transactions, 9 payees split across two categories, refunds, 1%
+  inconsistent labels.
+- **Benchmarks**: `CategoryLearnerBenchmarks` (`Train100k`, `Suggest`, `WithExample`).
+
+### Decisions and deviations
+
+- [ADR 0020](docs/decisions/0020-rule-format-and-engine-semantics.md): rule JSON format and
+  versioning, payee conditions match renamed or raw payee, amounts compare magnitude by default,
+  later continuing rules override earlier ones, fixed-amount split remainder, regex limits.
+- [ADR 0021](docs/decisions/0021-categorization-learner-model.md): learner model, features,
+  smoothing and tempering, the 3-example rule applied to words too, alternatives below 60% for
+  the review picker (never written), restricted categories, how the "85% after 200 approvals" exit
+  is measured.
+- [ADR 0022](docs/decisions/0022-categorization-pipeline.md): pipeline order, what "a rule decided"
+  means, payee default at 0.95, existing categories kept, trace contents.
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet ef migrations add ImportMatchFlag --project src/Keel.Infrastructure --startup-project src/Keel.Infrastructure --output-dir Persistence/Migrations` | Generated `20260924123822_ImportMatchFlag` |
+| `dotnet ef migrations has-pending-model-changes ...` | "No changes have been made to the model since the last migration." |
+| `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 715 passed, 0 failed: Domain 350, Infrastructure 329, Desktop 36 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (CsCheck added to Infrastructure.Tests) |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter ImportPerformanceTests` | 10,000-row CSV: parse about 200 ms, pipeline about 1.3-1.4 s, total about 1.5-1.6 s (asserted < 5 s); re-import (all duplicates) about 0.45-0.55 s |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*ImportBenchmarks*' --job short` | Parse 47.6 ms, import into empty account 911 ms, all-duplicate re-import 329 ms |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter Import_dialogs_render` | 4 PNGs (mapping and preview dialogs, light and dark) reviewed by eye |
+
+### Not done here
+
+- Windows and macOS run only in CI; the windowed app and the native file picker were not launched
+  (tests use a fake picker). Split lines carried by QIF files and file category text are passed to
+  hooks as hints but not applied (M4 rules). No keyboard shortcut for "Import file" yet.
+- `BudgetPerformanceTests` (M2, 200 ms bound) can fail when all three test assemblies run in
+  parallel on a 4-core sandbox; it passes on its own.
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 1,046 passed, 0 failed, 0 skipped: Domain 784, Infrastructure 248, Desktop 14 |
+| `dotnet test Keel.sln` (Debug) | Same counts, all passed |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Domain.Tests --filter RecurringPerformance` | Detect over 123,466 transactions / 2,000 payees: median about 80–90 ms (Release and Debug, shared 4-core machine) |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RecurringDetector*' --job short` | `Detect` 19.2 ms mean, 10.3 MB allocated; `ReconcileAgainstEmpty` 0.58 ms |
+| `dotnet test tests/Keel.Domain.Tests --filter Accuracy` | 400 of 400 labeled groups correct for each of 3 seeds, 0 false positives |
+
+No packages were added.
+
+### Not done here
+
+- `IRecurringService`, `IScheduledTransactionService`, `IForecastService` and `IAlertService`
+  implementations, persistence, nightly scheduling, the Bills screen, the forecast chart and the
+  notification center (later M5 task).
+- Timing tests are sensitive to other processes on a shared machine: the existing
+  `BudgetPerformanceTests` failed once during this work while the sandbox load average was about
+  27 on 4 cores; the detector test asserts on the fastest of five runs for that reason.
+| `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 768 passed, 0 failed: Domain 506, Infrastructure 248, Desktop 14 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (no packages added) |
+| `dotnet test tests/Keel.Domain.Tests --filter LearnerAccuracyTests` | Chronological 80/20: top-1 89.8% (empty counts as wrong), coverage 93.9%, confident (≥ 0.9) 386 of 491 at 98.4% precision; random 80/20 seeds 1/7/2026: 90.1/92.4/89.2%, confident precision 98.5/98.4/99.5% |
+| same, after N approvals (next 500) | 200: precision 95.4%, coverage 56.2% (accuracy with empties 53.6%); 400: 76.0%; 600: 85.8%; 1000: 89.8% |
+| `dotnet test tests/Keel.Domain.Tests -c Release --filter LearnerPerformanceTests` | Train 100k examples (2,514 payees): median about 540 ms; `Suggest` about 62 µs; `WithExample` about 57 µs; JSON 345 KiB, write + read 38 ms |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*CategoryLearner*' --job short` | `Train100k` 200.5 ms (87 MB allocated); `Suggest` 17.3 µs (5.9 KB); `WithExample` 16.7 µs (8.7 KB) |
+
+### Not done here
+
+- Review screen (F-TXN-6), rule editor, DB-backed rule/learner services, model caching in `Setting`,
+  retroactive apply with preview (the engine's `ApplyAll` is ready for it) and wiring into the import
+  pipeline.
+- The transaction entity has no flag column; the `flag` action sets `TransactionSnapshot.IsFlagged`.
+- The "≥ 85% after 200 approvals" exit is met as accuracy of the suggestions made; counting empty
+  suggestions as wrong it is 53.6% at 200 and ≥ 85% from 600 approvals (ADR 0021).
+- Windows and macOS runs happen in CI only.

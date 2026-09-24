@@ -210,6 +210,71 @@ public sealed class RenderingTests : IDisposable
     }
 
     [AvaloniaFact]
+    public async Task Import_dialogs_render_in_light_and_dark()
+    {
+        var accounts = _host.Get<Keel.Application.Accounts.IAccountService>();
+        var checking = await Task.Run(() => accounts.CreateAccountAsync(new("Checking", Keel.Domain.AccountType.Checking, "USD", new DateOnly(2026, 8, 1), 250_000), CancellationToken.None));
+        var savings = await Task.Run(() => accounts.CreateAccountAsync(new("Savings", Keel.Domain.AccountType.Savings, "USD", new DateOnly(2026, 8, 1), 0), CancellationToken.None));
+        var imports = _host.Get<Keel.Application.Import.IImportService>();
+        await Task.Run(() => imports.ImportTransactionsAsync(Keel.Domain.TransactionSource.File, new(checking.Id,
+            [new(new DateOnly(2026, 8, 2), -1_000, "OLD COFFEE", ProviderTransactionId: "A1"), new(new DateOnly(2026, 8, 3), -2_000, "GAS", ProviderTransactionId: "A2")]), CancellationToken.None));
+        await Task.Run(() => imports.ImportTransactionsAsync(Keel.Domain.TransactionSource.File, new(savings.Id, [new(new DateOnly(2026, 8, 6), 30_000, "FROM CHECKING")]), CancellationToken.None));
+        await Task.Run(() => _host.Get<Keel.Application.Ledger.ITransactionService>().SaveAsync(new(null, checking.Id, new DateOnly(2026, 8, 9), -4_250, "Trader Joe's", null, null), CancellationToken.None));
+
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        shell.OpenAccount(checking.Id);
+        await _host.Get<AccountsViewModel>().SettleAsync();
+        var themes = _host.Get<ThemeService>();
+        var workflow = _host.Get<Keel.Desktop.ViewModels.Import.ImportWorkflow>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+        var ofx = ImportDialogTests.Ofx(("A1", "20260802", "-10.00", "OLD COFFEE"), ("A2", "20260803", "-21.00", "GAS"), ("A3", "20260810", "-42.50", "TRADER JOE'S #552"),
+            ("A4", "20260805", "-300.00", "TRANSFER TO SAVINGS"), ("A5", "20260811", "-9.99", "SQ *NEW CAFE PORTLAND"), ("A6", "20260812", "1850.00", "PAYROLL ACME CORP"));
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            workflow.FilePicker = new FakeFilePicker(ImportDialogTests.File("export.csv", ImportDialogTests.AmbiguousCsv),
+                new Keel.Desktop.ViewModels.Import.PickedImportFile("statement.ofx", null, System.Text.Encoding.UTF8.GetBytes(ofx)));
+
+            var run = workflow.ImportAsync(checking.Id);
+            var mapping = await ImportDialogTests.DialogAsync<Keel.Desktop.ViewModels.Import.CsvMappingViewModel>(shell);
+            await mapping.Refreshing;
+            Dispatcher.UIThread.RunJobs();
+            Save(window, outputDir, $"CsvMappingDialog-{theme}.png");
+            mapping.CancelCommand.Execute(null);
+            await run;
+
+            run = workflow.ImportAsync(checking.Id);
+            var preview = await ImportDialogTests.DialogAsync<Keel.Desktop.ViewModels.Import.ImportPreviewViewModel>(shell);
+            preview.Rows.Count.ShouldBe(6);
+            await Task.Delay(50);
+            Dispatcher.UIThread.RunJobs();
+            Save(window, outputDir, $"ImportPreviewDialog-{theme}.png");
+            preview.CancelCommand.Execute(null);
+            await run;
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+
+        static void Save(Window window, string? outputDir, string name)
+        {
+            using var frame = window.CaptureRenderedFrame()!;
+            frame.PixelSize.Width.ShouldBeGreaterThan(0);
+            if (!string.IsNullOrEmpty(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+                frame.Save(Path.Combine(outputDir, name));
+            }
+        }
+    }
+
+    [AvaloniaFact]
     public void Light_and_dark_frames_differ()
     {
         var window = _host.Get<ShellWindow>();

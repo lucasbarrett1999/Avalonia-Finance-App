@@ -144,4 +144,6 @@ public enum LedgerAction
 
     /// <summary>Edit a month note.</summary>
     EditMonthNote,
+    /// <summary>Import transactions (one file or sync batch).</summary>
+    ImportTransactions,
 }
