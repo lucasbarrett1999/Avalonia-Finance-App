@@ -59,6 +59,12 @@ public static class DependencyInjection
         services.AddSingleton<IImportCategorizationHook, NoOpImportCategorizationHook>();
         services.AddSingleton<IImportService, ImportService>();
         services.AddSingleton<IImportSettingsStore, ImportSettingsStore>();
+        services.AddSingleton<Keel.Infrastructure.Alerts.AlertService>();
+        services.AddSingleton<Keel.Application.Alerts.IAlertService>(sp => sp.GetRequiredService<Keel.Infrastructure.Alerts.AlertService>());
+        services.AddSingleton<Keel.Application.Recurring.IRecurringService, Keel.Infrastructure.Recurring.RecurringService>();
+        services.AddSingleton<Keel.Application.Scheduling.IScheduledTransactionService, Keel.Infrastructure.Scheduling.ScheduledTransactionService>();
+        services.AddSingleton<Keel.Infrastructure.Forecast.ForecastService>();
+        services.AddSingleton<Keel.Application.Forecast.IForecastService>(sp => sp.GetRequiredService<Keel.Infrastructure.Forecast.ForecastService>());
         return services;
     }
 }

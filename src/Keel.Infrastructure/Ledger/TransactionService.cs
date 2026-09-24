@@ -340,7 +340,7 @@ public sealed class TransactionService(IDbContextFactory<KeelDbContext> factory,
             rows.Where(r => r.Status == TransactionStatus.Uncleared).Sum(r => r.Count));
     }
 
-    private static async Task<Guid> SaveCoreAsync(LedgerSession session, SaveTransactionRequest request, IReadOnlyList<SplitLine> splits, CancellationToken ct)
+    internal static async Task<Guid> SaveCoreAsync(LedgerSession session, SaveTransactionRequest request, IReadOnlyList<SplitLine> splits, CancellationToken ct)
     {
         var db = session.Db;
         var account = await LedgerLookups.OpenAccountAsync(db, request.AccountId, ct).ConfigureAwait(false);

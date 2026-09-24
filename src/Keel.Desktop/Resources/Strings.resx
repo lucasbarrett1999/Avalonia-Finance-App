@@ -2208,4 +2208,40 @@
   <data name="ImportWarning_WithCount" xml:space="preserve">
     <value>{0} ({1})</value>
   </data>
+  <data name="Action_DetectRecurring" xml:space="preserve">
+    <value>recurring detection</value>
+  </data>
+  <data name="Action_ConfirmRecurring" xml:space="preserve">
+    <value>confirm recurring item</value>
+  </data>
+  <data name="Action_PauseRecurring" xml:space="preserve">
+    <value>pause recurring item</value>
+  </data>
+  <data name="Action_ResumeRecurring" xml:space="preserve">
+    <value>resume recurring item</value>
+  </data>
+  <data name="Action_DismissRecurring" xml:space="preserve">
+    <value>dismiss recurring item</value>
+  </data>
+  <data name="Action_CreateRecurring" xml:space="preserve">
+    <value>add recurring item</value>
+  </data>
+  <data name="Action_EditRecurring" xml:space="preserve">
+    <value>edit recurring item</value>
+  </data>
+  <data name="Action_CreateScheduled" xml:space="preserve">
+    <value>schedule transaction</value>
+  </data>
+  <data name="Action_EditScheduled" xml:space="preserve">
+    <value>edit scheduled transaction</value>
+  </data>
+  <data name="Action_DeleteScheduled" xml:space="preserve">
+    <value>delete scheduled transaction</value>
+  </data>
+  <data name="Action_EnterScheduled" xml:space="preserve">
+    <value>enter scheduled transactions</value>
+  </data>
+  <data name="Action_SkipScheduled" xml:space="preserve">
+    <value>skip scheduled transaction</value>
+  </data>
 </root>
