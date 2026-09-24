@@ -1,10 +1,17 @@
+using Keel.Application.Accounts;
+using Keel.Application.Categories;
 using Keel.Application.Files;
+using Keel.Application.Ledger;
+using Keel.Application.Payees;
 using Keel.Application.Settings;
+using Keel.Application.Undo;
 using Keel.Infrastructure.Files;
+using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
 using Keel.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Keel.Infrastructure;
 
@@ -12,8 +19,10 @@ namespace Keel.Infrastructure;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registers the data directory, settings.json store, database factory and budget-file
-    /// service. Called from the desktop app's composition root only.
+    /// Registers the data directory, settings.json store, database factory, budget-file service,
+    /// and the ledger services (accounts, transactions, payees, categories, snapshots, register,
+    /// undo). The host must also register an <c>IMessageBus</c>. Called from the desktop app's
+    /// composition root only.
     /// </summary>
     public static IServiceCollection AddKeelInfrastructure(this IServiceCollection services, IDataDirectory dataDirectory)
     {
@@ -25,6 +34,16 @@ public static class DependencyInjection
         services.AddSingleton<KeelDbContextFactory>();
         services.AddSingleton<IDbContextFactory<KeelDbContext>>(sp => sp.GetRequiredService<KeelDbContextFactory>());
         services.AddSingleton<IBudgetFileService, BudgetFileService>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<UndoHistory>();
+        services.AddSingleton<LedgerWriter>();
+        services.AddSingleton<IUndoService, UndoService>();
+        services.AddSingleton<IAccountService, AccountService>();
+        services.AddSingleton<ITransactionService, TransactionService>();
+        services.AddSingleton<IPayeeService, PayeeService>();
+        services.AddSingleton<ICategoryService, CategoryService>();
+        services.AddSingleton<IBalanceSnapshotService, BalanceSnapshotService>();
+        services.AddSingleton<IRegisterQuery, RegisterQuery>();
         return services;
     }
 }
