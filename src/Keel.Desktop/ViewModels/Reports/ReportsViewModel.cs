@@ -80,7 +80,7 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
     private bool _suppressReload;
 
     /// <summary>Creates the screen.</summary>
-    public ReportsViewModel(IReportService reports, IAccountService accounts, INavigationService navigation, StatusService status, TimeProvider time, IMessenger messenger)
+    public ReportsViewModel(IReportService reports, IAccountService accounts, INavigationService navigation, StatusService status, TimeProvider time, IMessenger messenger, Keel.Application.Forecast.IForecastService? forecast = null)
     {
         ArgumentNullException.ThrowIfNull(messenger);
         _reports = reports;
@@ -89,6 +89,11 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
         _status = status;
         _time = time;
         Reports = [new SpendingReportViewModel(this), new IncomeExpenseReportViewModel(this), new NetWorthReportViewModel(this)];
+        if (forecast is not null)
+        {
+            Reports = [.. Reports, new ForecastReportViewModel(this, forecast, time)];
+        }
+
         Ranges = Enum.GetValues<ReportRange>().Select(r => new Choice<ReportRange>(r, Strings.ResourceManager.GetString("ReportRange_" + r, Strings.Culture) ?? r.ToString())).ToList();
         _suppressReload = true;
         SelectedRange = Ranges.First(r => r.Value == ReportRange.LastTwelveMonths);
@@ -114,6 +119,7 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
 
     /// <summary>The selected report.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomRangeShown))]
     public partial ReportViewModel SelectedReport { get; set; }
 
     /// <summary>Date-range presets.</summary>
@@ -121,11 +127,14 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
 
     /// <summary>The selected preset.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCustomRange))]
+    [NotifyPropertyChangedFor(nameof(IsCustomRange), nameof(IsCustomRangeShown))]
     public partial Choice<ReportRange> SelectedRange { get; set; }
 
     /// <summary>Whether the custom date pickers show.</summary>
     public bool IsCustomRange => SelectedRange?.Value == ReportRange.Custom;
+
+    /// <summary>Whether the custom date pickers show for the selected report.</summary>
+    public bool IsCustomRangeShown => IsCustomRange && SelectedReport?.SupportsRange != false;
 
     /// <summary>Custom range start.</summary>
     [ObservableProperty]
@@ -401,7 +410,7 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
             }
 
             var (from, to) = CurrentRange();
-            RangeText = ReportFormat.Range(from, to);
+            RangeText = SelectedReport.RangeTextOverride ?? ReportFormat.Range(from, to);
             if (HasAccounts)
             {
                 var report = SelectedReport;

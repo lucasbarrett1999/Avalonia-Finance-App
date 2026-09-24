@@ -46,11 +46,11 @@
                 </StackPanel>
               </Button>
               <WrapPanel>
-                <ComboBox x:Name="RangeBox" MinWidth="150" Margin="0,0,8,4" ItemsSource="{Binding Ranges}" SelectedItem="{Binding SelectedRange}"
+                <ComboBox x:Name="RangeBox" MinWidth="150" Margin="0,0,8,4" ItemsSource="{Binding Ranges}" SelectedItem="{Binding SelectedRange}" IsVisible="{Binding SelectedReport.SupportsRange}"
                           AutomationProperties.Name="{x:Static res:Strings.Reports_RangeName}" />
-                <CalendarDatePicker Width="130" Margin="0,0,4,4" IsVisible="{Binding IsCustomRange}" SelectedDate="{Binding CustomFrom}"
+                <CalendarDatePicker Width="130" Margin="0,0,4,4" IsVisible="{Binding IsCustomRangeShown}" SelectedDate="{Binding CustomFrom}"
                                     AutomationProperties.Name="{x:Static res:Strings.Reports_CustomFrom}" />
-                <CalendarDatePicker Width="130" Margin="0,0,8,4" IsVisible="{Binding IsCustomRange}" SelectedDate="{Binding CustomTo}"
+                <CalendarDatePicker Width="130" Margin="0,0,8,4" IsVisible="{Binding IsCustomRangeShown}" SelectedDate="{Binding CustomTo}"
                                     AutomationProperties.Name="{x:Static res:Strings.Reports_CustomTo}" />
                 <DropDownButton x:Name="AccountsFilterButton" Margin="0,0,8,4" MinWidth="140"
                                 AutomationProperties.Name="{x:Static res:Strings.Reports_AccountsFilterName}">
@@ -81,7 +81,7 @@
                 <CheckBox x:Name="IncludeTransfersBox" Margin="0,0,12,4" IsChecked="{Binding SelectedReport.IncludeTransfers}"
                           IsVisible="{Binding SelectedReport.SupportsTransfers}" Content="{x:Static res:Strings.Reports_IncludeTransfers}"
                           ToolTip.Tip="{x:Static res:Strings.Reports_IncludeTransfersTip}" />
-                <CheckBox x:Name="IncludeTrackingBox" Margin="0,0,12,4" IsChecked="{Binding SelectedReport.IncludeTracking}"
+                <CheckBox x:Name="IncludeTrackingBox" Margin="0,0,12,4" IsChecked="{Binding SelectedReport.IncludeTracking}" IsVisible="{Binding SelectedReport.SupportsTracking}"
                           Content="{x:Static res:Strings.Reports_IncludeTracking}" ToolTip.Tip="{x:Static res:Strings.Reports_IncludeTrackingTip}" />
               </WrapPanel>
             </DockPanel>

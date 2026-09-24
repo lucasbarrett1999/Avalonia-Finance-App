@@ -1,14 +1,500 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:bills="using:Keel.Desktop.ViewModels.Bills"
+             xmlns:al="using:Keel.Desktop.ViewModels.Alerts"
              xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:billviews="using:Keel.Desktop.Views.Bills"
              x:Class="Keel.Desktop.Views.BillsView"
              x:DataType="vm:BillsViewModel">
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
-    <StackPanel DockPanel.Dock="Top">
-      <TextBlock Classes="pageTitle" Text="{Binding Title}" />
-      <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
-    </StackPanel>
-    <controls:EmptyState Icon="{StaticResource Icon.Bills}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}" />
+    <!-- Header -->
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+        <Button x:Name="AddItemButton" Classes="tool" Command="{Binding AddItemCommand}" AutomationProperties.Name="{x:Static res:Strings.Bills_AddItem}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Plus}" />
+            <TextBlock Text="{x:Static res:Strings.Bills_AddItem}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <Button x:Name="RunDetectionButton" Classes="tool accent" Command="{Binding RunDetectionCommand}" IsEnabled="{Binding !IsDetecting}"
+                ToolTip.Tip="{x:Static res:Strings.Bills_RunDetectionTip}" AutomationProperties.Name="{x:Static res:Strings.Bills_RunDetection}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Sync}" />
+            <TextBlock Text="{x:Static res:Strings.Bills_RunDetection}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+      <StackPanel>
+        <TextBlock Classes="pageTitle" Text="{Binding Title}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+          <TextBlock Classes="pageSubtitle" Text="·" />
+          <TextBlock x:Name="LastRunLabel" Classes="pageSubtitle" Text="{Binding LastRunText}" />
+          <ProgressBar IsIndeterminate="True" Width="60" Margin="4,4,0,0" IsVisible="{Binding IsDetecting}"
+                       AutomationProperties.Name="{x:Static res:Strings.Bills_Detecting}" />
+        </StackPanel>
+      </StackPanel>
+    </DockPanel>
+
+    <Border DockPanel.Dock="Top" Classes="warning" Margin="0,0,0,12" IsVisible="{Binding HasError}">
+      <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+    </Border>
+
+    <Panel>
+      <ProgressBar IsIndeterminate="True" Width="200" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !IsInitialized}"
+                   AutomationProperties.Name="{x:Static res:Strings.Bills_Loading}" />
+
+      <!-- Before detection has ever run, or when it found nothing -->
+      <controls:EmptyState x:Name="BillsEmptyState" Icon="{StaticResource Icon.Bills}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
+                           IsVisible="{Binding ShowAnyEmptyState}">
+        <StackPanel Spacing="12" HorizontalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <Button x:Name="EmptyRunDetectionButton" Classes="accent" Command="{Binding RunDetectionCommand}" IsVisible="{Binding ShowEmptyState}"
+                    Content="{x:Static res:Strings.Bills_RunDetection}" />
+            <Button Command="{Binding AddItemCommand}" Content="{x:Static res:Strings.Bills_AddItemManually}" />
+          </StackPanel>
+          <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="420"
+                     Text="{x:Static res:Strings.Bills_EmptyHint}" />
+        </StackPanel>
+      </controls:EmptyState>
+
+      <Grid IsVisible="{Binding ShowContent}" ColumnDefinitions="*,Auto">
+        <DockPanel>
+          <!-- Totals (F-REC-2) -->
+          <WrapPanel DockPanel.Dock="Top">
+            <Border Classes="tile" Margin="0,0,8,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Bills_MonthlyOutflow}" />
+                <TextBlock x:Name="MonthlyOutflowValue" Classes="tileValue" Text="{Binding MonthlyOutflowText}" />
+              </StackPanel>
+            </Border>
+            <Border Classes="tile" Margin="0,0,8,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Bills_MonthlyInflow}" />
+                <TextBlock Classes="tileValue" Text="{Binding MonthlyInflowText}" />
+              </StackPanel>
+            </Border>
+            <Border Classes="tile" Margin="0,0,8,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Bills_BillsMonthly}" />
+                <TextBlock Classes="tileValue" Text="{Binding BillsMonthlyText}" />
+              </StackPanel>
+            </Border>
+            <Border Classes="tile" Margin="0,0,8,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Bills_SubscriptionsMonthly}" />
+                <TextBlock Classes="tileValue" Text="{Binding SubscriptionsMonthlyText}" />
+              </StackPanel>
+            </Border>
+          </WrapPanel>
+
+          <Border DockPanel.Dock="Top" Classes="warning" Margin="0,0,8,8" IsVisible="{Binding HasDetected}">
+            <DockPanel>
+              <Button DockPanel.Dock="Right" x:Name="ReviewDetectedButton" Classes="link" VerticalAlignment="Center" Click="OnReviewDetected" Content="{x:Static res:Strings.Bills_ReviewDetected}" />
+              <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" Margin="0,0,8,0" Foreground="{DynamicResource Keel.Warning}" />
+              <TextBlock Text="{Binding DetectedText}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,12,0" />
+            </DockPanel>
+          </Border>
+
+          <TabControl x:Name="BillsTabs" Classes="bills" SelectedIndex="{Binding SelectedTabIndex}" Padding="0,8,8,0">
+            <!-- Calendar -->
+            <TabItem x:Name="CalendarTab" Header="{x:Static res:Strings.Bills_TabCalendar}">
+              <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                  <TextBlock DockPanel.Dock="Right" Classes="secondary" Text="{Binding MonthTotalText}" VerticalAlignment="Center" />
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Button x:Name="PreviousMonthButton" Theme="{StaticResource IconButtonTheme}" Command="{Binding PreviousMonthCommand}"
+                            ToolTip.Tip="{x:Static res:Strings.Bills_PreviousMonth}" AutomationProperties.Name="{x:Static res:Strings.Bills_PreviousMonth}">
+                      <controls:Icon Data="{StaticResource Icon.Report.Back}" Width="16" Height="16" />
+                    </Button>
+                    <TextBlock x:Name="MonthTitle" Text="{Binding MonthTitle}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="150" TextAlignment="Center" />
+                    <Button x:Name="NextMonthButton" Theme="{StaticResource IconButtonTheme}" Command="{Binding NextMonthCommand}"
+                            ToolTip.Tip="{x:Static res:Strings.Bills_NextMonth}" AutomationProperties.Name="{x:Static res:Strings.Bills_NextMonth}">
+                      <controls:Icon Data="{StaticResource Icon.ChevronRight}" Width="16" Height="16" />
+                    </Button>
+                    <Button Classes="link" Margin="8,0,0,0" Command="{Binding ThisMonthCommand}" Content="{x:Static res:Strings.Bills_Today}" />
+                  </StackPanel>
+                </DockPanel>
+                <Border BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="1,1,0,0" CornerRadius="{StaticResource Keel.CornerRadius}" ClipToBounds="True">
+                  <DockPanel>
+                    <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding WeekdayNames}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <UniformGrid Columns="7" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <Border BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="0,0,1,1" Padding="6,4" Background="{DynamicResource Keel.SurfaceBackground}">
+                            <TextBlock Classes="tableHeader" Text="{Binding}" />
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                      <ItemsControl x:Name="CalendarDays" ItemsSource="{Binding Days}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="bills:BillsCalendarDay">
+                            <Border Classes="calendarDay" Classes.otherMonth="{Binding !IsCurrentMonth}" AutomationProperties.Name="{Binding AutomationName}">
+                              <StackPanel>
+                                <DockPanel Margin="0,0,0,2">
+                                  <TextBlock DockPanel.Dock="Right" Classes="secondary" FontSize="10" Text="{Binding TotalText}" VerticalAlignment="Center" FontFeatures="+tnum" />
+                                  <Panel HorizontalAlignment="Left">
+                                    <Border Classes="todayMarker" IsVisible="{Binding IsToday}" ToolTip.Tip="{x:Static res:Strings.Bills_Today}">
+                                      <TextBlock Classes="dayNumber" Text="{Binding DayText}" />
+                                    </Border>
+                                    <TextBlock Classes="dayNumber" Text="{Binding DayText}" IsVisible="{Binding !IsToday}" />
+                                  </Panel>
+                                </DockPanel>
+                                <ItemsControl ItemsSource="{Binding Shown}">
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="bills:BillsCalendarEntry">
+                                      <Button Classes="chip" Classes.paid="{Binding IsPaid}" Classes.income="{Binding IsIncome}"
+                                              Command="{Binding Open}" CommandParameter="{Binding}"
+                                              ToolTip.Tip="{Binding Description}" AutomationProperties.Name="{Binding Description}">
+                                        <DockPanel>
+                                          <TextBlock DockPanel.Dock="Right" Text="{Binding AmountText}" FontFeatures="+tnum" Margin="4,0,0,0" />
+                                          <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Check}" Width="10" Height="10" Margin="0,0,3,0" IsVisible="{Binding IsPaid}" />
+                                          <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Report.Calendar}" Width="10" Height="10" Margin="0,0,3,0" IsVisible="{Binding IsScheduled}" />
+                                          <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                      </Button>
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Classes="secondary" FontSize="10" Text="{Binding MoreText}" IsVisible="{Binding HasMore}" Margin="2,2,0,0" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
+                  </DockPanel>
+                </Border>
+              </DockPanel>
+            </TabItem>
+
+            <!-- List -->
+            <TabItem x:Name="ListTab" Header="{x:Static res:Strings.Bills_TabList}">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                  <TextBlock Text="{x:Static res:Strings.Bills_Show}" VerticalAlignment="Center" />
+                  <ComboBox x:Name="BillsFilterBox" MinWidth="160" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}"
+                            AutomationProperties.Name="{x:Static res:Strings.Bills_FilterName}" />
+                </StackPanel>
+                <Panel>
+                  <TextBlock Classes="secondary" Margin="0,24" HorizontalAlignment="Center" Text="{x:Static res:Strings.Bills_FilterEmpty}" IsVisible="{Binding !HasListItems}" />
+                  <DataGrid x:Name="BillsGrid" Classes="bills" ItemsSource="{Binding ListItems}" IsVisible="{Binding HasListItems}"
+                            AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" CanUserSortColumns="True" CanUserReorderColumns="False"
+                            AutomationProperties.Name="{x:Static res:Strings.Bills_TabList}">
+                    <DataGrid.Columns>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColNext}" Width="100" SortMemberPath="NextDate">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <StackPanel VerticalAlignment="Center" Margin="8,0">
+                              <TextBlock Text="{Binding NextDateText}" Classes.inactive="{Binding IsInactive}" FontFeatures="+tnum" />
+                              <TextBlock Classes="secondary" FontSize="11" Text="{Binding DueText}" Classes.negative="{Binding IsOverdue}" />
+                            </StackPanel>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColPayee}" Width="1.5*" MinWidth="110" SortMemberPath="PayeeName">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,0" VerticalAlignment="Center">
+                              <TextBlock Text="{Binding PayeeName}" FontWeight="SemiBold" Classes.inactive="{Binding IsInactive}" TextTrimming="CharacterEllipsis" />
+                              <Border Classes="pill" IsVisible="{Binding IsSubscription}">
+                                <TextBlock Text="{x:Static res:Strings.Bills_KindSubscription}" />
+                              </Border>
+                            </StackPanel>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColAmount}" Width="100" SortMemberPath="Magnitude">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <TextBlock Classes="cell amount" Classes.positive="{Binding IsIncome}" Text="{Binding AmountText}" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColCadence}" Width="100" SortMemberPath="CadenceOrder">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <TextBlock Classes="cell" Text="{Binding CadenceText}" ToolTip.Tip="{Binding Schedule}" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColCategory}" Width="*" MinWidth="70" SortMemberPath="CategoryName">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <TextBlock Classes="cell" Classes.muted="{Binding IsUncategorized}" Text="{Binding CategoryName}" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColAccount}" Width="*" MinWidth="70" SortMemberPath="AccountName">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <TextBlock Classes="cell" Text="{Binding AccountName}" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                      <DataGridTemplateColumn Header="{x:Static res:Strings.Bills_ColStatus}" Width="100" SortMemberPath="StatusName">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="bills:BillItemViewModel">
+                            <Border Classes="pill" Classes.detected="{Binding IsDetected}" HorizontalAlignment="Left" Margin="8,0">
+                              <TextBlock Text="{Binding StatusName}" />
+                            </Border>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Panel>
+              </DockPanel>
+            </TabItem>
+
+            <!-- Subscriptions -->
+            <TabItem x:Name="SubscriptionsTab" Header="{x:Static res:Strings.Bills_TabSubscriptions}">
+              <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="12" Margin="0,0,8,0">
+                  <DockPanel>
+                    <DropDownButton DockPanel.Dock="Right" x:Name="SubscriptionGroupsButton" VerticalAlignment="Top"
+                                    AutomationProperties.Name="{x:Static res:Strings.Bills_SubscriptionGroups}">
+                      <TextBlock Text="{Binding SubscriptionGroupsLabel}" MaxWidth="260" TextTrimming="CharacterEllipsis" />
+                      <DropDownButton.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedRight">
+                          <StackPanel Spacing="4" MinWidth="240">
+                            <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bills_SubscriptionGroupsHint}" TextWrapping="Wrap" MaxWidth="260" Margin="0,0,0,4" />
+                            <ItemsControl ItemsSource="{Binding SubscriptionGroups}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:SubscriptionGroupOption">
+                                  <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Name}" />
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </StackPanel>
+                        </Flyout>
+                      </DropDownButton.Flyout>
+                    </DropDownButton>
+                    <WrapPanel>
+                      <Border Classes="tile" Margin="0,0,8,0">
+                        <StackPanel>
+                          <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Bills_PerMonth}" />
+                          <TextBlock x:Name="SubscriptionsMonthlyValue" Classes="tileValue" Text="{Binding SubscriptionsMonthlyText}" />
+                        </StackPanel>
+                      </Border>
+                      <Border Classes="tile" Margin="0,0,8,0">
+                        <StackPanel>
+                          <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Bills_PerYear}" />
+                          <TextBlock x:Name="SubscriptionsYearlyValue" Classes="tileValue" Text="{Binding SubscriptionsYearlyText}" />
+                        </StackPanel>
+                      </Border>
+                    </WrapPanel>
+                  </DockPanel>
+
+                  <Border Classes="card" Padding="12">
+                    <Panel>
+                      <StackPanel IsVisible="{Binding !HasSubscriptions}" Spacing="4" Margin="8">
+                        <TextBlock Text="{x:Static res:Strings.Bills_NoSubscriptionsHeading}" FontWeight="SemiBold" />
+                        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bills_NoSubscriptionsMessage}" TextWrapping="Wrap" />
+                      </StackPanel>
+                      <StackPanel IsVisible="{Binding HasSubscriptions}">
+                        <Grid ColumnDefinitions="*,110,100,100,70" Margin="8,0,8,6">
+                          <TextBlock Classes="tableHeader" Text="{x:Static res:Strings.Bills_ColPayee}" />
+                          <TextBlock Grid.Column="1" Classes="tableHeader" Text="{x:Static res:Strings.Bills_ColCadence}" />
+                          <TextBlock Grid.Column="2" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Bills_PerMonth}" />
+                          <TextBlock Grid.Column="3" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Bills_PerYear}" />
+                          <TextBlock Grid.Column="4" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Bills_ColNext}" />
+                        </Grid>
+                        <ItemsControl x:Name="SubscriptionRows" ItemsSource="{Binding Subscriptions}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="bills:BillItemViewModel">
+                              <Button Classes="chartRow" Command="{Binding $parent[ItemsControl].((vm:BillsViewModel)DataContext).SelectItemCommand}" CommandParameter="{Binding}"
+                                      AutomationProperties.Name="{Binding AutomationName}">
+                                <Grid ColumnDefinitions="*,110,100,100,70">
+                                  <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding PayeeName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <Border Classes="pill" Classes.detected="{Binding IsDetected}" IsVisible="{Binding !IsActive}" HorizontalAlignment="Left">
+                                      <TextBlock Text="{Binding StatusName}" />
+                                    </Border>
+                                  </StackPanel>
+                                  <TextBlock Grid.Column="1" Classes="secondary" Text="{Binding CadenceText}" VerticalAlignment="Center" />
+                                  <TextBlock Grid.Column="2" Classes="amount" Text="{Binding MonthlyText}" VerticalAlignment="Center" />
+                                  <TextBlock Grid.Column="3" Classes="amount" Text="{Binding YearlyText}" VerticalAlignment="Center" />
+                                  <TextBlock Grid.Column="4" Classes="amount" Text="{Binding NextDateText}" VerticalAlignment="Center" />
+                                </Grid>
+                              </Button>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </Panel>
+                  </Border>
+
+                  <Border Classes="card" Padding="12">
+                    <StackPanel Spacing="6">
+                      <TextBlock Classes="cardTitle" Margin="8,0" Text="{x:Static res:Strings.Bills_PriceHistory}" />
+                      <TextBlock Classes="secondary" Margin="8,0" Text="{x:Static res:Strings.Bills_NoPriceChanges}" IsVisible="{Binding !HasPriceChanges}" TextWrapping="Wrap" />
+                      <ItemsControl x:Name="PriceChangeRows" ItemsSource="{Binding PriceChanges}" IsVisible="{Binding HasPriceChanges}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="bills:PriceChangeRow">
+                            <Grid ColumnDefinitions="130,*,180,70" Margin="8,4">
+                              <TextBlock Classes="secondary" Text="{Binding DateText}" />
+                              <TextBlock Grid.Column="1" Text="{Binding PayeeName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                              <TextBlock Grid.Column="2" Classes="amount" Text="{Binding ChangeText}" />
+                              <TextBlock Grid.Column="3" Classes="amount" Classes.negative="{Binding IsIncrease}" Text="{Binding PercentText}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+          </TabControl>
+        </DockPanel>
+
+        <!-- Detail panel (PRD 9.6) -->
+        <Border Grid.Column="1" x:Name="BillDetailPanel" Classes="card" Width="330" Padding="16" Margin="8,0,0,0" IsVisible="{Binding HasDetail}" VerticalAlignment="Top">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" MaxHeight="900">
+            <ContentControl x:Name="BillDetailHost" Content="{Binding Detail}">
+              <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="bills:BillDetailViewModel">
+            <StackPanel Spacing="10">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Theme="{StaticResource IconButtonTheme}" VerticalAlignment="Top" MinWidth="28" MinHeight="28" Padding="4"
+                        Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).CloseDetailCommand}"
+                        ToolTip.Tip="{x:Static res:Strings.Bills_CloseDetail}" AutomationProperties.Name="{x:Static res:Strings.Bills_CloseDetail}">
+                  <controls:Icon Data="{StaticResource Icon.Close}" Width="14" Height="14" />
+                </Button>
+                <StackPanel Spacing="4">
+                  <TextBlock x:Name="DetailPayee" Text="{Binding Item.PayeeName}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Border Classes="pill" Classes.detected="{Binding Row.IsDetected}">
+                      <TextBlock x:Name="DetailStatus" Text="{Binding Row.StatusName}" />
+                    </Border>
+                    <Border Classes="pill">
+                      <TextBlock Text="{Binding Row.KindText}" />
+                    </Border>
+                  </StackPanel>
+                </StackPanel>
+              </DockPanel>
+
+              <StackPanel Spacing="2">
+                <TextBlock Classes="heroNumber" Classes.positive="{Binding Row.IsIncome}" Text="{Binding Row.AmountText}" FontFeatures="+tnum" />
+                <TextBlock Classes="secondary" Text="{Binding Item.Schedule}" TextWrapping="Wrap" />
+              </StackPanel>
+
+              <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" >
+                <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bills_Next}" Margin="0,0,12,4" />
+                <TextBlock Grid.Column="1" Text="{Binding NextText}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                <TextBlock Grid.Row="1" Classes="secondary" Text="{x:Static res:Strings.Bills_Last}" Margin="0,0,12,4" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LastSeenText}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                <TextBlock Grid.Row="2" Classes="secondary" Text="{x:Static res:Strings.Bills_Account}" Margin="0,0,12,4" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Row.AccountName}" Margin="0,0,0,4" />
+                <TextBlock Grid.Row="3" Classes="secondary" Text="{x:Static res:Strings.Bills_Category}" Margin="0,0,12,0" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Row.CategoryName}" Classes.muted="{Binding Row.IsUncategorized}" />
+              </Grid>
+
+              <Border Classes="preview">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:Icon Data="{StaticResource Icon.Report.Trend}" Width="14" Height="14" Foreground="{DynamicResource Keel.Accent}" VerticalAlignment="Top" />
+                  <TextBlock Text="{Binding ExplanationText}" TextWrapping="Wrap" MaxWidth="240" FontSize="{StaticResource Keel.FontSize.Small}" />
+                </StackPanel>
+              </Border>
+
+              <WrapPanel>
+                <Button x:Name="ConfirmItemButton" Classes="accent" Margin="0,0,6,6" IsVisible="{Binding CanConfirm}"
+                        Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).ConfirmCommand}" Content="{x:Static res:Strings.Bills_Confirm}" />
+                <Button x:Name="EditItemButton" Margin="0,0,6,6" Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).EditCommand}" Content="{x:Static res:Strings.Bills_Edit}" />
+                <Button Margin="0,0,6,6" IsVisible="{Binding CanPause}" Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).PauseCommand}" Content="{x:Static res:Strings.Bills_Pause}" />
+                <Button Margin="0,0,6,6" IsVisible="{Binding CanResume}" Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).ResumeCommand}" Content="{x:Static res:Strings.Bills_Resume}" />
+                <Button x:Name="DismissItemButton" Margin="0,0,6,6" IsVisible="{Binding CanDismiss}" Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).DismissCommand}" Content="{x:Static res:Strings.Bills_Dismiss}" />
+                <Button Margin="0,0,6,6" IsVisible="{Binding CanReenable}" Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).ReenableCommand}" Content="{x:Static res:Strings.Bills_Reenable}" />
+              </WrapPanel>
+
+              <StackPanel Spacing="6">
+                <Button x:Name="CreateScheduleButton" HorizontalAlignment="Stretch" IsVisible="{Binding CanCreateSchedule}"
+                        Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).CreateScheduleCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Data="{StaticResource Icon.Report.Calendar}" Width="14" Height="14" />
+                    <TextBlock Text="{x:Static res:Strings.Bills_CreateSchedule}" />
+                  </StackPanel>
+                </Button>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasSchedule}">
+                  <controls:Icon Data="{StaticResource Icon.CheckCircle}" Width="14" Height="14" Foreground="{DynamicResource Keel.Positive}" />
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bills_HasSchedule}" TextWrapping="Wrap" />
+                </StackPanel>
+                <Button x:Name="CreateTargetButton" HorizontalAlignment="Stretch" IsEnabled="{Binding CanCreateTarget}"
+                        Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).CreateTargetCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Data="{StaticResource Icon.Goals}" Width="14" Height="14" />
+                    <TextBlock Text="{x:Static res:Strings.Bills_CreateTarget}" />
+                  </StackPanel>
+                </Button>
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding TargetText}" IsVisible="{Binding CanCreateTarget}" TextWrapping="Wrap" />
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Bills_TargetNeedsCategory}" IsVisible="{Binding NeedsCategoryForTarget}" TextWrapping="Wrap" />
+              </StackPanel>
+
+              <StackPanel Spacing="6">
+                <DockPanel>
+                  <Button DockPanel.Dock="Right" Classes="link" Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).OpenTransactionsCommand}"
+                          Content="{x:Static res:Strings.Bills_ShowTransactions}" />
+                  <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Bills_AmountHistory}" />
+                </DockPanel>
+                <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bills_NoHistory}" IsVisible="{Binding !HasHistory}" TextWrapping="Wrap" />
+                <billviews:BillHistoryChart x:Name="HistoryChartHost" Height="140" History="{Binding History}" IsVisible="{Binding HasHistory}"
+                                            AutomationProperties.Name="{x:Static res:Strings.Bills_AmountHistory}" />
+                <ItemsControl ItemsSource="{Binding RecentHistory}" IsVisible="{Binding HasHistory}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="bills:BillHistoryPoint">
+                      <DockPanel Margin="0,1">
+                        <TextBlock DockPanel.Dock="Right" Classes="amount" Text="{Binding AmountText}" />
+                        <TextBlock Classes="secondary" Text="{Binding DateText}" />
+                      </DockPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+              <StackPanel Spacing="6">
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Bills_ItemAlerts}" />
+                <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bills_NoItemAlerts}" IsVisible="{Binding !HasAlerts}" />
+                <ItemsControl x:Name="ItemAlertRows" ItemsSource="{Binding Alerts}" IsVisible="{Binding HasAlerts}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="al:AlertItemViewModel">
+                      <DockPanel Margin="0,2">
+                        <Button DockPanel.Dock="Right" Theme="{StaticResource IconButtonTheme}" MinWidth="24" MinHeight="24" Padding="4" VerticalAlignment="Top"
+                                Command="{Binding $parent[UserControl].((vm:BillsViewModel)DataContext).DismissAlertCommand}" CommandParameter="{Binding}"
+                                ToolTip.Tip="{x:Static res:Strings.Alerts_Dismiss}" AutomationProperties.Name="{x:Static res:Strings.Alerts_Dismiss}">
+                          <controls:Icon Data="{StaticResource Icon.Close}" Width="10" Height="10" />
+                        </Button>
+                        <controls:Icon DockPanel.Dock="Left" Data="{Binding IconKey, Converter={x:Static controls:ReportIconConverter.Instance}}" Width="14" Height="14"
+                                       VerticalAlignment="Top" Margin="0,2,8,0" Foreground="{DynamicResource Keel.Warning}" />
+                        <StackPanel>
+                          <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                          <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding Detail}" TextWrapping="Wrap" />
+                        </StackPanel>
+                      </DockPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </StackPanel>
+                </DataTemplate>
+              </ContentControl.ContentTemplate>
+            </ContentControl>
+          </ScrollViewer>
+        </Border>
+      </Grid>
+    </Panel>
   </DockPanel>
 </UserControl>

@@ -59,8 +59,10 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         DialogService dialogs,
         StatusService status,
         IMessenger messenger,
-        ImportWorkflow import)
+        ImportWorkflow import,
+        Bills.ScheduledGhostsViewModel? scheduled = null)
     {
+        Scheduled = scheduled;
         ArgumentNullException.ThrowIfNull(messenger);
         _import = import;
         _register = register;
@@ -102,6 +104,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle), nameof(IsTracking), nameof(CanReconcile), nameof(IsAccountClosed), nameof(CanImportFile))]
     public partial AccountDto? Account { get; private set; }
+
+    /// <summary>Upcoming scheduled instances shown as ghost rows above the grid (M5, F-ACC-6).</summary>
+    public Bills.ScheduledGhostsViewModel? Scheduled { get; }
 
     /// <summary>The virtual row list bound to the grid.</summary>
     public RegisterSource Rows { get; }
@@ -345,6 +350,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
         _suppressFilterReload = false;
         OnPropertyChanged(nameof(IsAllAccounts));
+        _ = Scheduled?.LoadAsync(accountId);
         Loading = LoadAsync(showSpinner: true);
     }
 
@@ -354,6 +360,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         ArgumentNullException.ThrowIfNull(message);
         Dispatcher.UIThread.Post(() =>
         {
+            _ = Scheduled?.ReloadAsync();
             if (AccountId is { } id && message.AccountIds.Count > 0 && !message.AccountIds.Contains(id))
             {
                 return;

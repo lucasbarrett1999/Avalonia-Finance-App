@@ -44,3 +44,28 @@ public sealed record HomeBudgetAlert(Guid CategoryId, string Name, bool IsOversp
     /// <summary>Amount text.</summary>
     public string AmountText => ReportFormat.Money(Amount, Currency);
 }
+
+/// <summary>A bill due soon on the Upcoming bills card.</summary>
+/// <param name="Date">Due date.</param>
+/// <param name="Payee">Payee.</param>
+/// <param name="Amount">Amount due (positive).</param>
+/// <param name="Currency">Currency.</param>
+/// <param name="ItemId">Recurring item, when the bill is one.</param>
+/// <param name="AccountId">Account.</param>
+/// <param name="Today">Today.</param>
+/// <param name="IsUnconfirmed">A detected item not yet confirmed.</param>
+/// <param name="Open">Opens the bill.</param>
+public sealed record HomeBillRow(DateOnly Date, string Payee, long Amount, string Currency, Guid? ItemId, Guid? AccountId, DateOnly Today, bool IsUnconfirmed, IRelayCommand<HomeBillRow> Open)
+{
+    /// <summary>"Today", "Tomorrow", "In 3 days" or "2 days ago".</summary>
+    public string DueText => Bills.BillsFormat.Due(Date, Today);
+
+    /// <summary>Due before today.</summary>
+    public bool IsOverdue => Date < Today;
+
+    /// <summary>Amount text.</summary>
+    public string AmountText => ReportFormat.Money(Amount, Currency);
+
+    /// <summary>Screen-reader text.</summary>
+    public string AutomationName => Payee + ", " + AmountText + ", " + DueText;
+}

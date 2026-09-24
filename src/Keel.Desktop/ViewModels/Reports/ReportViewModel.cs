@@ -14,6 +14,9 @@ public enum ReportKind
 
     /// <summary>Net worth (F-REP-3).</summary>
     NetWorth,
+
+    /// <summary>Cash-flow forecast (F-REP-4, M5).</summary>
+    Forecast,
 }
 
 /// <summary>
@@ -48,6 +51,15 @@ public abstract partial class ReportViewModel : ViewModelBase
 
     /// <summary>Whether the "include transfers" toggle applies.</summary>
     public virtual bool SupportsTransfers => true;
+
+    /// <summary>Whether the toolbar's date range applies (the forecast has its own horizon).</summary>
+    public virtual bool SupportsRange => true;
+
+    /// <summary>Whether the "include tracking accounts" toggle applies.</summary>
+    public virtual bool SupportsTracking => true;
+
+    /// <summary>Text under the toolbar instead of the date range, when the report has its own period.</summary>
+    public virtual string? RangeTextOverride => null;
 
     /// <summary>Count categorized transfers (F-REP-1 toggle).</summary>
     [ObservableProperty]
