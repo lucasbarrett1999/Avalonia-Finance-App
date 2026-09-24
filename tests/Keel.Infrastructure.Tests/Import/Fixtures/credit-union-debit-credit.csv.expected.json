@@ -1,0 +1,123 @@
+{
+  "format": "Csv",
+  "encoding": "utf-8",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ",",
+      "skipRows": 0,
+      "hasHeader": true,
+      "dateColumn": 1,
+      "dateFormat": "MM/dd/yyyy",
+      "payeeColumn": 3,
+      "amountLayout": "DebitCredit",
+      "debitColumn": 4,
+      "creditColumn": 5,
+      "signConvention": "InflowPositive",
+      "decimalSeparator": ".",
+      "checkNumberColumn": 2,
+      "statusColumn": 6
+    },
+    "headers": [
+      "Account Number",
+      "Post Date",
+      "Check",
+      "Description",
+      "Debit",
+      "Credit",
+      "Status",
+      "Balance"
+    ],
+    "dateFormatCandidates": [
+      "MM/dd/yyyy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "transactions": [
+    {
+      "date": "2026-01-30",
+      "amount": -6732,
+      "payeeRaw": "POS PURCHASE H-E-B #123 AUSTIN TX",
+      "isPending": true,
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,904.14"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-29",
+      "amount": 31200,
+      "payeeRaw": "ACH DEPOSIT STATE OF TEXAS TAX REFUND",
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,971.46"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-27",
+      "amount": -8500,
+      "payeeRaw": "CHECK 1044",
+      "checkNumber": "1044",
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,659.46"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-21",
+      "amount": -6000,
+      "payeeRaw": "ATM WITHDRAWAL 000123 5TH ST AUSTIN TX",
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,744.46"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    },
+    {
+      "date": "2026-01-16",
+      "amount": -2350,
+      "payeeRaw": "POS DEBIT SQ *FARMERS MARKET AUSTIN TX",
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,804.46"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 6
+    },
+    {
+      "date": "2026-01-12",
+      "amount": -11840,
+      "payeeRaw": "ACH DEBIT GEICO AUTO INS",
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,827.96"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 7
+    },
+    {
+      "date": "2026-01-02",
+      "amount": 87,
+      "payeeRaw": "SHARE DIVIDEND",
+      "currency": "USD",
+      "extras": {
+        "Account Number": "XXXXXX4321",
+        "Balance": "$1,946.36"
+      },
+      "sourceIndex": 6,
+      "sourceLine": 8
+    }
+  ]
+}

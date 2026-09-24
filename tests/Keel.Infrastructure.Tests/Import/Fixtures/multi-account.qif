@@ -1,0 +1,57 @@
+!Option:AutoSwitch
+!Account
+NVisa Rewards
+TCCard
+DPersonal card
+^
+!Clear:AutoSwitch
+!Account
+NVisa Rewards
+TCCard
+^
+!Type:CCard
+D01/03/2026
+T-18.25
+PUBER *EATS
+^
+D01/11/2026
+T-129.99
+PCOSTCO WHSE #0123
+LGroceries
+^
+D01/18/2026
+T650.00
+PPayment - Thank You
+L[Checking]
+^
+D01/25/2026
+T-7.50
+PJoe's Tacos
+MSplit with Sam
+^
+!Account
+NPetty Cash
+TCash
+^
+!Type:Cash
+D01/30/2026
+T-12.00
+PFarmers Market
+^
+!Type:Invst
+D1/31'26
+NBuy
+YACME
+I10.00
+Q5
+T50.00
+^
+!Account
+NMortgage
+TOth L
+^
+!Type:Oth L
+D1/31/2026
+T-1,450.00
+PMortgage payment
+^

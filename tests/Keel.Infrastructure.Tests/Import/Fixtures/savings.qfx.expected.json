@@ -1,0 +1,51 @@
+{
+  "format": "Qfx",
+  "encoding": "utf-8",
+  "accounts": [
+    {
+      "accountId": "55501234",
+      "bankId": "314074269",
+      "accountType": "SAVINGS",
+      "currency": "USD",
+      "ledgerBalance": 1045808,
+      "ledgerBalanceDate": "2026-01-31",
+      "statementStart": "2026-01-01",
+      "statementEnd": "2026-01-31"
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-01-31",
+      "amount": 308,
+      "payeeRaw": "Dividend Earned",
+      "providerTransactionId": "INT202601",
+      "currency": "USD",
+      "transactionType": "INT",
+      "sourceAccountId": "55501234",
+      "sourceIndex": 0,
+      "sourceLine": 16
+    },
+    {
+      "date": "2026-01-29",
+      "amount": 50000,
+      "payeeRaw": "Transfer from Checking",
+      "memo": "Online Banking",
+      "providerTransactionId": "XF20260129A",
+      "currency": "USD",
+      "transactionType": "XFER",
+      "sourceAccountId": "55501234",
+      "sourceIndex": 1,
+      "sourceLine": 17
+    },
+    {
+      "date": "2026-01-10",
+      "amount": -4500,
+      "payeeRaw": "Peña Fitness",
+      "currency": "USD",
+      "transactionType": "DEBIT",
+      "sourceAccountId": "55501234",
+      "sourceIndex": 2,
+      "sourceLine": 18
+    }
+  ]
+}

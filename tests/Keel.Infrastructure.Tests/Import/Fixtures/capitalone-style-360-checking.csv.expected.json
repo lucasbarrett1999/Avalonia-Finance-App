@@ -1,0 +1,124 @@
+{
+  "format": "Csv",
+  "encoding": "utf-8",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ",",
+      "skipRows": 0,
+      "hasHeader": true,
+      "dateColumn": 2,
+      "dateFormat": "MM/dd/yy",
+      "payeeColumn": 1,
+      "amountLayout": "AmountWithType",
+      "amountColumn": 4,
+      "typeColumn": 3,
+      "signConvention": "InflowPositive",
+      "decimalSeparator": "."
+    },
+    "headers": [
+      "Account Number",
+      "Transaction Description",
+      "Transaction Date",
+      "Transaction Type",
+      "Transaction Amount",
+      "Balance"
+    ],
+    "dateFormatCandidates": [
+      "MM/dd/yy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "transactions": [
+    {
+      "date": "2026-01-31",
+      "amount": 137,
+      "payeeRaw": "Interest Paid",
+      "currency": "USD",
+      "transactionType": "Credit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "8420.55"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-28",
+      "amount": 12500,
+      "payeeRaw": "Zelle money received from JOHN SMITH",
+      "currency": "USD",
+      "transactionType": "Credit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "8419.18"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-24",
+      "amount": -5421,
+      "payeeRaw": "Debit Card Purchase - TRADER JOE S #552 AUSTIN TX",
+      "currency": "USD",
+      "transactionType": "Debit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "8294.18"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-20",
+      "amount": -50000,
+      "payeeRaw": "Withdrawal to SAVINGS ...1234",
+      "currency": "USD",
+      "transactionType": "Debit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "8348.39"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    },
+    {
+      "date": "2026-01-15",
+      "amount": 275000,
+      "payeeRaw": "Deposit from ACME CORP PAYROLL",
+      "currency": "USD",
+      "transactionType": "Credit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "8848.39"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 6
+    },
+    {
+      "date": "2026-01-09",
+      "amount": -1199,
+      "payeeRaw": "Debit Card Purchase - SPOTIFY USA NEW YORK NY",
+      "currency": "USD",
+      "transactionType": "Debit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "6098.39"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 7
+    },
+    {
+      "date": "2026-01-06",
+      "amount": -30000,
+      "payeeRaw": "Check #1043",
+      "currency": "USD",
+      "transactionType": "Debit",
+      "extras": {
+        "Account Number": "9876",
+        "Balance": "6110.38"
+      },
+      "sourceIndex": 6,
+      "sourceLine": 8
+    }
+  ]
+}
