@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rep="using:Keel.Desktop.ViewModels.Reports"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Keel.Desktop.Views.Reports.SpendingReportView"
+             x:DataType="rep:SpendingReportViewModel">
+  <Panel>
+    <StackPanel Classes="reportEmpty" IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,48,0,0" MaxWidth="420" Spacing="8">
+      <TextBlock Text="{x:Static res:Strings.Reports_Spending_EmptyHeading}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextAlignment="Center" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Reports_Spending_EmptyMessage}" TextWrapping="Wrap" TextAlignment="Center" />
+    </StackPanel>
+
+    <ScrollViewer IsVisible="{Binding HasData}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <Grid ColumnDefinitions="Auto,16,*">
+          <!-- Donut by group or category; a slice drills down -->
+          <Border Classes="card" Padding="12" VerticalAlignment="Top">
+            <Panel Width="260" Height="260">
+              <lvc:PieChart x:Name="SpendingChart" AutomationProperties.Name="{x:Static res:Strings.Reports_Spending_ChartName}" />
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" MaxWidth="120">
+                <TextBlock Classes="secondary" Text="{Binding LevelTitle}" FontSize="{StaticResource Keel.FontSize.Small}" TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding TotalText}" FontWeight="SemiBold" FontSize="14" TextAlignment="Center" FontFeatures="+tnum" />
+              </StackPanel>
+            </Panel>
+          </Border>
+
+          <!-- Level, total and comparison -->
+          <Border Grid.Column="2" Classes="card" Padding="20" VerticalAlignment="Stretch">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Bottom" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap"
+                         Text="{x:Static res:Strings.Reports_Spending_Hint}" />
+              <StackPanel Spacing="6">
+                <DockPanel>
+                  <Button DockPanel.Dock="Left" x:Name="SpendingBackButton" Classes="tool" Margin="0,0,10,0" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}"
+                          VerticalAlignment="Center" ToolTip.Tip="{x:Static res:Strings.Reports_Back}" AutomationProperties.Name="{x:Static res:Strings.Reports_Back}">
+                    <controls:Icon Data="{StaticResource Icon.Report.Back}" />
+                  </Button>
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="SpendingBreadcrumb" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding BreadcrumbText}"
+                               IsVisible="{Binding CanGoBack}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding LevelTitle}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DockPanel>
+                <TextBlock x:Name="SpendingTotal" Classes="heroNumber" Text="{Binding TotalText}" FontFeatures="+tnum" />
+                <TextBlock Text="{Binding ChangeText}" FontWeight="SemiBold" />
+                <TextBlock Classes="secondary" Text="{Binding PreviousPeriodText}" TextWrapping="Wrap" />
+                <TextBlock Classes="secondary" TextWrapping="Wrap">
+                  <Run Text="{x:Static res:Strings.Reports_PreviousTotal}" />
+                  <Run Text="{Binding PreviousTotalText}" />
+                </TextBlock>
+              </StackPanel>
+            </DockPanel>
+          </Border>
+        </Grid>
+
+        <!-- Legend and table: every row drills down like its slice -->
+        <Border Classes="card" Padding="12">
+          <StackPanel>
+            <Grid ColumnDefinitions="24,*,120,72,120,120" Margin="8,0,8,6">
+              <TextBlock Grid.Column="1" Classes="tableHeader" Text="{x:Static res:Strings.Reports_Column_Name}" />
+              <TextBlock Grid.Column="2" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Column_Spent}" />
+              <TextBlock Grid.Column="3" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Column_Share}" />
+              <TextBlock Grid.Column="4" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Column_Previous}" />
+              <TextBlock Grid.Column="5" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Column_Change}" />
+            </Grid>
+            <ItemsControl x:Name="SpendingRows" ItemsSource="{Binding Items}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="rep:SpendingItem">
+                  <Button Classes="chartRow" Command="{Binding OpenCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{Binding OpenLabel}" AutomationProperties.Name="{Binding OpenLabel}">
+                    <Grid ColumnDefinitions="24,*,120,72,120,120">
+                      <controls:ChartSwatch Slot="{Binding Slot}" VerticalAlignment="Center" IsVisible="{Binding IsSlice}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Classes="amount" Classes.negative="{Binding IsNetRefund}" Text="{Binding AmountText}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="3" Classes="amount secondary" Text="{Binding ShareText}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="4" Classes="amount secondary" Text="{Binding PreviousText}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="5" Classes="amount secondary" Text="{Binding ChangeText}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
+</UserControl>

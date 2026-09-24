@@ -111,6 +111,90 @@
   <data name="Page_Home_FileLabel" xml:space="preserve">
     <value>Budget file</value>
   </data>
+  <data name="Home_ReadyToAssign" xml:space="preserve">
+    <value>Ready to Assign</value>
+  </data>
+  <data name="Home_ReadyToAssignMonth" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="Home_ReadyToAssignPositive" xml:space="preserve">
+    <value>Money waiting for a job. Assign it to categories in Budget.</value>
+  </data>
+  <data name="Home_ReadyToAssignZero" xml:space="preserve">
+    <value>Every dollar has a job.</value>
+  </data>
+  <data name="Home_ReadyToAssignNegative" xml:space="preserve">
+    <value>You assigned more than you have. Move money back from a category.</value>
+  </data>
+  <data name="Home_Assign" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="Home_ReviewQueue" xml:space="preserve">
+    <value>Review queue</value>
+  </data>
+  <data name="Home_ReviewNone" xml:space="preserve">
+    <value>Nothing waits for review.</value>
+  </data>
+  <data name="Home_ReviewOne" xml:space="preserve">
+    <value>1 transaction waits for approval.</value>
+  </data>
+  <data name="Home_ReviewMany" xml:space="preserve">
+    <value>{0:N0} transactions wait for approval.</value>
+  </data>
+  <data name="Home_StartReview" xml:space="preserve">
+    <value>Start review</value>
+  </data>
+  <data name="Home_Accounts" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Home_AllAccounts" xml:space="preserve">
+    <value>All accounts</value>
+  </data>
+  <data name="Home_UpcomingBills" xml:space="preserve">
+    <value>Upcoming bills (7 days)</value>
+  </data>
+  <data name="Home_Forecast" xml:space="preserve">
+    <value>Forecast low point</value>
+  </data>
+  <data name="Home_PendingRecurringHeading" xml:space="preserve">
+    <value>Available after recurring detection</value>
+  </data>
+  <data name="Home_UpcomingBillsPending" xml:space="preserve">
+    <value>Once Keel has found the payments that repeat in your transactions, bills due in the next 7 days are listed here.</value>
+  </data>
+  <data name="Home_ForecastPending" xml:space="preserve">
+    <value>Once recurring bills and paychecks are detected, Keel projects your cash balance for the next 90 days and shows its lowest point here.</value>
+  </data>
+  <data name="Home_BudgetAlerts" xml:space="preserve">
+    <value>Budget alerts</value>
+  </data>
+  <data name="Home_OpenBudget" xml:space="preserve">
+    <value>Open Budget</value>
+  </data>
+  <data name="Home_NoAlerts" xml:space="preserve">
+    <value>No overspent or underfunded categories this month.</value>
+  </data>
+  <data name="Home_AlertOverspent" xml:space="preserve">
+    <value>Overspent</value>
+  </data>
+  <data name="Home_AlertUnderfunded" xml:space="preserve">
+    <value>Underfunded</value>
+  </data>
+  <data name="Home_NetWorth" xml:space="preserve">
+    <value>Net worth</value>
+  </data>
+  <data name="Home_NetWorthReport" xml:space="preserve">
+    <value>Net worth report</value>
+  </data>
+  <data name="Home_NetWorthTrend" xml:space="preserve">
+    <value>Net worth over the last 12 months</value>
+  </data>
+  <data name="Home_AddFirstAccount" xml:space="preserve">
+    <value>Add an account to begin</value>
+  </data>
+  <data name="Home_ErrorLoading" xml:space="preserve">
+    <value>The dashboard could not be loaded: {0}</value>
+  </data>
   <data name="Page_Budget_Title" xml:space="preserve">
     <value>Budget</value>
   </data>
@@ -118,10 +202,10 @@
     <value>Give every dollar a job</value>
   </data>
   <data name="Page_Budget_EmptyHeading" xml:space="preserve">
-    <value>Your budget starts with money you have</value>
+    <value>Your budget needs categories</value>
   </data>
   <data name="Page_Budget_EmptyMessage" xml:space="preserve">
-    <value>Once an account with a balance exists, its money shows up here as Ready to Assign. Then assign it to categories until Ready to Assign reaches zero.</value>
+    <value>Categories are the envelopes you give money to: rent, groceries, a vacation fund. Add your own or start from a template; you can rename, reorder, hide, or delete them at any time.</value>
   </data>
   <data name="Page_Review_Title" xml:space="preserve">
     <value>Review</value>
@@ -159,6 +243,135 @@
   <data name="Page_Goals_EmptyMessage" xml:space="preserve">
     <value>A goal is a budget category with a target amount and date. Keel tracks your progress and tells you how much to set aside each month.</value>
   </data>
+  <data name="Goals_New" xml:space="preserve">
+    <value>New goal</value>
+  </data>
+  <data name="Goals_CreateFirst" xml:space="preserve">
+    <value>Create a goal</value>
+  </data>
+  <data name="Goals_NewTitle" xml:space="preserve">
+    <value>New goal</value>
+  </data>
+  <data name="Goals_StepOf" xml:space="preserve">
+    <value>Step {0} of {1}</value>
+  </data>
+  <data name="Goals_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Goals_Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Goals_Create" xml:space="preserve">
+    <value>Create goal</value>
+  </data>
+  <data name="Goals_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Goals_NameWatermark" xml:space="preserve">
+    <value>e.g. Vacation, New car, Emergency fund</value>
+  </data>
+  <data name="Goals_Amount" xml:space="preserve">
+    <value>Amount to save</value>
+  </data>
+  <data name="Goals_Date" xml:space="preserve">
+    <value>Target date</value>
+  </data>
+  <data name="Goals_Step1Hint" xml:space="preserve">
+    <value>Keel creates a budget category for the goal in a "Goals" group and works out how much to set aside each month.</value>
+  </data>
+  <data name="Goals_LinkedAccountLabel" xml:space="preserve">
+    <value>Kept in (optional)</value>
+  </data>
+  <data name="Goals_LinkedAccountHint" xml:space="preserve">
+    <value>Link a tracking account, such as a brokerage or savings account outside your budget, to see its balance on the goal card.</value>
+  </data>
+  <data name="Goals_NoLinkedAccount" xml:space="preserve">
+    <value>No linked account</value>
+  </data>
+  <data name="Goals_Summary" xml:space="preserve">
+    <value>Set aside {0} a month for {1} months to reach {2} by {3}.</value>
+  </data>
+  <data name="Goals_GroupName" xml:space="preserve">
+    <value>Goals</value>
+  </data>
+  <data name="Goals_ErrorName" xml:space="preserve">
+    <value>Enter a name for the goal.</value>
+  </data>
+  <data name="Goals_ErrorAmount" xml:space="preserve">
+    <value>Enter an amount greater than zero.</value>
+  </data>
+  <data name="Goals_ErrorDate" xml:space="preserve">
+    <value>Choose a target date in this month or later.</value>
+  </data>
+  <data name="Goals_Created" xml:space="preserve">
+    <value>Goal "{0}" created. Assign money to it in Budget.</value>
+  </data>
+  <data name="Goals_ErrorLoading" xml:space="preserve">
+    <value>Goals could not be loaded: {0}</value>
+  </data>
+  <data name="Goals_Summary_Line" xml:space="preserve">
+    <value>{0} goals · {1} saved of {2}</value>
+  </data>
+  <data name="Goals_ProgressOf" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Goals_By" xml:space="preserve">
+    <value>by {0}</value>
+  </data>
+  <data name="Goals_MonthlyNeed" xml:space="preserve">
+    <value>{0} a month needed to finish on time</value>
+  </data>
+  <data name="Goals_NothingNeeded" xml:space="preserve">
+    <value>Target reached; nothing more needed</value>
+  </data>
+  <data name="Goals_Pace" xml:space="preserve">
+    <value>Current pace: {0} a month (average assigned over the last {1} months)</value>
+  </data>
+  <data name="Goals_LinkedAccount" xml:space="preserve">
+    <value>Kept in {0} ({1})</value>
+  </data>
+  <data name="Goals_WhatIf" xml:space="preserve">
+    <value>What if I add</value>
+  </data>
+  <data name="Goals_WhatIfName" xml:space="preserve">
+    <value>Extra amount per month</value>
+  </data>
+  <data name="Goals_WhatIfNone" xml:space="preserve">
+    <value>nothing extra</value>
+  </data>
+  <data name="Goals_WhatIfExtra" xml:space="preserve">
+    <value>+{0} a month</value>
+  </data>
+  <data name="Goals_StatusReached" xml:space="preserve">
+    <value>Reached</value>
+  </data>
+  <data name="Goals_StatusOnTrack" xml:space="preserve">
+    <value>On track</value>
+  </data>
+  <data name="Goals_StatusBehind" xml:space="preserve">
+    <value>Behind</value>
+  </data>
+  <data name="Goals_StatusNoPace" xml:space="preserve">
+    <value>Not moving</value>
+  </data>
+  <data name="Goals_ProjectionReached" xml:space="preserve">
+    <value>The goal is reached. Keep the money here or spend it as planned.</value>
+  </data>
+  <data name="Goals_ProjectionNoPace" xml:space="preserve">
+    <value>Not reached at this pace. Assign money to it each month, or try the slider.</value>
+  </data>
+  <data name="Goals_ProjectionEarly" xml:space="preserve">
+    <value>Reached in {0} ({1} months), {2} months early</value>
+  </data>
+  <data name="Goals_ProjectionOnTime" xml:space="preserve">
+    <value>Reached in {0} ({1} months), right on time</value>
+  </data>
+  <data name="Goals_ProjectionLate" xml:space="preserve">
+    <value>Reached in {0} ({1} months), {2} months late</value>
+  </data>
+  <data name="Goals_AssignInBudget" xml:space="preserve">
+    <value>Assign in Budget</value>
+  </data>
   <data name="Page_Reports_Title" xml:space="preserve">
     <value>Reports</value>
   </data>
@@ -170,6 +383,276 @@
   </data>
   <data name="Page_Reports_EmptyMessage" xml:space="preserve">
     <value>Spending, income versus expense, net worth, and the cash-flow forecast are computed from your transactions. They fill in as soon as you record some.</value>
+  </data>
+  <data name="Reports_ListName" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="Reports_Spending_Title" xml:space="preserve">
+    <value>Spending</value>
+  </data>
+  <data name="Reports_Spending_Description" xml:space="preserve">
+    <value>By group and category</value>
+  </data>
+  <data name="Reports_IncomeExpense_Title" xml:space="preserve">
+    <value>Income vs expense</value>
+  </data>
+  <data name="Reports_IncomeExpense_Description" xml:space="preserve">
+    <value>Monthly, with net</value>
+  </data>
+  <data name="Reports_NetWorth_Title" xml:space="preserve">
+    <value>Net worth</value>
+  </data>
+  <data name="Reports_NetWorth_Description" xml:space="preserve">
+    <value>Assets minus liabilities</value>
+  </data>
+  <data name="ReportRange_ThisMonth" xml:space="preserve">
+    <value>This month</value>
+  </data>
+  <data name="ReportRange_LastMonth" xml:space="preserve">
+    <value>Last month</value>
+  </data>
+  <data name="ReportRange_LastThreeMonths" xml:space="preserve">
+    <value>Last 3 months</value>
+  </data>
+  <data name="ReportRange_LastSixMonths" xml:space="preserve">
+    <value>Last 6 months</value>
+  </data>
+  <data name="ReportRange_LastTwelveMonths" xml:space="preserve">
+    <value>Last 12 months</value>
+  </data>
+  <data name="ReportRange_ThisYear" xml:space="preserve">
+    <value>This year</value>
+  </data>
+  <data name="ReportRange_LastYear" xml:space="preserve">
+    <value>Last year</value>
+  </data>
+  <data name="ReportRange_Custom" xml:space="preserve">
+    <value>Custom dates</value>
+  </data>
+  <data name="Reports_RangeName" xml:space="preserve">
+    <value>Date range</value>
+  </data>
+  <data name="Reports_CustomFrom" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Reports_CustomTo" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Reports_RangeFormat" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="Reports_AccountsFilterName" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Reports_AllAccounts" xml:space="preserve">
+    <value>All accounts</value>
+  </data>
+  <data name="Reports_AccountCount" xml:space="preserve">
+    <value>{0} accounts</value>
+  </data>
+  <data name="Reports_IncludeTransfers" xml:space="preserve">
+    <value>Include transfers</value>
+  </data>
+  <data name="Reports_IncludeTransfersTip" xml:space="preserve">
+    <value>Count categorized transfers, such as contributions to an investment account, as spending or income. Transfers between your own accounts without a category never count.</value>
+  </data>
+  <data name="Reports_IncludeTracking" xml:space="preserve">
+    <value>Include tracking accounts</value>
+  </data>
+  <data name="Reports_IncludeTrackingTip" xml:space="preserve">
+    <value>Include accounts outside the budget, such as loans and investments.</value>
+  </data>
+  <data name="Reports_ExportCsv" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="Reports_ExportTip" xml:space="preserve">
+    <value>Save this report's table as a CSV file</value>
+  </data>
+  <data name="Reports_CsvFileType" xml:space="preserve">
+    <value>CSV file</value>
+  </data>
+  <data name="Reports_Exported" xml:space="preserve">
+    <value>Report exported to {0}.</value>
+  </data>
+  <data name="Reports_ExportFailed" xml:space="preserve">
+    <value>The report could not be exported: {0}</value>
+  </data>
+  <data name="Reports_Loading" xml:space="preserve">
+    <value>Loading report</value>
+  </data>
+  <data name="Reports_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Reports_ErrorLoading" xml:space="preserve">
+    <value>The report could not be loaded: {0}</value>
+  </data>
+  <data name="Reports_Back" xml:space="preserve">
+    <value>Back to the level above</value>
+  </data>
+  <data name="Reports_AllGroups" xml:space="preserve">
+    <value>All groups</value>
+  </data>
+  <data name="Reports_Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Reports_OtherAccounts" xml:space="preserve">
+    <value>Other accounts</value>
+  </data>
+  <data name="Reports_Uncategorized" xml:space="preserve">
+    <value>Uncategorized</value>
+  </data>
+  <data name="Reports_ReadyToAssign" xml:space="preserve">
+    <value>Ready to Assign</value>
+  </data>
+  <data name="Reports_InflowGroup" xml:space="preserve">
+    <value>Inflow</value>
+  </data>
+  <data name="Reports_ComparedWith" xml:space="preserve">
+    <value>compared with {0}</value>
+  </data>
+  <data name="Reports_ChangeUp" xml:space="preserve">
+    <value>▲ {0} more</value>
+  </data>
+  <data name="Reports_ChangeDown" xml:space="preserve">
+    <value>▼ {0} less</value>
+  </data>
+  <data name="Reports_ChangeSame" xml:space="preserve">
+    <value>no change</value>
+  </data>
+  <data name="Reports_ChangeNew" xml:space="preserve">
+    <value>new</value>
+  </data>
+  <data name="Reports_DrillInto" xml:space="preserve">
+    <value>Show the categories of {0}</value>
+  </data>
+  <data name="Reports_OpenTransactionsFor" xml:space="preserve">
+    <value>Show the transactions of {0}</value>
+  </data>
+  <data name="Reports_PreviousTotal" xml:space="preserve">
+    <value>Previous period:</value>
+  </data>
+  <data name="Reports_Column_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Reports_Column_Spent" xml:space="preserve">
+    <value>Spent</value>
+  </data>
+  <data name="Reports_Column_Share" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="Reports_Column_Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Reports_Column_Change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="Reports_Spending_ChartName" xml:space="preserve">
+    <value>Spending donut; select a slice to drill down</value>
+  </data>
+  <data name="Reports_Spending_Hint" xml:space="preserve">
+    <value>Select a slice or row to see its categories, then a category to open its transactions in the register.</value>
+  </data>
+  <data name="Reports_Spending_EmptyHeading" xml:space="preserve">
+    <value>No spending in this range</value>
+  </data>
+  <data name="Reports_Spending_EmptyMessage" xml:space="preserve">
+    <value>Categorized outflows appear here. Try a longer date range, other accounts, or include tracking accounts.</value>
+  </data>
+  <data name="Reports_Income" xml:space="preserve">
+    <value>Income</value>
+  </data>
+  <data name="Reports_Expense" xml:space="preserve">
+    <value>Expense</value>
+  </data>
+  <data name="Reports_Net" xml:space="preserve">
+    <value>Net</value>
+  </data>
+  <data name="Reports_TotalIncome" xml:space="preserve">
+    <value>Total income</value>
+  </data>
+  <data name="Reports_TotalExpense" xml:space="preserve">
+    <value>Total expense</value>
+  </data>
+  <data name="Reports_TotalNet" xml:space="preserve">
+    <value>Net</value>
+  </data>
+  <data name="Reports_AverageNet" xml:space="preserve">
+    <value>Average net per month</value>
+  </data>
+  <data name="Reports_IncomeExpense_ChartName" xml:space="preserve">
+    <value>Income and expense by month with the net line; select a bar or point to see its transactions</value>
+  </data>
+  <data name="Reports_IncomeExpense_Hint" xml:space="preserve">
+    <value>Select an income bar for that month's income, an expense bar for its spending breakdown, or a net point for all of its transactions.</value>
+  </data>
+  <data name="Reports_IncomeExpense_EmptyHeading" xml:space="preserve">
+    <value>No income or expense in this range</value>
+  </data>
+  <data name="Reports_IncomeExpense_EmptyMessage" xml:space="preserve">
+    <value>Income is money categorized to Ready to Assign; expense is spending in your categories. Record some transactions or pick another range.</value>
+  </data>
+  <data name="Reports_OpenIncome" xml:space="preserve">
+    <value>Show this month's income</value>
+  </data>
+  <data name="Reports_OpenExpense" xml:space="preserve">
+    <value>Show this month's spending by category</value>
+  </data>
+  <data name="Reports_OpenMonth" xml:space="preserve">
+    <value>Show this month's transactions</value>
+  </data>
+  <data name="Reports_Transactions" xml:space="preserve">
+    <value>Transactions</value>
+  </data>
+  <data name="Reports_Assets" xml:space="preserve">
+    <value>Assets</value>
+  </data>
+  <data name="Reports_Liabilities" xml:space="preserve">
+    <value>Liabilities</value>
+  </data>
+  <data name="Reports_Accounts" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Reports_ShowAccounts" xml:space="preserve">
+    <value>Show accounts</value>
+  </data>
+  <data name="Reports_NetWorthUp" xml:space="preserve">
+    <value>Up {0} since {1}</value>
+  </data>
+  <data name="Reports_NetWorthDown" xml:space="preserve">
+    <value>Down {0} since {1}</value>
+  </data>
+  <data name="Reports_NetWorth_ChartName" xml:space="preserve">
+    <value>Net worth at each month end; select a point to see that month's transactions</value>
+  </data>
+  <data name="Reports_NetWorth_Hint" xml:space="preserve">
+    <value>Balances are month-end ledger balances; tracking accounts use their latest recorded balance on or before each date plus later activity.</value>
+  </data>
+  <data name="Reports_NetWorth_EmptyHeading" xml:space="preserve">
+    <value>No balances in this range</value>
+  </data>
+  <data name="Reports_NetWorth_EmptyMessage" xml:space="preserve">
+    <value>Net worth is the sum of your account balances. Add accounts or record balances for tracking accounts to see it here.</value>
+  </data>
+  <data name="Reports_Csv_Group" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="Reports_Csv_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Reports_Csv_Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Reports_Csv_Previous" xml:space="preserve">
+    <value>Previous period</value>
+  </data>
+  <data name="Reports_Csv_Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Reports_Csv_Month" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="Reports_Csv_Date" xml:space="preserve">
+    <value>Date</value>
   </data>
   <data name="Page_Accounts_Title" xml:space="preserve">
     <value>All accounts</value>
@@ -860,6 +1343,870 @@
   </data>
   <data name="TxnStatus_Reconciled" xml:space="preserve">
     <value>Reconciled</value>
+  </data>
+  <data name="LedgerError_SystemCategoryProtected" xml:space="preserve">
+    <value>System groups and categories (Ready to Assign, Credit Card Payments) can't be changed.</value>
+  </data>
+  <data name="LedgerError_CategoryGroupNotFound" xml:space="preserve">
+    <value>That category group no longer exists.</value>
+  </data>
+  <data name="LedgerError_ReplacementCategoryRequired" xml:space="preserve">
+    <value>This category has transactions or assigned money. Choose a category to move them to.</value>
+  </data>
+  <data name="LedgerError_InvalidReplacementCategory" xml:space="preserve">
+    <value>Choose another category to move the history to (not one being deleted or a system category).</value>
+  </data>
+  <data name="Action_AssignBudget" xml:space="preserve">
+    <value>assign money</value>
+  </data>
+  <data name="Action_MoveMoney" xml:space="preserve">
+    <value>move money</value>
+  </data>
+  <data name="Action_FundTargets" xml:space="preserve">
+    <value>fund targets</value>
+  </data>
+  <data name="Action_SetTarget" xml:space="preserve">
+    <value>set target</value>
+  </data>
+  <data name="Action_DeleteTarget" xml:space="preserve">
+    <value>remove target</value>
+  </data>
+  <data name="Action_CreateCategoryGroup" xml:space="preserve">
+    <value>add group</value>
+  </data>
+  <data name="Action_RenameCategoryGroup" xml:space="preserve">
+    <value>rename group</value>
+  </data>
+  <data name="Action_HideCategoryGroup" xml:space="preserve">
+    <value>hide or show group</value>
+  </data>
+  <data name="Action_ReorderCategoryGroups" xml:space="preserve">
+    <value>reorder groups</value>
+  </data>
+  <data name="Action_DeleteCategoryGroup" xml:space="preserve">
+    <value>delete group</value>
+  </data>
+  <data name="Action_RenameCategory" xml:space="preserve">
+    <value>rename category</value>
+  </data>
+  <data name="Action_HideCategory" xml:space="preserve">
+    <value>hide or show category</value>
+  </data>
+  <data name="Action_MoveCategory" xml:space="preserve">
+    <value>move category</value>
+  </data>
+  <data name="Action_DeleteCategory" xml:space="preserve">
+    <value>delete category</value>
+  </data>
+  <data name="Action_EditCategoryNote" xml:space="preserve">
+    <value>edit note</value>
+  </data>
+  <data name="Action_ApplyCategoryTemplate" xml:space="preserve">
+    <value>add starter categories</value>
+  </data>
+  <data name="Budget_CollapseGroup" xml:space="preserve">
+    <value>Collapse {0}</value>
+  </data>
+  <data name="Budget_ExpandGroup" xml:space="preserve">
+    <value>Expand {0}</value>
+  </data>
+  <data name="Budget_GroupAutomation" xml:space="preserve">
+    <value>{0} group: assigned {1}, activity {2}, available {3}</value>
+  </data>
+  <data name="Budget_CategoryAutomation" xml:space="preserve">
+    <value>{0}: assigned {1}, activity {2}, available {3}, {4}</value>
+  </data>
+  <data name="Budget_StateCashOverspent" xml:space="preserve">
+    <value>overspent (cash)</value>
+  </data>
+  <data name="Budget_StateCreditOverspent" xml:space="preserve">
+    <value>overspent on credit</value>
+  </data>
+  <data name="Budget_StateFunded" xml:space="preserve">
+    <value>money available</value>
+  </data>
+  <data name="Budget_StateEmpty" xml:space="preserve">
+    <value>nothing available</value>
+  </data>
+  <data name="Budget_TargetComplete" xml:space="preserve">
+    <value>Goal reached</value>
+  </data>
+  <data name="Budget_TargetNeeds" xml:space="preserve">
+    <value>Needs {0}</value>
+  </data>
+  <data name="Budget_TargetFunded" xml:space="preserve">
+    <value>Funded</value>
+  </data>
+  <data name="Budget_TargetTip" xml:space="preserve">
+    <value>{0}. This month it asks for {1}.</value>
+  </data>
+  <data name="Budget_CardUncovered" xml:space="preserve">
+    <value>Balance {0} · {1} not yet covered</value>
+  </data>
+  <data name="Budget_CardSurplus" xml:space="preserve">
+    <value>Balance {0} · {1} more than owed</value>
+  </data>
+  <data name="Budget_CardCovered" xml:space="preserve">
+    <value>Balance {0} · fully covered</value>
+  </data>
+  <data name="TargetType_MonthlySetAside" xml:space="preserve">
+    <value>Set aside each month</value>
+  </data>
+  <data name="TargetType_MonthlySpending" xml:space="preserve">
+    <value>Refill to an amount each month</value>
+  </data>
+  <data name="TargetType_SavingsBalanceByDate" xml:space="preserve">
+    <value>Save a balance by a date</value>
+  </data>
+  <data name="TargetType_DebtPayment" xml:space="preserve">
+    <value>Pay toward a debt each month</value>
+  </data>
+  <data name="TargetSummary_MonthlySetAside" xml:space="preserve">
+    <value>Set aside {0} each month</value>
+  </data>
+  <data name="TargetSummary_MonthlySpending" xml:space="preserve">
+    <value>Have {0} available each month</value>
+  </data>
+  <data name="TargetSummary_SavingsBalanceByDate" xml:space="preserve">
+    <value>Save {0} by {1} ({2} a month)</value>
+  </data>
+  <data name="TargetSummary_DebtPayment" xml:space="preserve">
+    <value>Pay {0} a month toward the debt</value>
+  </data>
+  <data name="Explain_PreviousAvailable" xml:space="preserve">
+    <value>Available at the end of {0}</value>
+  </data>
+  <data name="Explain_Carry" xml:space="preserve">
+    <value>Carried over from last month</value>
+  </data>
+  <data name="Explain_Assigned" xml:space="preserve">
+    <value>Assigned this month</value>
+  </data>
+  <data name="Explain_ActivityOnAccount" xml:space="preserve">
+    <value>Activity in {0}</value>
+  </data>
+  <data name="Explain_CardSpend" xml:space="preserve">
+    <value>Spent on {0}</value>
+  </data>
+  <data name="Explain_CoveredOnCard" xml:space="preserve">
+    <value>Covered on {0}, moved to its payment category</value>
+  </data>
+  <data name="Explain_CreditOverspent" xml:space="preserve">
+    <value>Overspent on credit (the card payment is short by this)</value>
+  </data>
+  <data name="Explain_CashOverspent" xml:space="preserve">
+    <value>Overspent in cash (reduces next month's Ready to Assign)</value>
+  </data>
+  <data name="Explain_CoveredFromCategory" xml:space="preserve">
+    <value>Card spending covered from {0}</value>
+  </data>
+  <data name="Explain_Payment" xml:space="preserve">
+    <value>Payment from {0}</value>
+  </data>
+  <data name="Explain_Inflow" xml:space="preserve">
+    <value>Income for Ready to Assign through this month</value>
+  </data>
+  <data name="Explain_AssignedThroughMonth" xml:space="preserve">
+    <value>Assigned through this month</value>
+  </data>
+  <data name="Explain_AssignedInFuture" xml:space="preserve">
+    <value>Assigned in future months</value>
+  </data>
+  <data name="Explain_CashOverspentInMonth" xml:space="preserve">
+    <value>Cash overspending in {0}</value>
+  </data>
+  <data name="Budget_Totals" xml:space="preserve">
+    <value>Assigned {0} · Activity {1} · Available {2}</value>
+  </data>
+  <data name="Budget_AssignedInFuture" xml:space="preserve">
+    <value>Includes {0} assigned in later months</value>
+  </data>
+  <data name="Budget_Uncategorized" xml:space="preserve">
+    <value>{0} of this month's activity has no category and is not in the budget yet. Categorize it in the register.</value>
+  </data>
+  <data name="Budget_PreviousMonth" xml:space="preserve">
+    <value>Previous month</value>
+  </data>
+  <data name="Budget_NextMonth" xml:space="preserve">
+    <value>Next month</value>
+  </data>
+  <data name="Budget_FundTargetsTip" xml:space="preserve">
+    <value>Assign what every underfunded target needs this month</value>
+  </data>
+  <data name="Budget_MoveMoneyTip" xml:space="preserve">
+    <value>Move money between categories or Ready to Assign</value>
+  </data>
+  <data name="Budget_InspectorTip" xml:space="preserve">
+    <value>Show or hide the inspector</value>
+  </data>
+  <data name="Budget_ReadyToAssign" xml:space="preserve">
+    <value>Ready to Assign</value>
+  </data>
+  <data name="Budget_FundNothing" xml:space="preserve">
+    <value>Every target is already funded this month.</value>
+  </data>
+  <data name="Budget_FundDone" xml:space="preserve">
+    <value>Assigned {0} to {1} underfunded targets.</value>
+  </data>
+  <data name="Budget_FundShort" xml:space="preserve">
+    <value>Assigned {0}; {1} is still needed. Not enough Ready to Assign to fund every target.</value>
+  </data>
+  <data name="Budget_QuickAssigned" xml:space="preserve">
+    <value>Assigned {1} to {0}.</value>
+  </data>
+  <data name="Budget_TemplateApplied" xml:space="preserve">
+    <value>Added {1} categories from the {0} template.</value>
+  </data>
+  <data name="Budget_ErrorSaving" xml:space="preserve">
+    <value>Couldn't save the change: {0}</value>
+  </data>
+  <data name="Budget_Moved" xml:space="preserve">
+    <value>Moved {0} from {1} to {2}.</value>
+  </data>
+  <data name="Budget_ErrorLoading" xml:space="preserve">
+    <value>Couldn't load the budget: {0}</value>
+  </data>
+  <data name="Inspector_HowAvailable" xml:space="preserve">
+    <value>How is Available computed?</value>
+  </data>
+  <data name="Inspector_HowReadyToAssign" xml:space="preserve">
+    <value>How is Ready to Assign computed?</value>
+  </data>
+  <data name="Inspector_TargetBalance" xml:space="preserve">
+    <value>Balance to reach</value>
+  </data>
+  <data name="Inspector_TargetAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Inspector_TargetAmountRequired" xml:space="preserve">
+    <value>Enter an amount greater than zero.</value>
+  </data>
+  <data name="Inspector_TargetDateRequired" xml:space="preserve">
+    <value>Choose the date to reach the balance by.</value>
+  </data>
+  <data name="Inspector_TargetAccountRequired" xml:space="preserve">
+    <value>Choose the loan or credit account to pay toward.</value>
+  </data>
+  <data name="Inspector_NeededThisMonth" xml:space="preserve">
+    <value>Needed this month: {0}</value>
+  </data>
+  <data name="Inspector_TargetMet" xml:space="preserve">
+    <value>Funded for this month</value>
+  </data>
+  <data name="Inspector_Underfunded" xml:space="preserve">
+    <value>Underfunded by {0}</value>
+  </data>
+  <data name="Inspector_MonthlyNeed" xml:space="preserve">
+    <value>Monthly need: {0}</value>
+  </data>
+  <data name="Quick_AssignedLastMonth" xml:space="preserve">
+    <value>Assigned last month</value>
+  </data>
+  <data name="Quick_SpentLastMonth" xml:space="preserve">
+    <value>Spent last month</value>
+  </data>
+  <data name="Quick_AverageAssigned" xml:space="preserve">
+    <value>Average assigned (3 months)</value>
+  </data>
+  <data name="Quick_AverageSpent" xml:space="preserve">
+    <value>Average spent (3 months)</value>
+  </data>
+  <data name="Quick_FundTarget" xml:space="preserve">
+    <value>Fund target</value>
+  </data>
+  <data name="Quick_ResetToZero" xml:space="preserve">
+    <value>Reset to zero</value>
+  </data>
+  <data name="Quick_Title" xml:space="preserve">
+    <value>Quick assign: {0}</value>
+  </data>
+  <data name="MoveMoney_Title" xml:space="preserve">
+    <value>Move money</value>
+  </data>
+  <data name="MoveMoney_Month" xml:space="preserve">
+    <value>In {0}</value>
+  </data>
+  <data name="MoveMoney_ChooseBoth" xml:space="preserve">
+    <value>Choose where the money comes from and where it goes.</value>
+  </data>
+  <data name="MoveMoney_SameSide" xml:space="preserve">
+    <value>Choose two different places.</value>
+  </data>
+  <data name="MoveMoney_AmountRequired" xml:space="preserve">
+    <value>Enter an amount greater than zero.</value>
+  </data>
+  <data name="Template_Simple_Name" xml:space="preserve">
+    <value>Simple</value>
+  </data>
+  <data name="Template_Simple" xml:space="preserve">
+    <value>Bills: Rent or mortgage, Utilities, Phone, Internet, Insurance; Everyday: Groceries, Transportation, Dining out, Household; Savings: Emergency fund, Vacation</value>
+  </data>
+  <data name="Template_Detailed_Name" xml:space="preserve">
+    <value>Detailed</value>
+  </data>
+  <data name="Template_Detailed" xml:space="preserve">
+    <value>Housing: Rent or mortgage, Electricity, Water, Gas, Internet, Home maintenance; Transportation: Fuel, Transit, Car insurance, Car maintenance; Everyday: Groceries, Dining out, Personal care, Clothing, Household; Health: Health insurance, Medical, Fitness; Subscriptions: Streaming, Software, Memberships; True expenses: Gifts, Annual fees, Travel; Savings: Emergency fund, Retirement, Big purchases</value>
+  </data>
+  <data name="Template_Student_Name" xml:space="preserve">
+    <value>Student</value>
+  </data>
+  <data name="Template_Student" xml:space="preserve">
+    <value>School: Tuition, Books and supplies, Fees; Living: Rent, Groceries, Phone, Transit; Fun: Dining out, Entertainment, Travel home; Savings: Emergency fund</value>
+  </data>
+  <data name="Template_Family_Name" xml:space="preserve">
+    <value>Family</value>
+  </data>
+  <data name="Template_Family" xml:space="preserve">
+    <value>Home: Mortgage or rent, Utilities, Internet, Home insurance, Repairs; Kids: Childcare, School, Activities, Clothing; Everyday: Groceries, Household, Dining out, Transportation; Health: Medical, Dental, Health insurance; Savings: Emergency fund, College fund, Vacation, Gifts</value>
+  </data>
+  <data name="Manage_Title" xml:space="preserve">
+    <value>Manage categories</value>
+  </data>
+  <data name="Manage_GroupAdded" xml:space="preserve">
+    <value>Added the group {0}.</value>
+  </data>
+  <data name="Manage_Show" xml:space="preserve">
+    <value>Show {0}</value>
+  </data>
+  <data name="Manage_Hide" xml:space="preserve">
+    <value>Hide {0}</value>
+  </data>
+  <data name="Manage_Delete" xml:space="preserve">
+    <value>Delete {0}</value>
+  </data>
+  <data name="Manage_MoveUp" xml:space="preserve">
+    <value>Move {0} up</value>
+  </data>
+  <data name="Manage_MoveDown" xml:space="preserve">
+    <value>Move {0} down</value>
+  </data>
+  <data name="Manage_DeleteHistory" xml:space="preserve">
+    <value>{0} has history ({1} transactions or splits, or assigned money). Choose where to move it; assigned amounts are added month by month, so Ready to Assign does not change.</value>
+  </data>
+  <data name="Manage_Deleted" xml:space="preserve">
+    <value>Deleted {0}.</value>
+  </data>
+  <data name="Manage_DeletedInto" xml:space="preserve">
+    <value>Deleted {0}; its history now belongs to {1}.</value>
+  </data>
+  <data name="Manage_AddCategoryTo" xml:space="preserve">
+    <value>New category in {0}</value>
+  </data>
+  <data name="Manage_CategoryAdded" xml:space="preserve">
+    <value>Added the category {0}.</value>
+  </data>
+  <data name="Shortcut_BudgetPreviousMonth" xml:space="preserve">
+    <value>Budget: previous month</value>
+  </data>
+  <data name="Shortcut_BudgetNextMonth" xml:space="preserve">
+    <value>Budget: next month</value>
+  </data>
+  <data name="Shortcut_BudgetNavigate" xml:space="preserve">
+    <value>Budget: move between cells</value>
+  </data>
+  <data name="Shortcut_BudgetEdit" xml:space="preserve">
+    <value>Budget: edit the selected cell; save and move down</value>
+  </data>
+  <data name="Shortcut_BudgetNextAssigned" xml:space="preserve">
+    <value>Budget: save and edit the next Assigned</value>
+  </data>
+  <data name="Shortcut_BudgetMoveMoney" xml:space="preserve">
+    <value>Budget: move money</value>
+  </data>
+  <data name="Shortcut_BudgetSetTarget" xml:space="preserve">
+    <value>Budget: set target</value>
+  </data>
+  <data name="Shortcut_BudgetFundTargets" xml:space="preserve">
+    <value>Budget: fund targets</value>
+  </data>
+  <data name="Shortcut_BudgetInspector" xml:space="preserve">
+    <value>Budget: show or hide the inspector</value>
+  </data>
+  <data name="Shortcut_BudgetQuickAssign" xml:space="preserve">
+    <value>Budget: quick assign</value>
+  </data>
+  <data name="Budget_JumpToMonth" xml:space="preserve">
+    <value>Jump to month</value>
+  </data>
+  <data name="Budget_PreviousYear" xml:space="preserve">
+    <value>Previous year</value>
+  </data>
+  <data name="Budget_NextYear" xml:space="preserve">
+    <value>Next year</value>
+  </data>
+  <data name="Budget_Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="Budget_RtaTip" xml:space="preserve">
+    <value>Money not yet given a job. Click to see how it is computed; drop an Available pill here to return money.</value>
+  </data>
+  <data name="Budget_FundTargets" xml:space="preserve">
+    <value>Fund targets</value>
+  </data>
+  <data name="Budget_MoveMoney" xml:space="preserve">
+    <value>Move money</value>
+  </data>
+  <data name="Budget_ManageCategories" xml:space="preserve">
+    <value>Manage categories</value>
+  </data>
+  <data name="Budget_Inspector" xml:space="preserve">
+    <value>Inspector</value>
+  </data>
+  <data name="Budget_OverAssigned" xml:space="preserve">
+    <value>You've assigned more than you have.</value>
+  </data>
+  <data name="Budget_OverAssignedHelp" xml:space="preserve">
+    <value>Move money back to Ready to Assign from categories that can spare it.</value>
+  </data>
+  <data name="Budget_Loading" xml:space="preserve">
+    <value>Loading your budget…</value>
+  </data>
+  <data name="Budget_ErrorHeading" xml:space="preserve">
+    <value>Couldn't load the budget</value>
+  </data>
+  <data name="Budget_Retry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="Budget_EmptyTemplates" xml:space="preserve">
+    <value>Or start from a template:</value>
+  </data>
+  <data name="Budget_GridName" xml:space="preserve">
+    <value>Budget categories</value>
+  </data>
+  <data name="Budget_ColumnCategory" xml:space="preserve">
+    <value>CATEGORY</value>
+  </data>
+  <data name="Budget_ColumnAssigned" xml:space="preserve">
+    <value>ASSIGNED</value>
+  </data>
+  <data name="Budget_ColumnActivity" xml:space="preserve">
+    <value>ACTIVITY</value>
+  </data>
+  <data name="Budget_ColumnAvailable" xml:space="preserve">
+    <value>AVAILABLE</value>
+  </data>
+  <data name="Budget_ActivityTip" xml:space="preserve">
+    <value>Show this month's transactions</value>
+  </data>
+  <data name="Budget_PillTip" xml:space="preserve">
+    <value>Drag onto another category (or Ready to Assign) to move money</value>
+  </data>
+  <data name="Inspector_Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Inspector_History" xml:space="preserve">
+    <value>Available, last 6 months</value>
+  </data>
+  <data name="Inspector_Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Inspector_NoTarget" xml:space="preserve">
+    <value>No target yet. Targets say how much this category needs; the budget shows what is still underfunded.</value>
+  </data>
+  <data name="Inspector_TargetType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Inspector_TargetDate" xml:space="preserve">
+    <value>By</value>
+  </data>
+  <data name="Inspector_TargetAccount" xml:space="preserve">
+    <value>Debt account</value>
+  </data>
+  <data name="Inspector_SaveTarget" xml:space="preserve">
+    <value>Save target</value>
+  </data>
+  <data name="Inspector_RemoveTarget" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Inspector_QuickAssign" xml:space="preserve">
+    <value>Quick assign</value>
+  </data>
+  <data name="Inspector_Note" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Inspector_NoteWatermark" xml:space="preserve">
+    <value>Add a note (saved when you leave the field)</value>
+  </data>
+  <data name="MoveMoney_From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="MoveMoney_To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="MoveMoney_Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="MoveMoney_Confirm" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="Quick_Prompt" xml:space="preserve">
+    <value>Choose a value for Assigned this month. Arrow keys and Enter work too.</value>
+  </data>
+  <data name="Quick_Apply" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="Manage_ReplacementName" xml:space="preserve">
+    <value>Move history to</value>
+  </data>
+  <data name="Manage_DeleteAndMove" xml:space="preserve">
+    <value>Delete and move history</value>
+  </data>
+  <data name="Manage_Intro" xml:space="preserve">
+    <value>Changes save as you make them and can be undone. Hidden categories leave the budget view but their money still counts.</value>
+  </data>
+  <data name="Manage_AddGroup" xml:space="preserve">
+    <value>Add group</value>
+  </data>
+  <data name="Manage_NewGroup" xml:space="preserve">
+    <value>New group name</value>
+  </data>
+  <data name="Manage_Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Manage_HiddenTag" xml:space="preserve">
+    <value>hidden</value>
+  </data>
+  <data name="Manage_SystemTag" xml:space="preserve">
+    <value>automatic, one per credit card</value>
+  </data>
+  <data name="Manage_GroupName" xml:space="preserve">
+    <value>Group name</value>
+  </data>
+  <data name="Manage_CategoryName" xml:space="preserve">
+    <value>Category name</value>
+  </data>
+  <data name="Manage_AddCategory" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Quick_NoTarget" xml:space="preserve">
+    <value>This category has no target to fund.</value>
+  </data>
+  <data name="Budget_MoveMoneyMenu" xml:space="preserve">
+    <value>Move money…</value>
+  </data>
+  <data name="Budget_SetTargetMenu" xml:space="preserve">
+    <value>Set target…</value>
+  </data>
+  <data name="Inspector_MonthNote" xml:space="preserve">
+    <value>Note for {0}</value>
+  </data>
+  <data name="Action_EditMonthNote" xml:space="preserve">
+    <value>edit month note</value>
+  </data>
+  <data name="Action_ImportTransactions" xml:space="preserve">
+    <value>import transactions</value>
+  </data>
+  <data name="Register_ImportFile" xml:space="preserve">
+    <value>Import file</value>
+  </data>
+  <data name="Register_ImportFileTip" xml:space="preserve">
+    <value>Import a CSV, OFX, QFX or QIF file from your bank</value>
+  </data>
+  <data name="Nav_ImportFile" xml:space="preserve">
+    <value>Import file…</value>
+  </data>
+  <data name="Import_PickerTitle" xml:space="preserve">
+    <value>Import transactions into {0}</value>
+  </data>
+  <data name="Import_FileTypeName" xml:space="preserve">
+    <value>Bank files (CSV, OFX, QFX, QIF)</value>
+  </data>
+  <data name="Import_ChooseAccountTitle" xml:space="preserve">
+    <value>Import file</value>
+  </data>
+  <data name="Import_ChooseAccountPrompt" xml:space="preserve">
+    <value>Choose the account to import into.</value>
+  </data>
+  <data name="Import_Unsupported" xml:space="preserve">
+    <value>{0} is not a CSV, OFX, QFX or QIF file Keel can read.</value>
+  </data>
+  <data name="Import_NoRows" xml:space="preserve">
+    <value>No transactions could be read from {0}.</value>
+  </data>
+  <data name="Import_ReadFailed" xml:space="preserve">
+    <value>{0} could not be read: {1}</value>
+  </data>
+  <data name="Import_Failed" xml:space="preserve">
+    <value>The import failed: {0}</value>
+  </data>
+  <data name="Import_Summary" xml:space="preserve">
+    <value>Imported {0} into {1}: {2}.</value>
+  </data>
+  <data name="Import_SummaryAdded" xml:space="preserve">
+    <value>{0} new</value>
+  </data>
+  <data name="Import_SummaryUpdated" xml:space="preserve">
+    <value>{0} updated</value>
+  </data>
+  <data name="Import_SummaryMatched" xml:space="preserve">
+    <value>{0} matched to existing</value>
+  </data>
+  <data name="Import_SummaryTransfers" xml:space="preserve">
+    <value>transfers paired: {0}</value>
+  </data>
+  <data name="Import_SummaryDuplicates" xml:space="preserve">
+    <value>duplicates skipped: {0}</value>
+  </data>
+  <data name="Import_SummaryUncategorized" xml:space="preserve">
+    <value>{0} uncategorized</value>
+  </data>
+  <data name="Import_SummarySkipped" xml:space="preserve">
+    <value>{0} left out</value>
+  </data>
+  <data name="Import_SummaryBalance" xml:space="preserve">
+    <value>reported balance {0}</value>
+  </data>
+  <data name="Import_NothingNew" xml:space="preserve">
+    <value>Nothing new in {0}: all {1} rows are already in {2}.</value>
+  </data>
+  <data name="CsvMapping_Title" xml:space="preserve">
+    <value>Map the columns of {0}</value>
+  </data>
+  <data name="CsvMapping_Intro" xml:space="preserve">
+    <value>Tell Keel which column holds what. The preview shows the first 10 rows as they will be read.</value>
+  </data>
+  <data name="CsvMapping_Remembered" xml:space="preserve">
+    <value>Using the mapping you chose for this account last time.</value>
+  </data>
+  <data name="CsvMapping_Detected" xml:space="preserve">
+    <value>Keel detected this layout; check it against the preview.</value>
+  </data>
+  <data name="CsvMapping_None" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="CsvMapping_Column" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CsvMapping_Date" xml:space="preserve">
+    <value>Date column</value>
+  </data>
+  <data name="CsvMapping_DateFormat" xml:space="preserve">
+    <value>Date format</value>
+  </data>
+  <data name="CsvMapping_Payee" xml:space="preserve">
+    <value>Payee or description</value>
+  </data>
+  <data name="CsvMapping_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="CsvMapping_AmountLayout" xml:space="preserve">
+    <value>Amounts</value>
+  </data>
+  <data name="CsvMapping_Amount" xml:space="preserve">
+    <value>Amount column</value>
+  </data>
+  <data name="CsvMapping_Debit" xml:space="preserve">
+    <value>Debit (money out)</value>
+  </data>
+  <data name="CsvMapping_Credit" xml:space="preserve">
+    <value>Credit (money in)</value>
+  </data>
+  <data name="CsvMapping_Type" xml:space="preserve">
+    <value>Type column</value>
+  </data>
+  <data name="CsvMapping_Sign" xml:space="preserve">
+    <value>Sign</value>
+  </data>
+  <data name="CsvMapping_DecimalSeparator" xml:space="preserve">
+    <value>Decimal separator</value>
+  </data>
+  <data name="CsvMapping_SkipRows" xml:space="preserve">
+    <value>Lines to skip</value>
+  </data>
+  <data name="CsvMapping_HasHeader" xml:space="preserve">
+    <value>First line is a header</value>
+  </data>
+  <data name="CsvLayout_SignedAmount" xml:space="preserve">
+    <value>One amount column (+/−)</value>
+  </data>
+  <data name="CsvLayout_DebitCredit" xml:space="preserve">
+    <value>Debit and credit columns</value>
+  </data>
+  <data name="CsvLayout_AmountWithType" xml:space="preserve">
+    <value>Amount plus type column</value>
+  </data>
+  <data name="CsvSign_InflowPositive" xml:space="preserve">
+    <value>Money in is positive</value>
+  </data>
+  <data name="CsvSign_OutflowPositive" xml:space="preserve">
+    <value>Money out is positive</value>
+  </data>
+  <data name="CsvMapping_DecimalPoint" xml:space="preserve">
+    <value>Point (1,234.56)</value>
+  </data>
+  <data name="CsvMapping_DecimalComma" xml:space="preserve">
+    <value>Comma (1.234,56)</value>
+  </data>
+  <data name="CsvMapping_AmbiguousDates" xml:space="preserve">
+    <value>Dates such as 03/04/2026 could be March 4 or 3 April. Choose the order your bank uses; the preview updates.</value>
+  </data>
+  <data name="CsvMapping_MonthFirst" xml:space="preserve">
+    <value>Month first (US)</value>
+  </data>
+  <data name="CsvMapping_DayFirst" xml:space="preserve">
+    <value>Day first (EU)</value>
+  </data>
+  <data name="CsvMapping_ChooseDateOrder" xml:space="preserve">
+    <value>Choose month-first or day-first dates before continuing.</value>
+  </data>
+  <data name="CsvMapping_PreviewHeading" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="CsvMapping_PreviewCount" xml:space="preserve">
+    <value>{0} rows read</value>
+  </data>
+  <data name="CsvMapping_PreviewSkipped" xml:space="preserve">
+    <value>{0} rows read, {1} lines skipped</value>
+  </data>
+  <data name="CsvMapping_PreviewEmpty" xml:space="preserve">
+    <value>No rows can be read with this mapping. Check the date and amount columns.</value>
+  </data>
+  <data name="CsvMapping_ErrorDateColumn" xml:space="preserve">
+    <value>Choose the date column.</value>
+  </data>
+  <data name="CsvMapping_ErrorAmountColumns" xml:space="preserve">
+    <value>Choose the amount columns.</value>
+  </data>
+  <data name="CsvMapping_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="CsvMapping_ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="CsvMapping_ColPayee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="CsvMapping_ColMemo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="CsvMapping_ColAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="ImportPreview_Title" xml:space="preserve">
+    <value>Import {0} into {1}</value>
+  </data>
+  <data name="ImportPreview_Intro" xml:space="preserve">
+    <value>Every row with what the import will do. Uncheck rows to leave them out; check a duplicate to add it anyway.</value>
+  </data>
+  <data name="ImportPreview_Statement" xml:space="preserve">
+    <value>Account in file</value>
+  </data>
+  <data name="ImportPreview_ColImport" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="ImportPreview_ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ImportPreview_ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="ImportPreview_ColPayee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="ImportPreview_ColCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ImportPreview_ColMemo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="ImportPreview_ColAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="ImportPreview_ColTransfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="ImportPreview_IncludeRow" xml:space="preserve">
+    <value>Import row {0}</value>
+  </data>
+  <data name="ImportPreview_PairRow" xml:space="preserve">
+    <value>Pair row {0} as a transfer</value>
+  </data>
+  <data name="ImportPreview_Totals" xml:space="preserve">
+    <value>Importing {0} of {1} rows. New: {2} · Matched: {3} · Updated: {4} · Transfer pairs: {5} · Duplicates left out: {6}</value>
+  </data>
+  <data name="ImportPreview_Net" xml:space="preserve">
+    <value>Net of new rows: {0}</value>
+  </data>
+  <data name="ImportPreview_ReportedBalance" xml:space="preserve">
+    <value>The file reports a balance of {0} on {1}; it will be recorded.</value>
+  </data>
+  <data name="ImportPreview_Import" xml:space="preserve">
+    <value>Import {0}</value>
+  </data>
+  <data name="ImportPreview_Empty" xml:space="preserve">
+    <value>The file has no rows for this account.</value>
+  </data>
+  <data name="ImportPreview_TransferTo" xml:space="preserve">
+    <value>Transfer: {0}</value>
+  </data>
+  <data name="ImportPreview_TransferAmbiguous" xml:space="preserve">
+    <value>Transfer: {0}?</value>
+  </data>
+  <data name="ImportStatus_Insert" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="ImportStatus_DuplicateSkipped" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="ImportStatus_MatchedToExisting" xml:space="preserve">
+    <value>Matched to existing</value>
+  </data>
+  <data name="ImportStatus_UpdateInPlace" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="ImportStatus_PendingToPosted" xml:space="preserve">
+    <value>Updated (posted)</value>
+  </data>
+  <data name="ImportStatus_Transfer" xml:space="preserve">
+    <value>Transfer pair</value>
+  </data>
+  <data name="ImportWarning_AmbiguousDateFormat" xml:space="preserve">
+    <value>Day and month order was ambiguous</value>
+  </data>
+  <data name="ImportWarning_InvalidDate" xml:space="preserve">
+    <value>Rows with an unreadable date were skipped</value>
+  </data>
+  <data name="ImportWarning_InvalidAmount" xml:space="preserve">
+    <value>Rows with an unreadable amount were skipped</value>
+  </data>
+  <data name="ImportWarning_SkippedRow" xml:space="preserve">
+    <value>Summary or footer lines were skipped</value>
+  </data>
+  <data name="ImportWarning_UnknownTransactionType" xml:space="preserve">
+    <value>Unknown transaction types kept their own sign</value>
+  </data>
+  <data name="ImportWarning_SignConventionGuessed" xml:space="preserve">
+    <value>The sign of amounts was guessed; check the preview</value>
+  </data>
+  <data name="ImportWarning_DuplicateProviderId" xml:space="preserve">
+    <value>The file repeats a transaction id</value>
+  </data>
+  <data name="ImportWarning_EncodingFallback" xml:space="preserve">
+    <value>The file was read as Windows-1252 text</value>
+  </data>
+  <data name="ImportWarning_MalformedMarkup" xml:space="preserve">
+    <value>The file's structure is damaged; readable rows were kept</value>
+  </data>
+  <data name="ImportWarning_UnsupportedSection" xml:space="preserve">
+    <value>Unsupported sections were ignored</value>
+  </data>
+  <data name="ImportWarning_InvalidMapping" xml:space="preserve">
+    <value>The column mapping does not fit the file</value>
+  </data>
+  <data name="ImportWarning_NoTransactions" xml:space="preserve">
+    <value>The file has no transactions</value>
+  </data>
+  <data name="ImportWarning_ReconciledNotUpdated" xml:space="preserve">
+    <value>Reconciled transactions were not changed</value>
+  </data>
+  <data name="ImportWarning_CurrencyMismatch" xml:space="preserve">
+    <value>Rows in another currency were skipped</value>
+  </data>
+  <data name="ImportWarning_OtherAccountsInFile" xml:space="preserve">
+    <value>The file holds several accounts; only the chosen one is imported</value>
+  </data>
+  <data name="ImportWarning_WithCount" xml:space="preserve">
+    <value>{0} ({1})</value>
   </data>
   <data name="LedgerError_RuleNotFound" xml:space="preserve">
     <value>The rule no longer exists.</value>

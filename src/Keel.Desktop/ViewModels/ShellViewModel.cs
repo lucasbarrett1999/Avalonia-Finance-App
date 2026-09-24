@@ -13,6 +13,7 @@ using Keel.Application.Undo;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
+using Keel.Desktop.ViewModels.Import;
 using Keel.Domain;
 
 namespace Keel.Desktop.ViewModels;
@@ -32,6 +33,7 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
     private readonly INavigationService _navigation;
     private readonly IAccountService _accounts;
     private readonly IUndoService _undo;
+    private readonly ImportWorkflow _import;
 
     /// <summary>Creates the shell, starts loading the Accounts section, and navigates to Home.</summary>
     public ShellViewModel(
@@ -42,9 +44,11 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         IUndoService undo,
         DialogService dialogs,
         StatusService status,
-        IMessenger messenger)
+        IMessenger messenger,
+        ImportWorkflow import)
     {
         ArgumentNullException.ThrowIfNull(navigation);
+        _import = import;
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(shortcuts);
         ArgumentNullException.ThrowIfNull(undo);
@@ -205,6 +209,13 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         {
             Status.Show(LedgerText.Format(Strings.Status_AccountSaved, dialog.Result?.Name ?? account.Name), offerUndo: true);
         }
+    }
+
+    /// <summary>Imports a bank file into an account (sidebar account menu), showing its register.</summary>
+    public Task ImportFileAsync(Guid accountId)
+    {
+        OpenAccount(accountId);
+        return _import.ImportAsync(accountId);
     }
 
     /// <summary>Moves an account up or down within its sidebar group (F-ACC-1 reorder).</summary>

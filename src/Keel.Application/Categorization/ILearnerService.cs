@@ -20,6 +20,12 @@ public interface ILearnerService
     /// <summary>The current model: loads the cache or builds it the first time, then catches up with ledger changes.</summary>
     Task<LearnerModel> GetModelAsync(CancellationToken ct);
 
+    /// <summary>
+    /// Like <see cref="GetModelAsync"/> but never writes the cache: for callers that run inside a
+    /// ledger write (import hooks), where a second writer would wait on the file lock.
+    /// </summary>
+    Task<LearnerModel> PeekModelAsync(CancellationToken ct);
+
     /// <summary>Starts loading in the background (the review screen's "preparing suggestions" state) and completes when ready.</summary>
     Task WarmUpAsync(CancellationToken ct);
 

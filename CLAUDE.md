@@ -34,6 +34,7 @@ dotnet test Keel.sln --filter "FullyQualifiedName~MoneyTests"
 dotnet format Keel.sln                     # fix formatting; CI runs --verify-no-changes
 dotnet run --project src/Keel.Desktop      # run the app (not in the sandbox)
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*'
+dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RecurringDetector*' --job short
 
 # EF Core (dotnet-ef is a local tool: dotnet-tools.json)
 dotnet tool restore
@@ -51,6 +52,17 @@ dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
 # Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
 KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
+# M2 budget screen: headless grid flows (assign, Tab/Enter, move money, drag, targets, fund, months,
+# 6.4.7 numbers) and the month-switch timing over the 100k fixture
+dotnet test tests/Keel.Desktop.Tests --filter BudgetTests --logger "console;verbosity=detailed"
+# M6 reports, goals, dashboard: report query rules and 100k timings, headless flows, screenshots
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Reports|FullyQualifiedName~Goals" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter ReportsGoalsHomeTests
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests
+# M3 import pipeline: service tests on real SQLite (with the 10k-row timing), dialogs, benchmarks
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Import.Pipeline" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter "ImportDialogTests|Import_dialogs_render"
+dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*ImportBenchmarks*' --job short
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -68,12 +80,21 @@ src/
                         order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
                         Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
                         with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
+                        Reports/ (M6): ReportPeriod (previous period, month-end points), BalanceSeries (ledger plus
+                        latest snapshot, ADR 0060), GoalProjection (pace and completion month).
                         Rules/ (F-TXN-4, ADR 0020): TransactionSnapshot, RuleDefinition + versioned RuleJson,
                         RuleEngine/CompiledRuleSet (mutation set + RuleTrace), RuleValidator, RuleSuggester.
                         Categorization/ (F-TXN-5, ADR 0021): CategoryLearner.Train -> LearnerModel (Suggest,
                         Predict, WithExample/WithoutExample, ToJson/FromJson), LearnerCategory, CategorySuggestion.
                         Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
                         JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
+                        Scheduling/: RecurrenceRule (RFC 5545 subset, ADR 0030: Parse/TryParse, canonical ToString,
+                        Describe, Occurrences(start, from, to), NextAfter; short months and leap days clamp).
+                        Recurring/ (PRD 6.6, ADR 0031): RecurringDetector (RecurringTransaction in, DetectedRecurringItem
+                        out), CadenceWindow, RecurringSchedule (anchors, next date, InferRule), RecurringReconciler
+                        (create/update/no-op vs stored items), RecurringMath (F-REC-2 totals, F-REC-4 target), SubscriptionClassifier.
+                        Alerts/: AlertEvaluator (F-REC-3; idempotency keys in PayloadJson, ADR 0032).
+                        Forecast/: ForecastEngine (F-REP-4, ADR 0033; per-account and combined series, explain per day).
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
@@ -83,6 +104,13 @@ src/
                         Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
+                        Reports/IReportService (spending, income vs expense, net worth DTOs), Goals/IGoalService (M6).
+                        M3 pipeline: IImportService (ImportBatch, IncomingTransaction, ImportPreview(+Row),
+                        ImportSummary, ImportRowOverride, DedupOutcomes maps the domain DedupDecision),
+                        IImportCategorizationHook + ImportDraft (M4 rules/learner seam), IImportSettingsStore
+                        (RememberedCsvMapping), ImportBatchBuilder (ParseResult to batch), CsvDateFormats.
+                        Recurring/ (IRecurringService), Scheduling/ (IScheduledTransactionService), Forecast/
+                        (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs, not yet implemented.
                         Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
                         learner; CategorizationResult with suggestions and CategorizationTrace, ADR 0022).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
@@ -95,10 +123,18 @@ src/
                         Fixtures/LedgerFixtureGenerator (deterministic 100k-transaction ledger).
                         Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0008),
                         BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
+                        M2 screen: BudgetService.LoadLedgerAsync + overloads over BudgetLedgerData and budget undo
+                        entries (ADR 0041); CategoryService group/category management, notes, templates (ADR 0042).
                         Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
                         DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
                         OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
                         AddKeelFileImportParsers (not yet wired into AddKeelInfrastructure).
+                        Reports/ReportService (raw-SQL GROUP BY report queries, ADR 0060), Goals/GoalService (goals over
+                        the category and budget services) (M6).
+                        AddKeelFileImportParsers (called by AddKeelInfrastructure since the M3 pipeline).
+                        M3 pipeline: ImportService (F-TXN-1 steps 1-7), ImportPlanner (dedup, payees, hooks,
+                        transfers; shared by preview and import), BulkLedgerInsert (ADR 0052),
+                        NoOpImportCategorizationHook, ImportSettingsStore (Setting table, ADR 0051).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -109,6 +145,19 @@ src/
                         virtual collection view, rows, TransactionEditorViewModel, ReconcileViewModel),
                         ViewModels/Dialogs/ + Views/Dialogs/ (in-window dialogs), SidebarAccountViewModel,
                         Controls/MoneyTextBox, Services/ (DialogService, StatusService, LedgerText), Styles/Register.
+                        M2 budget screen: ViewModels/Budget/ (BudgetViewModel: range load + in-memory month switch,
+                        row view models and cell cursor, BudgetInspectorViewModel, MoveMoney/QuickAssign/ManageCategories
+                        dialogs, BudgetTemplate, BudgetText), Views/BudgetView (custom hierarchical grid, ADR 0040),
+                        Views/Budget/ (inspector and dialogs), Controls/BudgetSparkline, Styles/Budget.
+                        M6: ViewModels/Reports/ (ReportsViewModel page + Spending/IncomeExpense/NetWorth report view
+                        models, ReportFormat incl. CSV), Views/Reports/ (LiveCharts views), ViewModels/Goals/ (GoalsViewModel,
+                        GoalCardViewModel, NewGoalViewModel wizard) + Views/Goals/, ViewModels/Home/ (HomeViewModel dashboard,
+                        card records), Styles/Charts.axaml (palette, chart chrome, report icons), Controls/ (ChartPalette,
+                        ChartSwatch, ChartSparkline, GoalProgressRing, ReportChartKit, ReportIconConverter). The page view
+                        models live in those folders but keep the Keel.Desktop.ViewModels namespace (ViewLocator).
+                        M3: ViewModels/Import/ (ImportWorkflow, IImportFilePicker + StorageImportFilePicker,
+                        CsvMappingViewModel, ImportPreviewViewModel) + Views/Import/ (CsvMappingView, ImportPreviewView);
+                        entry points: register header ImportFileButton, sidebar account menu "Import file…".
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
@@ -116,15 +165,30 @@ tests/
                               M1: Ledger/ service tests (LedgerTestHost = real DI over a temp file),
                               register paging/running balance/search, undo, fixture + 100k timing.
                               Import/: parser unit tests and Fixtures/ (bank files + .expected.json).
+                              M3: Import/Pipeline/ (ImportKit helpers; every fixture imported twice through the
+                              service, F-TXN-2 acceptance, fuzzy match, transfers, undo, mapping memory, CsCheck
+                              import-twice property, 10k-row timing in a non-parallel collection).
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
+                              M2: BudgetTests (BudgetTestLedger = PRD 6.4.7 through the real services), budget
+                              rendering with fixture data, dialogs and month picker in both themes.
+                              M6: ReportsGoalsHomeTests (drill-downs incl. a real donut click, CSV export, goal
+                              wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
+                              M3: ImportDialogTests (FakeFilePicker; mapping, preview, register and sidebar entry
+                              points, undo from the toast), import dialogs in RenderingTests.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
                               M1: RegisterBenchmarks over the 100k fixture.
+                              M3: ImportBenchmarks (10k-row CSV parse, first import, all-duplicate re-import).
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
                               reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
                               (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
+  Keel.Domain.Tests/Scheduling/  RecurrenceRule tables (RFC 5545 examples, short months, leap days) and CsCheck properties.
+  Keel.Domain.Tests/Recurring/  Detector per cadence with jitter/noise, labeled accuracy, RealisticLedger fixture + Verify
+                              golden, schedule/reconciler/math tables, 123k-transaction timing test (TimingCollection runs
+                              alone). RecurringSeries/RecurringFixtureGenerator also compiled into Keel.Benchmarks.
+  Keel.Domain.Tests/Alerts/, Forecast/  Alert rules and idempotence; ForecastScenario + Verify goldens.
   Keel.Domain.Tests/Rules/     Every condition and action, ordering/continue, split exactness (CsCheck), regex, JSON, validator.
   Keel.Domain.Tests/Categorization/  LabeledHistoryGenerator (64 payees, 30 categories; also in Keel.Benchmarks for
                               CategoryLearnerBenchmarks), accuracy/calibration, determinism, JSON, 100k timing,
@@ -219,6 +283,16 @@ From PRD 15, plus decisions made while building M0.
 - Dialogs are in-window (`DialogService.ShowAsync(DialogViewModel)` rendered by the shell's dialog
   layer through the view locator); the status strip (`StatusService`) carries the undo toast.
 - Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
+- A form that saves on Enter from a `MoneyTextBox` handles `KeyDown` on the box (bubble) instead of a
+  `KeyBinding`: key bindings run before the box evaluates its text, so they would save the old value.
+- Budget screen keys (PRD 9.3, listed in Settings > Keyboard shortcuts from `PlatformShortcuts`):
+  arrows move the cell cursor; Enter/F2 edits Assigned (or opens Activity, moves money from
+  Available, toggles a group); typing a digit starts editing; in the editor Enter saves and moves down,
+  Tab/Shift+Tab save and edit the next/previous Assigned, Esc cancels; `M` move money, `T` target,
+  `I` inspector, `Q` quick-assign palette, `Alt+←/→` months, `Ctrl/Cmd+Shift+F` fund targets.
+- The budget view model keeps `BudgetLedgerData` (ADR 0041): recompute on `BudgetChanged`, reload on
+  `LedgerChanged` (lazily while hidden), all through one pump on the UI thread; budget writes go
+  through `BudgetViewModel.QueueWrite` so the undo order is the user's order.
 
 **Import**
 - Parsers are pure (bytes + `ImportOptions` in, `ParseResult` out) and never throw on bad rows:
@@ -228,7 +302,41 @@ From PRD 15, plus decisions made while building M0.
   `.gitattributes`) and its reviewed `.expected.json`.
 - `PayeeNoiseTable` feeds stored fingerprints: bump `PayeeNormalizer.Version` when it changes
   (ADR 0005). Every table entry has a test.
+- Every import source calls `IImportService.ImportTransactionsAsync(source, batch)`; never insert
+  imported rows another way. Dedup, payee resolution, hooks and transfer detection live in
+  `ImportPlanner`, which the preview and the import share, so a preview always matches its import.
+- Rules and the learner plug in as an `IImportCategorizationHook` registered in DI (all hooks run in
+  order; the no-op default stays). Hooks must not write; they also run during previews.
+- New imported rows are written by `BulkLedgerInsert` (ADR 0052): the one allowed raw-SQL ledger
+  write, because it records the same row snapshots and audit rows as `LedgerSession.SaveAsync`.
+  Columns and converters come from the EF model; add nothing hand-written there.
+- Import memory (CSV mapping per account with its header row, last folder) is in the `Setting`
+  table through `IImportSettingsStore`, not audited or undone (ADR 0051).
+- Desktop: the import flow is `ImportWorkflow`; tests swap `ImportWorkflow.FilePicker` for a fake.
+  Wide dialogs override `DialogViewModel.PreferredMaxWidth`.
 
+**Reports, goals and dashboard (M6)**
+- Report numbers come only from `IReportService` (raw SQL `GROUP BY`, never row loads); the counting
+  rules (system rows, transfers and tracking toggles, uncategorized rows, previous period, net-worth
+  snapshot rule, goal pace) are in ADR 0060. With default toggles Spending equals the negated budget
+  Activity; keep the cross-check test green.
+- Charts use LiveCharts through `ReportChartKit` (animations off, built-in legend hidden) and colours
+  from `Styles/Charts.axaml` via `ChartPalette` slots: eight slots in fixed order, then "Other".
+  Every chart has a legend or table with names and values (colour is never the only signal) and every
+  chart element and table row drills down (usually to the register through `RegisterNavigation`).
+- Headless captures must wait for LiveCharts' throttled redraw (a few dispatcher cycles with short delays).
+- Upcoming bills and the forecast low point on Home are the only placeholders; wire them to the
+  recurring and forecast services when those land (M5).
+**Recurring, scheduling and forecast (M5)**
+- Recurrence rules are stored in canonical form (`RecurrenceRule.Parse(text).ToString()`); the
+  schedule's start date is the rule's DTSTART. Days of month clamp to short months (ADR 0030).
+- Detection, reconciliation, alerts and the forecast are pure domain code; services load inputs,
+  apply the returned decisions and store alerts. Group by `PayeeNormalizer` output, never a second
+  normalizer. New detections are `RecurringStatus.Detected`; only `Active` items are forecast.
+- Alerts are idempotent by the `key` in `Alert.PayloadJson` (`AlertKeys.Of`); pass the keys of
+  every stored alert, dismissed ones included, to `AlertEvaluator.Evaluate`.
+- A changed recurring or forecast golden (`*.received.txt`) is reviewed by hand, then renamed to
+  `*.verified.txt`.
 **Rules and learner**
 - Rules are pure: `RuleEngine.Compile(rules).Apply(snapshot)`; persist only `RuleJson` output and read with
   `RuleDefinition.FromEntity` (newer formats throw `RuleFormatException`). New condition/action kinds get a new

@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:b="using:Keel.Desktop.ViewModels.Budget"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Budget.MoveMoneyDialogView"
+             x:DataType="b:MoveMoneyDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="b:MoveMoneyOption">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="1" Classes="secondary" Margin="12,0,0,0" FontFeatures="+tnum" Text="{Binding AvailableText}" />
+      </Grid>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+  <StackPanel Spacing="14" Width="420">
+    <StackPanel>
+      <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+      <TextBlock Classes="secondary" Text="{Binding MonthText}" />
+    </StackPanel>
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.MoveMoney_From}" />
+      <ComboBox x:Name="FromBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Options}" SelectedItem="{Binding From}"
+                AutomationProperties.Name="{x:Static res:Strings.MoveMoney_From}" />
+    </StackPanel>
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.MoveMoney_To}" />
+      <ComboBox x:Name="ToBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Options}" SelectedItem="{Binding To}"
+                AutomationProperties.Name="{x:Static res:Strings.MoveMoney_To}" />
+    </StackPanel>
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.MoveMoney_Amount}" />
+      <controls:MoneyTextBox x:Name="AmountBox" Value="{Binding Amount}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                             AutomationProperties.Name="{x:Static res:Strings.MoveMoney_Amount}" />
+    </StackPanel>
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="MoveButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.MoveMoney_Confirm}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

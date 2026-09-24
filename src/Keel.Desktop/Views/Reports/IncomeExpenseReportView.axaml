@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rep="using:Keel.Desktop.ViewModels.Reports"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Keel.Desktop.Views.Reports.IncomeExpenseReportView"
+             x:DataType="rep:IncomeExpenseReportViewModel">
+  <Panel>
+    <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,48,0,0" MaxWidth="420" Spacing="8">
+      <TextBlock Text="{x:Static res:Strings.Reports_IncomeExpense_EmptyHeading}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextAlignment="Center" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Reports_IncomeExpense_EmptyMessage}" TextWrapping="Wrap" TextAlignment="Center" />
+    </StackPanel>
+
+    <ScrollViewer IsVisible="{Binding HasData}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <WrapPanel>
+          <Border Classes="tile" Margin="0,0,8,8">
+            <StackPanel>
+              <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Reports_TotalIncome}" />
+              <TextBlock x:Name="TotalIncomeText" Classes="tileValue" Text="{Binding TotalIncomeText}" />
+            </StackPanel>
+          </Border>
+          <Border Classes="tile" Margin="0,0,8,8">
+            <StackPanel>
+              <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Reports_TotalExpense}" />
+              <TextBlock Classes="tileValue" Text="{Binding TotalExpenseText}" />
+            </StackPanel>
+          </Border>
+          <Border Classes="tile" Margin="0,0,8,8">
+            <StackPanel>
+              <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Reports_TotalNet}" />
+              <TextBlock Classes="tileValue" Classes.negative="{Binding IsTotalNetNegative}" Text="{Binding TotalNetText}" />
+            </StackPanel>
+          </Border>
+          <Border Classes="tile" Margin="0,0,8,8">
+            <StackPanel>
+              <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Reports_AverageNet}" />
+              <TextBlock Classes="tileValue" Text="{Binding AverageNetText}" />
+            </StackPanel>
+          </Border>
+        </WrapPanel>
+
+        <Border Classes="card" Padding="16">
+          <StackPanel Spacing="8">
+            <!-- Legend: names beside swatches, so colour is never the only signal -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <controls:ChartSwatch Slot="0" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static res:Strings.Reports_Income}" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <controls:ChartSwatch Slot="1" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static res:Strings.Reports_Expense}" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <controls:ChartSwatch Slot="-2" Kind="Line" Width="18" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static res:Strings.Reports_Net}" />
+              </StackPanel>
+            </StackPanel>
+            <lvc:CartesianChart x:Name="IncomeExpenseChart" Height="280" AutomationProperties.Name="{x:Static res:Strings.Reports_IncomeExpense_ChartName}" />
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Reports_IncomeExpense_Hint}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" Padding="12">
+          <StackPanel>
+            <Grid ColumnDefinitions="*,130,130,130,110" Margin="8,0,8,6">
+              <TextBlock Classes="tableHeader" Text="{x:Static res:Strings.Reports_Csv_Month}" />
+              <TextBlock Grid.Column="1" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Income}" />
+              <TextBlock Grid.Column="2" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Expense}" />
+              <TextBlock Grid.Column="3" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Net}" />
+            </Grid>
+            <ItemsControl x:Name="IncomeExpenseRows" ItemsSource="{Binding Rows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="rep:IncomeExpenseRow">
+                  <Grid ColumnDefinitions="*,130,130,130,110" Margin="8,4">
+                    <TextBlock Text="{Binding MonthText}" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="link" HorizontalAlignment="Right"
+                            Command="{Binding $parent[ItemsControl].((rep:IncomeExpenseReportViewModel)DataContext).OpenIncomeCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="{x:Static res:Strings.Reports_OpenIncome}" AutomationProperties.Name="{x:Static res:Strings.Reports_OpenIncome}">
+                      <TextBlock Classes="amount" Text="{Binding IncomeText}" />
+                    </Button>
+                    <Button Grid.Column="2" Classes="link" HorizontalAlignment="Right"
+                            Command="{Binding $parent[ItemsControl].((rep:IncomeExpenseReportViewModel)DataContext).OpenExpenseCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="{x:Static res:Strings.Reports_OpenExpense}" AutomationProperties.Name="{x:Static res:Strings.Reports_OpenExpense}">
+                      <TextBlock Classes="amount" Text="{Binding ExpenseText}" />
+                    </Button>
+                    <TextBlock Grid.Column="3" Classes="amount" Classes.negative="{Binding IsNetNegative}" Text="{Binding NetText}" VerticalAlignment="Center" />
+                    <Button Grid.Column="4" Classes="link" HorizontalAlignment="Right"
+                            Command="{Binding $parent[ItemsControl].((rep:IncomeExpenseReportViewModel)DataContext).OpenMonthCommand}" CommandParameter="{Binding}"
+                            AutomationProperties.Name="{x:Static res:Strings.Reports_Transactions}" Content="{x:Static res:Strings.Reports_Transactions}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
+</UserControl>

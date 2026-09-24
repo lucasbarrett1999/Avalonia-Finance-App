@@ -34,8 +34,8 @@ paths (the register, undo, the import pipeline being built in parallel).
   approvals, recategorization, edits, splits, deletes, undo and payee renames.
 - **Safety net.** When a cached model is loaded, its example count is compared with a `COUNT` of
   eligible rows; a mismatch (writes that bypassed the audit log, such as fixture generation) rebuilds.
-- The cache is derived data: it is written directly (not audited, not undoable) and never makes a
-  ledger write wait on training. All work runs on the thread pool; `Status`
+- The cache is derived data: it is written directly (not audited, not undoable), outside the
+  service's lock, and never from `PeekModelAsync` (used by import hooks inside a ledger write). All work runs on the thread pool; `Status`
   (`NotLoaded`/`Preparing`/`Ready`/`Failed`) drives the review screen's "Preparing suggestions" state.
   If the learner fails, categorization continues with rules and payee defaults.
 

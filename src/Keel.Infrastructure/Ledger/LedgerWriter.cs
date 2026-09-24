@@ -1,5 +1,6 @@
 using Keel.Application.Messaging;
 using Keel.Application.Undo;
+using Keel.Domain.Budgeting;
 using Keel.Domain.Entities;
 using Keel.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,10 @@ namespace Keel.Infrastructure.Ledger;
 /// <summary>
 /// Runs every ledger mutation as one unit of work on the thread pool: one short-lived context, one
 /// database transaction, audit events for every changed row, an undo entry, and a
-/// <see cref="LedgerChanged"/> message after the commit. Writes are serialized so the undo stack
-/// order is the commit order.
+/// <see cref="LedgerChanged"/> message after the commit (plus <see cref="BudgetChanged"/> when
+/// assignment or target rows changed, e.g. undoing a budget action; a replay that touches only
+/// those rows publishes <see cref="BudgetChanged"/> alone). Writes are serialized so the undo
+/// stack order is the commit order.
 /// </summary>
 public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoHistory history, IMessageBus bus, TimeProvider time)
 {
@@ -34,6 +37,7 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
     {
         await _gate.WaitAsync(ct).ConfigureAwait(false);
         LedgerChanged? message;
+        BudgetChanged? budgetMessage;
         T result;
         try
         {
@@ -47,7 +51,9 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
                     result = await work(session).ConfigureAwait(false);
                     await session.SaveAsync(ct).ConfigureAwait(false);
                     var changes = session.Changes;
-                    message = changes.Count == 0 ? null : await DescribeAsync(db, changes, ct).ConfigureAwait(false);
+                    var ledgerRows = changes.Count(c => !IsBudgetRow(c));
+                    message = ledgerRows == 0 ? null : await DescribeAsync(db, changes, ct).ConfigureAwait(false);
+                    budgetMessage = ledgerRows == changes.Count ? null : DescribeBudget(changes);
                     await transaction.CommitAsync(ct).ConfigureAwait(false);
 
                     if (changes.Count > 0 && recording == Recording.NewAction)
@@ -69,11 +75,52 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
             bus.Publish(message);
         }
 
+        if (budgetMessage is not null)
+        {
+            bus.Publish(budgetMessage);
+        }
+
         return result;
     }
 
     /// <summary>Changes of the most recent unit of work (for undo bookkeeping and tests).</summary>
     internal IReadOnlyList<EntityChange> LastChanges { get; private set; } = [];
+
+    private static bool IsBudgetRow(EntityChange change) =>
+        change.EntityType == typeof(BudgetAssignment) || change.EntityType == typeof(Target) || MonthNoteMonth(change) is not null;
+
+    // The month of a month-note setting row (Budgeting.BudgetService.MonthNoteKey), or null.
+    private static DateOnly? MonthNoteMonth(EntityChange change) =>
+        change.EntityType == typeof(Setting)
+        && change.Value(nameof(Setting.Key)) is string key
+        && key.StartsWith(Budgeting.BudgetService.MonthNotePrefix, StringComparison.Ordinal)
+        && DateOnly.TryParseExact(key[Budgeting.BudgetService.MonthNotePrefix.Length..] + "-01", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var month)
+            ? month
+            : null;
+
+    // Months whose budget changed: assignment and month-note months; target changes count for the
+    // current month (as BudgetService publishes them).
+    private BudgetChanged DescribeBudget(IReadOnlyList<EntityChange> changes)
+    {
+        var months = new HashSet<DateOnly>();
+        foreach (var change in changes)
+        {
+            if (change.EntityType == typeof(BudgetAssignment))
+            {
+                months.UnionWith(change.Values(nameof(BudgetAssignment.Month)).OfType<DateOnly>().Select(BudgetMonth.Of));
+            }
+            else if (change.EntityType == typeof(Target))
+            {
+                months.Add(BudgetMonth.Of(DateOnly.FromDateTime(time.GetLocalNow().DateTime)));
+            }
+            else if (MonthNoteMonth(change) is { } noteMonth)
+            {
+                months.Add(noteMonth);
+            }
+        }
+
+        return new BudgetChanged(months);
+    }
 
     // Which accounts and months a set of row changes touched.
     private static async Task<LedgerChanged> DescribeAsync(KeelDbContext db, IReadOnlyList<EntityChange> changes, CancellationToken ct)

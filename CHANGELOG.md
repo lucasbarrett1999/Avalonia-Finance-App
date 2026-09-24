@@ -3,6 +3,136 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M2 — Budget screen
+
+UI half of Milestone 2: the Budget screen (PRD 9.3, F-BUD-1..5, F-BUD-7 category notes, F-BUD-8
+starter templates) on top of the M2 engine and the M1 ledger.
+
+### Added
+
+- **Budget screen** (`Views/BudgetView`, `ViewModels/Budget/`): month header with previous/next
+  (`Alt+←/→`), a jump-to-month picker and Today; the Ready to Assign pill (green ≥ 0, red < 0 with
+  the banner "You've assigned more than you have."), month totals and "assigned in later months";
+  Fund targets (`Ctrl/Cmd+Shift+F`), Move money, Undo, Manage categories and the inspector toggle.
+- **Grid**: collapsible group rows with totals and category rows with Name (target badge: "Needs
+  $X" / "Funded"), Assigned (inline `MoneyTextBox`; Enter saves and moves down, Tab/Shift+Tab save
+  and edit the next/previous row, Esc cancels, typing a digit starts editing), Activity (opens All
+  Accounts filtered to the category and month; card payments open the card's register) and the
+  Available pill (green, gray, yellow credit-overspent with a card icon, red cash-overspent with a
+  warning icon). Arrow keys move a cell cursor. Credit Card Payment rows show the card balance and
+  what is not yet covered (6.4.5). Custom hierarchical grid instead of TreeDataGrid (ADR 0040).
+- **Data flow**: one `LoadLedgerAsync` for 12 months back and 3 ahead, all months computed once and
+  switched in memory; `BudgetChanged` recomputes from assignments only, `LedgerChanged` reloads
+  (lazily when the page is hidden); rows update in place (ADR 0041).
+- **Move money** (F-BUD-3): `M` dialog (from/to including Ready to Assign, amount; overspent rows
+  preset to cover the overspending) and dragging an Available pill onto another row or onto Ready
+  to Assign. Undoable.
+- **Inspector** (`I`): "How is Available computed?" (carry, assigned, activity per account, card
+  spend and covered per card, overspending) or "How is Ready to Assign computed?" when no category
+  is selected; target editor for the four F-BUD-4 types with needed-this-month, underfunded and
+  monthly need; quick-assign buttons (F-BUD-5, also a row context menu and the `Q` palette); category
+  note and, with Ready to Assign, the month note (F-BUD-7); six-month Available sparkline
+  (`Controls/BudgetSparkline`). `T` opens the target editor.
+- **Manage categories** dialog (F-BUD-1): add, rename, reorder, hide/show and delete groups and
+  categories; deleting something with history asks for a replacement; system groups read-only.
+  Empty state offers it plus four starter templates (F-BUD-8: Simple, Detailed, Student, Family).
+- **Undo for budget actions**: assign, move money, fund targets and target changes join the session
+  undo stack; undo publishes `BudgetChanged` (ADR 0041). Category management actions are undoable
+  ledger actions (ADR 0042).
+- **Services** (append-only): `IBudgetService.LoadLedgerAsync` and `GetRangeAsync`/`ExplainAsync`/
+  `GetQuickAssignAsync` overloads over `BudgetLedgerData`; `ICategoryService` management, usage,
+  notes and templates; `IBudgetService` month notes (a `Setting` row per month, undoable); new
+  `LedgerAction` and `LedgerError` values. `RegisterNavigation` gained an
+  optional category filter. Budget shortcuts are in `PlatformShortcuts` and Settings > Keyboard shortcuts.
+- **Tests**: `BudgetTests` (headless): 6.4.7 numbers and pill colours through the real services
+  (Groceries −50 yellow, Pay_Visa 300 with $50 not yet covered, RTA 1,100); assign in a cell and see
+  Ready to Assign change; Enter/Tab/Shift+Tab/Esc and arrow navigation; move money with the dialog
+  and undo; drop a pill on a row; target → underfunded badge → fund targets; month switching with the
+  keyboard and the picker, negative RTA banner; Activity opens the filtered register; in-place refresh
+  after a ledger change; empty state and templates; manage categories; delete with replacement; quick
+  assign from the context menu and the palette; inspector breakdown and notes; load error and retry;
+  shortcut registry; clicking another cell saves the typed amount; month switch over the 100k fixture.
+  `BudgetUndoAndLedgerDataTests` and `CategoryManagementTests` (infrastructure). `RenderingTests`
+  renders the budget grid, the Ready to Assign breakdown, the move-money and manage-categories
+  dialogs and the month picker in light and dark.
+
+### Decisions and deviations
+
+- [ADR 0040](docs/decisions/0040-budget-grid-without-treedatagrid.md): TreeDataGrid 11.2+ needs a
+  commercial licence (build error AVLIC0001), so the grid is a purpose-built flattened row list.
+- [ADR 0041](docs/decisions/0041-budget-undo-and-loaded-ledger-data.md): budget undo entries and
+  recomputing over loaded ledger data.
+- [ADR 0042](docs/decisions/0042-category-management-rules.md): protected system rows, what
+  "history" is, and what moves to the replacement category.
+## M6 — Reports, goals and dashboard (part 1)
+
+First part of Milestone 6: reports, goals and the Home dashboard. The forecast report (F-REP-4) and
+the dashboard's upcoming-bills and forecast cards need recurring detection and the forecast engine
+(M5) and follow in part 2.
+
+### Added
+
+- **Report queries** (`IReportService`, `Keel.Infrastructure/Reports/ReportService`): spending by group
+  and category with the previous period (F-REP-1), income versus expense per month with net (F-REP-2),
+  and month-end net worth with a per-account breakdown (F-REP-3) where tracking accounts use the latest
+  balance snapshot on or before each point plus later activity (F-ACC-7). Transfer, tracking-account and
+  account filters. Pure helpers in `Keel.Domain/Reports` (`ReportPeriod`, `BalanceSeries`, `GoalProjection`).
+- **Reports screen** (PRD 9.8): report list, shared toolbar (range presets and custom dates, accounts
+  filter, include transfers and tracking toggles, Export CSV of the report table), Spending donut that
+  drills from groups to categories to the All Accounts register filtered by category and range, Income vs
+  expense bars with a net line and table, Net worth line with optional stacked account areas. Every
+  slice, bar, point and table row drills to the underlying transactions.
+- **Chart styling**: `Styles/Charts.axaml` with one categorical palette (light and dark steps, validated
+  for colour-vision deficiency) and chart chrome; LiveCharts 2.0.5 (`LiveChartsCore.SkiaSharpView.Avalonia`).
+- **Goals** (F-GOAL-1, PRD 9.7): `IGoalService` over the category and budget services; cards with progress
+  ring, monthly need, projected completion at the three-month average pace and a live "what if I added
+  $X/month" slider; a two-step "New goal" wizard (name, amount, date, optional linked tracking account)
+  that creates the category in a "Goals" group and its savings-balance-by-date target.
+- **Home dashboard** (F-DASH-1, PRD 9.2): Ready to Assign (Assign opens Budget), review queue count
+  (Start review opens Review), accounts overview by group, top five overspent/underfunded categories,
+  12-month net worth sparkline, and designed "available after recurring detection" cards for upcoming
+  bills and the forecast. Two columns, one when narrow; refreshes on `LedgerChanged` and `BudgetChanged`.
+- `RegisterNavigation` takes an optional category filter (report drill-down).
+- **Tests**: report rules on hand-built ledgers (system rows, splits, deleted rows, refunds, both
+  toggles, account filter, previous period, snapshot rule), spending equals budget activity on the
+  fixture, 100k timings, goal service, domain math; headless flows for every report's drill-down
+  (including a real click on a donut slice), CSV export, the goal wizard and card, dashboard numbers
+  against the budget service and live refresh, responsive layout; light and dark renderings of Home,
+  each report and Goals (reviewed).
+
+### Decisions and deviations
+
+- [ADR 0060](docs/decisions/0060-report-rules-and-drill-down.md): what counts as spending and income,
+  the transfer toggle, previous period, net-worth points and the snapshot rule, goal pace, drill-down
+  targets (an expense bar opens the Spending report for its month; the Uncategorized bucket opens the
+  register for the range only), chart settings, CSV format; PNG export not done.
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 694 passed, 0 failed, 0 skipped: Domain 350, Infrastructure 296, Desktop 48 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Desktop.Tests -c Release --filter Month_switch --logger "console;verbosity=detailed"` | 100k-transaction fixture: first budget load 0.9–1.5 s; month switch (view model + layout) median 30–50 ms over several runs (single outliers up to about 220 ms on a loaded machine); headless software rendering of the frame afterwards about 50–80 ms |
+| `KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter RenderingTests` | BudgetGrid, BudgetReadyToAssign, BudgetMoveMoney, BudgetManageCategories, BudgetMonthPicker and the empty Budget screen reviewed in light and dark |
+
+### Not done here
+
+- The three-month view and Flex mode (P1, F-BUD-2/F-BUD-6).
+- Rules' JSON is not rewritten when a category is deleted (M4, ADR 0042).
+| `dotnet build Keel.sln -c Release` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 699 passed, 0 failed, 0 skipped: Domain 362, Infrastructure 296, Desktop 41 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter Report_queries_over_100k` | Best of 3 at 100k: spending 12 months 75 ms, all history 195 ms; income vs expense 43 / 208 ms; net worth all history 78 ms |
+| `KEEL_SCREENSHOT_DIR=… dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests` | 18 PNGs (Home, Home lower half, Spending, Spending drill, Income vs expense, Net worth, Net worth by account, Goals, New goal dialog; light and dark), reviewed |
+
+### Not done here
+
+- Forecast report (F-REP-4) and the dashboard's upcoming-bills and forecast cards (need M5 services).
+- PNG export of charts (PRD 9.8); sync health dots on the accounts card (M7).
+- Windows and macOS runs happen in CI only.
+
 ## M2 — Budget engine
 
 Domain half of Milestone 2 (the Budget screen is a later task).
@@ -316,6 +446,127 @@ import preview come in a later task, so the M3 exit criteria are not yet claimed
 | `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages |
 | 10k-row CSV parse + dedup classification (ad-hoc, Release) | 233 ms parse, 310 ms classify (NFR: 10k rows < 5 s) |
 
+## M3 — Import pipeline
+
+Second half of Milestone 3: the persisted, unified import pipeline (F-TXN-1) and the file import
+UI (F-TXN-2). Branch `claude/keel-m3-import-pipeline`. With the parser half, the M3 exit criteria
+are met: every fixture (8 CSV layouts, 2 OFX, 1 QFX, 2 QIF) imports completely and idempotently
+through the real service and database (`Every_fixture_imports_completely_and_idempotently`).
+
+### Added
+
+- **Application/Import**: `IImportService` implemented and extended (`ImportBatch` with reported
+  balance, per-row `ImportRowOverride`s and parse warnings; `ImportPreviewRow` with payee,
+  category, include/transfer defaults; `ImportSummary` with rows left out, warnings and the recorded
+  balance; `DedupOutcomes` maps the domain `DedupDecision`), `IImportCategorizationHook` +
+  `ImportDraft` (the M4 seam for payee rename, rules and learner), `IImportSettingsStore` with
+  `RememberedCsvMapping`, `ImportBatchBuilder`, `CsvDateFormats`, `LedgerAction.ImportTransactions`,
+  warning codes `ReconciledNotUpdated`, `CurrencyMismatch`, `OtherAccountsInFile`.
+- **Infrastructure/Import**: `ImportService` and `ImportPlanner`: PRD 6.5 dedup against the target
+  account's rows in the batch window ±3 days plus provider-id lookups (connection-scoped for future
+  sync batches), payee resolution (existing payee by normalized name, else a title-cased new one)
+  with default categories, hooks (no-op default registered), `TransferDetector` pairing with
+  existing imported rows in other accounts as proper transfer pairs, unapproved cleared inserts,
+  in-place updates, fuzzy matches marked `HasImportMatch`, OFX `LEDGERBAL` as a Provider
+  `BalanceSnapshot` and the account's reported balance. One `LedgerWriter` unit of work per import:
+  audited, one undo entry, one `LedgerChanged`. `BulkLedgerInsert` writes the new rows with the
+  same snapshots and audit rows. `ImportSettingsStore` (Setting table). Parsers, the service, the
+  hook and the store are registered in `AddKeelInfrastructure`. Migration `ImportMatchFlag` adds
+  `Transactions.HasImportMatch`.
+- **Desktop**: "Import file" in the register header and in the sidebar account menu (All Accounts
+  asks for the account); `ImportWorkflow` with the Avalonia storage file picker (csv/ofx/qfx/qif,
+  opens in the account's last folder); CSV mapping dialog (prefilled from the remembered mapping
+  when the header matches, else detection; date/payee/memo columns, signed, debit/credit or
+  amount + type, date format with the month-first/day-first prompt, sign, decimal separator, lines
+  to skip, header, live preview of the first 10 rows); preview dialog listing every row with its
+  status (New, Duplicate, Matched to existing, Updated, Transfer pair), import and transfer
+  checkboxes, live totals, reported balance, warnings, a statement chooser for multi-account files;
+  summary toast with Undo. Dialogs may widen the dialog layer (`PreferredMaxWidth`). New icon
+  `Icon.Import`; all text in `Strings.resx`.
+- **Tests**: Infrastructure (real SQLite): every fixture twice, same CSV twice, OFX FITID dedup and
+  update in place, signed / debit-credit / amount + type, ISO / US / EU / `Mon D, YYYY` dates and
+  the ambiguous-date answer, fuzzy match to a manual row (once only, survives re-import), transfer
+  pairing across two imports and to a tracking account, undo/redo of an import (matched row,
+  transfer partner, payees, snapshot restored), all-duplicate import not on the undo stack,
+  preview writes nothing and agrees with the import, overrides, payees and default categories,
+  hooks, pending to posted, reconciled rows kept, closed/missing account refused, bulk rows stored
+  like EF rows, mapping and folder memory, CsCheck property (25 generated batches with manual
+  entries, imported twice through the service: no new rows), 10k-row timing. Desktop headless:
+  register button to mapping, preview, import, toast and undo; ambiguous dates and live preview;
+  mapping memory; every preview status and overrides; sidebar menu and All Accounts chooser;
+  `Import_dialogs_render_in_light_and_dark`. Benchmarks: `ImportBenchmarks`.
+
+### Decisions and deviations
+
+- [ADR 0050](docs/decisions/0050-import-match-flag-column.md): stored `HasImportMatch` column.
+- [ADR 0051](docs/decisions/0051-import-memory-in-setting-table.md): CSV mapping (with its header)
+  and last folder per account in the `Setting` table.
+- [ADR 0052](docs/decisions/0052-bulk-insert-for-imports.md): new imported rows go through one
+  prepared command with full audit and undo (EF's per-row inserts missed the 10k-row NFR).
+- [ADR 0053](docs/decisions/0053-import-pipeline-interpretations.md): payee naming, status and
+  approval, dedup edge cases, transfer candidates, preview checkbox meaning, multi-account files,
+  reported balance, summary.
+- Small appends to M1 files: `LedgerSession.AddWrittenChanges`, `DialogViewModel.PreferredMaxWidth`
+  and `DialogService.CurrentMaxWidth`, `AccountsViewModel`/`ShellViewModel` take `ImportWorkflow`.
+## M5 — Recurring, scheduling and forecast
+
+Domain half of Milestone 5 (the Bills screen, notification center UI and database-backed
+services are a later task).
+
+### Added
+
+- **`RecurrenceRule`** (`Keel.Domain/Scheduling`): RFC 5545 subset for F-ACC-6 (DAILY, WEEKLY with
+  INTERVAL, MONTHLY on day D / last day / Nth weekday / twice monthly, YEARLY, COUNT, UNTIL, WKST);
+  parser with messages naming the offending part, canonical string form and equality, English
+  `Describe` ("Every 2 weeks on Friday", "Every month on the 2nd Tuesday"), lazy
+  `Occurrences(start, from, to)`, `NextAfter`, `First`; the 31st and February 29 clamp to short
+  months; pure `DateOnly` math.
+- **`RecurringDetector`** (`Keel.Domain/Recurring`): PRD 6.6 over (normalized payee, account)
+  groups in a 15-month window: gap windows per cadence, ≥ 0.7 fraction, ≥ 3 occurrences (2 for
+  yearly), median of the last 6, max($2, 10%) tolerance, `IsVariableAmount`, confidence, anchored
+  next expected date and projection rule, lapsed patterns, per-cadence scores for explanations.
+  `RecurringSchedule` (anchors, next date, `InferRule` for stored items), `RecurringReconciler`
+  (create/update/no-op decisions: one item per group, dismissed items untouched unless re-enabled,
+  lapsed patterns end items), `RecurringMath` (monthly/yearly equivalents, F-REC-2 totals, F-REC-4
+  set-aside target), `SubscriptionClassifier` (subscription groups or tags).
+- **`RecurringStatus.Detected`** appended: new detections await confirmation; only Active items
+  are forecast. Stored by name, no migration.
+- **`AlertEvaluator`** (`Keel.Domain/Alerts`): price increase (> 5% and > $1 vs the previous
+  charge), expected item missing 3+ days, new recurring item, first charge after a $0/trial
+  charge; idempotent through `(kind, item, occurrence)` keys stored in `Alert.PayloadJson`.
+- **`ForecastEngine`** (`Keel.Domain/Forecast`): F-REP-4 daily balances per on-budget cash account
+  and combined for N days (default 90) from the cleared balance, scheduled occurrences (transfers
+  on both sides), confirmed recurring items (skipped when a schedule covers the same payee and
+  account), optional average daily discretionary spend; overdue occurrences on day 0; lowest
+  balance, days below a floor, per-day explain, skipped sources with reasons.
+- **Application contracts** (`Keel.Application/{Recurring,Scheduling,Forecast,Alerts}`):
+  `IRecurringService`, `IScheduledTransactionService`, `IForecastService`, `IAlertService` with
+  DTOs and `RecurringChanged`/`AlertsChanged` messages (implementations come later).
+- **Tests** (345 new, all in `Keel.Domain.Tests`): rule parse/description/error tables, occurrence
+  tables with short-month, leap-day and RFC 5545 examples, CsCheck properties (strictly increasing,
+  within bounds, window slicing, `NextAfter`, round trip); detector for every cadence exact and with
+  jitter plus amount noise (150 seeded cases), thresholds, window, grouping via `PayeeNormalizer`,
+  refunds and $0 rows, next-date anchoring (early rent, 31st, 30th after February, holiday shift,
+  leap day), lapsed; a realistic ledger (biweekly paycheck, rent on the 1st, Netflix with a price
+  increase, quarterly insurance, annual domain, variable utility, cancelled gym, irregular coffee
+  and groceries not detected) with a Verify golden; labeled generated ledgers; reconciler, math,
+  alert rules and idempotence; forecast unit tests and three Verify goldens (with and without
+  discretionary spend, double-count guard on and off, floor detection).
+- **Performance**: `RecurringFixtureGenerator` (deterministic, 2k payees, ~123k transactions),
+  a timing test (< 500 ms; runs in a non-parallel collection) and `RecurringDetectorBenchmarks`.
+
+### Decisions and deviations
+
+- [ADR 0030](docs/decisions/0030-recurrence-rule-subset.md): the supported RFC 5545 subset, start
+  date as DTSTART, clamping instead of skipping short months, rejected parts.
+- [ADR 0031](docs/decisions/0031-recurring-detection-interpretations.md): $0 rows and minority-sign
+  rows are not occurrences, 2-occurrence groups judged for yearly only, semimonthly window 13–18,
+  biweekly vs semimonthly decided by schedule residual, anchored next date ("same day of month"),
+  lapsed patterns, the `Detected` status, merge and status rules, rounding of totals and targets.
+- [ADR 0032](docs/decisions/0032-recurring-alert-rules.md): alert keys, outflow-only price increases,
+  variable items skipped, missing for Active items only, $1 trial charges, 90-day trial window.
+- [ADR 0033](docs/decisions/0033-cash-flow-forecast-definitions.md): horizon (today + N days), overdue
+  occurrences, the double-count guard, the discretionary-spend definition, floor semantics.
 ## M4 — Rules and learner
 
 Domain half of Milestone 4: the rules engine, the categorization learner and the categorization
@@ -374,6 +625,41 @@ headless-tested) are not yet claimed.
 
 | Command | Result |
 |---|---|
+| `dotnet ef migrations add ImportMatchFlag --project src/Keel.Infrastructure --startup-project src/Keel.Infrastructure --output-dir Persistence/Migrations` | Generated `20260924123822_ImportMatchFlag` |
+| `dotnet ef migrations has-pending-model-changes ...` | "No changes have been made to the model since the last migration." |
+| `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 715 passed, 0 failed: Domain 350, Infrastructure 329, Desktop 36 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (CsCheck added to Infrastructure.Tests) |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter ImportPerformanceTests` | 10,000-row CSV: parse about 200 ms, pipeline about 1.3-1.4 s, total about 1.5-1.6 s (asserted < 5 s); re-import (all duplicates) about 0.45-0.55 s |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*ImportBenchmarks*' --job short` | Parse 47.6 ms, import into empty account 911 ms, all-duplicate re-import 329 ms |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter Import_dialogs_render` | 4 PNGs (mapping and preview dialogs, light and dark) reviewed by eye |
+
+### Not done here
+
+- Windows and macOS run only in CI; the windowed app and the native file picker were not launched
+  (tests use a fake picker). Split lines carried by QIF files and file category text are passed to
+  hooks as hints but not applied (M4 rules). No keyboard shortcut for "Import file" yet.
+- `BudgetPerformanceTests` (M2, 200 ms bound) can fail when all three test assemblies run in
+  parallel on a 4-core sandbox; it passes on its own.
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 1,046 passed, 0 failed, 0 skipped: Domain 784, Infrastructure 248, Desktop 14 |
+| `dotnet test Keel.sln` (Debug) | Same counts, all passed |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Domain.Tests --filter RecurringPerformance` | Detect over 123,466 transactions / 2,000 payees: median about 80–90 ms (Release and Debug, shared 4-core machine) |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RecurringDetector*' --job short` | `Detect` 19.2 ms mean, 10.3 MB allocated; `ReconcileAgainstEmpty` 0.58 ms |
+| `dotnet test tests/Keel.Domain.Tests --filter Accuracy` | 400 of 400 labeled groups correct for each of 3 seeds, 0 false positives |
+
+No packages were added.
+
+### Not done here
+
+- `IRecurringService`, `IScheduledTransactionService`, `IForecastService` and `IAlertService`
+  implementations, persistence, nightly scheduling, the Bills screen, the forecast chart and the
+  notification center (later M5 task).
+- Timing tests are sensitive to other processes on a shared machine: the existing
+  `BudgetPerformanceTests` failed once during this work while the sandbox load average was about
+  27 on 4 cores; the detector test asserts on the fastest of five runs for that reason.
 | `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
 | `dotnet test Keel.sln -c Release --no-build` | 768 passed, 0 failed: Domain 506, Infrastructure 248, Desktop 14 |
 | `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |

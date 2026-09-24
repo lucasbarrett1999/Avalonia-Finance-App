@@ -72,17 +72,22 @@ public sealed partial class LearnerService : ILearnerService
     public LearnerLoadKind LastLoad { get; private set; }
 
     /// <inheritdoc />
-    public Task<LearnerModel> GetModelAsync(CancellationToken ct) => RunAsync(rebuild: false, ct);
+    public Task<LearnerModel> GetModelAsync(CancellationToken ct) => RunAsync(rebuild: false, persist: true, ct);
+
+    /// <inheritdoc />
+    public Task<LearnerModel> PeekModelAsync(CancellationToken ct) => RunAsync(rebuild: false, persist: false, ct);
 
     /// <inheritdoc />
     public Task WarmUpAsync(CancellationToken ct) => GetModelAsync(ct);
 
     /// <inheritdoc />
-    public Task<LearnerModel> RebuildAsync(CancellationToken ct) => RunAsync(rebuild: true, ct);
+    public Task<LearnerModel> RebuildAsync(CancellationToken ct) => RunAsync(rebuild: true, persist: true, ct);
 
-    private Task<LearnerModel> RunAsync(bool rebuild, CancellationToken ct) => Task.Run(
+    private Task<LearnerModel> RunAsync(bool rebuild, bool persist, CancellationToken ct) => Task.Run(
         async () =>
         {
+            State state;
+            State? toSave = null;
             await _gate.WaitAsync(ct).ConfigureAwait(false);
             try
             {
@@ -94,8 +99,14 @@ public sealed partial class LearnerService : ILearnerService
                 }
 
                 _state = await CatchUpAsync(_state, ct).ConfigureAwait(false);
+                if (persist && _state.Dirty)
+                {
+                    toSave = _state;
+                    _state = _state with { Dirty = false };
+                }
+
+                state = _state;
                 SetStatus(LearnerStatus.Ready);
-                return _state.Model;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -108,6 +119,21 @@ public sealed partial class LearnerService : ILearnerService
             {
                 _gate.Release();
             }
+
+            // Written outside the gate so a caller inside a ledger write (an import hook) never waits on it.
+            if (toSave is not null)
+            {
+                try
+                {
+                    await SaveCacheAsync(toSave, ct).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    LogSaveFailed(_logger, ex);
+                }
+            }
+
+            return state.Model;
         },
         ct);
 
@@ -130,7 +156,7 @@ public sealed partial class LearnerService : ILearnerService
             var row = await db.Settings.AsNoTracking().SingleOrDefaultAsync(s => s.Key == SettingKey, ct).ConfigureAwait(false);
             if (row is not null && TryReadCache(row.ValueJson, out var model, out var watermark))
             {
-                var state = await CatchUpAsync(new State(path, model, watermark), ct).ConfigureAwait(false);
+                var state = await CatchUpAsync(new State(path, model, watermark, Dirty: false), ct).ConfigureAwait(false);
 
                 // Safety net for writes that bypass the audit log (fixtures, external tools).
                 var eligible = await Eligible(db).CountAsync(ct).ConfigureAwait(false);
@@ -167,9 +193,7 @@ public sealed partial class LearnerService : ILearnerService
                 var model = CategoryLearner.Train(examples, LearnerOptions.Default, Catalog(source));
                 await transaction.CommitAsync(ct).ConfigureAwait(false);
                 LastLoad = LearnerLoadKind.Built;
-                var state = new State(path, model, watermark);
-                await SaveCacheAsync(state, ct).ConfigureAwait(false);
-                return state;
+                return new State(path, model, watermark, Dirty: true);
             }
         }
     }
@@ -226,10 +250,9 @@ public sealed partial class LearnerService : ILearnerService
                 }
 
                 await transaction.CommitAsync(ct).ConfigureAwait(false);
-                next = new State(state.Path, model, latest);
+                next = new State(state.Path, model, latest, Dirty: true);
             }
 
-            await SaveCacheAsync(next, ct).ConfigureAwait(false);
             return next;
         }
     }
@@ -458,13 +481,16 @@ public sealed partial class LearnerService : ILearnerService
     [LoggerMessage(Level = LogLevel.Warning, Message = "Loading the categorization learner failed")]
     private static partial void LogLoadFailed(ILogger logger, Exception exception);
 
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Saving the categorization learner cache failed")]
+    private static partial void LogSaveFailed(ILogger logger, Exception exception);
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Learner cache is stale ({Cached} examples cached, {Eligible} eligible); rebuilding")]
     private static partial void LogCacheStale(ILogger logger, int cached, int eligible);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Replaying ledger changes into the learner failed; rebuilding")]
     private static partial void LogReplayFailed(ILogger logger, Exception exception);
 
-    private sealed record State(string? Path, LearnerModel Model, long Watermark);
+    private sealed record State(string? Path, LearnerModel Model, long Watermark, bool Dirty);
 
     // The learner-relevant columns of a transaction row, from the entity or from audit JSON.
     private sealed record RowState(

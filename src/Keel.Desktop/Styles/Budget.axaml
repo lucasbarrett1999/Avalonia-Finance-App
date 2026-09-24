@@ -1,0 +1,357 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Keel.Desktop.Controls">
+  <!-- Budget screen (M2, PRD 9.3). Pill colours: green > 0, gray = 0, yellow credit-overspent,
+       red cash-overspent; every coloured state also has an icon or text (PRD 11). -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="Keel.Budget.GroupBackground" Color="#F2F4F7" />
+          <SolidColorBrush x:Key="Keel.Budget.SelectedRow" Color="#EAF4F6" />
+          <SolidColorBrush x:Key="Keel.Budget.Cursor" Color="#0B6477" />
+          <SolidColorBrush x:Key="Keel.Budget.DropTarget" Color="#D6E7EC" />
+          <SolidColorBrush x:Key="Keel.Budget.PositiveBackground" Color="#DDF3E6" />
+          <SolidColorBrush x:Key="Keel.Budget.PositiveForeground" Color="#0B6B3F" />
+          <SolidColorBrush x:Key="Keel.Budget.ZeroBackground" Color="#EDF0F4" />
+          <SolidColorBrush x:Key="Keel.Budget.ZeroForeground" Color="#545D6B" />
+          <SolidColorBrush x:Key="Keel.Budget.CreditBackground" Color="#FFEDB8" />
+          <SolidColorBrush x:Key="Keel.Budget.CreditForeground" Color="#6E4A00" />
+          <SolidColorBrush x:Key="Keel.Budget.CashBackground" Color="#FDE2DF" />
+          <SolidColorBrush x:Key="Keel.Budget.CashForeground" Color="#A1190F" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaPositiveBackground" Color="#0F7B4F" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaPositiveForeground" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaNegativeBackground" Color="#B42318" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaNegativeForeground" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="Keel.Budget.BannerBackground" Color="#FDE2DF" />
+          <SolidColorBrush x:Key="Keel.Budget.BannerForeground" Color="#8A1810" />
+          <SolidColorBrush x:Key="Keel.Budget.BarPositive" Color="#2F9E6A" />
+          <SolidColorBrush x:Key="Keel.Budget.BarNegative" Color="#C8372B" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="Keel.Budget.GroupBackground" Color="#252A32" />
+          <SolidColorBrush x:Key="Keel.Budget.SelectedRow" Color="#1E3037" />
+          <SolidColorBrush x:Key="Keel.Budget.Cursor" Color="#3FB5CC" />
+          <SolidColorBrush x:Key="Keel.Budget.DropTarget" Color="#223A42" />
+          <SolidColorBrush x:Key="Keel.Budget.PositiveBackground" Color="#1C3B2C" />
+          <SolidColorBrush x:Key="Keel.Budget.PositiveForeground" Color="#8EE3B5" />
+          <SolidColorBrush x:Key="Keel.Budget.ZeroBackground" Color="#2A2F37" />
+          <SolidColorBrush x:Key="Keel.Budget.ZeroForeground" Color="#A4ACB8" />
+          <SolidColorBrush x:Key="Keel.Budget.CreditBackground" Color="#3D3316" />
+          <SolidColorBrush x:Key="Keel.Budget.CreditForeground" Color="#F5C451" />
+          <SolidColorBrush x:Key="Keel.Budget.CashBackground" Color="#4A1F1C" />
+          <SolidColorBrush x:Key="Keel.Budget.CashForeground" Color="#FF9A90" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaPositiveBackground" Color="#6FD6A4" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaPositiveForeground" Color="#0B2418" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaNegativeBackground" Color="#FF8A80" />
+          <SolidColorBrush x:Key="Keel.Budget.RtaNegativeForeground" Color="#2A0A07" />
+          <SolidColorBrush x:Key="Keel.Budget.BannerBackground" Color="#4A1F1C" />
+          <SolidColorBrush x:Key="Keel.Budget.BannerForeground" Color="#FFB4AB" />
+          <SolidColorBrush x:Key="Keel.Budget.BarPositive" Color="#6FD6A4" />
+          <SolidColorBrush x:Key="Keel.Budget.BarNegative" Color="#FF8A80" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- Month header -->
+  <Style Selector="Button.monthButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="8,4" />
+  </Style>
+  <Style Selector="Button.monthChoice">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Margin" Value="2" />
+    <Setter Property="MinWidth" Value="64" />
+  </Style>
+  <Style Selector="Button.monthChoice.current">
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Accent}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Ready to Assign pill -->
+  <Style Selector="Button.rtaPill">
+    <Setter Property="Padding" Value="20,6" />
+    <Setter Property="MinWidth" Value="200" />
+    <Setter Property="CornerRadius" Value="24" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.RtaPositiveBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.RtaPositiveForeground}" />
+  </Style>
+  <Style Selector="Button.rtaPill:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.RtaPositiveBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.RtaPositiveForeground}" />
+    <Setter Property="Opacity" Value="0.92" />
+  </Style>
+  <Style Selector="Button.rtaPill.negative">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.RtaNegativeBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.RtaNegativeForeground}" />
+  </Style>
+  <Style Selector="Button.rtaPill.negative:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.RtaNegativeBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.RtaNegativeForeground}" />
+  </Style>
+  <Style Selector="Button.rtaPill.dropTarget">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Budget.Cursor}" />
+    <Setter Property="BorderThickness" Value="2" />
+  </Style>
+  <Style Selector="Button.rtaPill TextBlock.rtaAmount">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.rtaPill TextBlock.rtaLabel">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.overBanner">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.BannerBackground}" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="12,8" />
+  </Style>
+  <Style Selector="Border.overBanner TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.BannerForeground}" />
+  </Style>
+  <Style Selector="Border.overBanner controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.BannerForeground}" />
+  </Style>
+
+  <!-- The grid -->
+  <Style Selector="Border.budgetTable">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Border.budgetTable:focus-within">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Budget.Cursor}" />
+  </Style>
+  <Style Selector="TextBlock.columnHeader">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.budgetGroupRow">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.GroupBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="Border.budgetRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector="Border.budgetRow.selected">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.SelectedRow}" />
+  </Style>
+  <Style Selector="Border.budgetRow.dropTarget">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.DropTarget}" />
+  </Style>
+  <Style Selector="Border.budgetCell">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="6,2" />
+    <Setter Property="Margin" Value="2,2" />
+  </Style>
+  <Style Selector="Border.budgetCell.cursor">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Budget.Cursor}" />
+  </Style>
+  <Style Selector="TextBlock.cellAmount">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="TextBlock.groupAmount">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="controls|MoneyTextBox.assignedEditor">
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="Padding" Value="6,2" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="Button.activityLink">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="4,2" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.activityLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Accent}" />
+  </Style>
+  <Style Selector="Button.expander">
+    <Setter Property="Focusable" Value="False" />
+  </Style>
+  <Style Selector="Button.expander controls|Icon.collapsed">
+    <Setter Property="RenderTransform" Value="rotate(-90deg)" />
+  </Style>
+
+  <!-- Available pill -->
+  <Style Selector="Border.pill">
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="SizeAll" />
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.ZeroBackground}" />
+  </Style>
+  <Style Selector="Border.pill TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.ZeroForeground}" />
+  </Style>
+  <Style Selector="Border.pill controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.ZeroForeground}" />
+  </Style>
+  <Style Selector="Border.pill TextBlock">
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+  <Style Selector="Border.pill.positive">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.PositiveBackground}" />
+  </Style>
+  <Style Selector="Border.pill.positive TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.PositiveForeground}" />
+  </Style>
+  <Style Selector="Border.pill.positive controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.PositiveForeground}" />
+  </Style>
+  <Style Selector="Border.pill.credit">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.CreditBackground}" />
+  </Style>
+  <Style Selector="Border.pill.credit TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.CreditForeground}" />
+  </Style>
+  <Style Selector="Border.pill.credit controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.CreditForeground}" />
+  </Style>
+  <Style Selector="Border.pill.cash">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.CashBackground}" />
+  </Style>
+  <Style Selector="Border.pill.cash TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.CashForeground}" />
+  </Style>
+  <Style Selector="Border.pill.cash controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.CashForeground}" />
+  </Style>
+
+  <!-- Target badge and card line -->
+  <Style Selector="Border.targetBadge">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="6,1" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.PositiveBackground}" />
+  </Style>
+  <Style Selector="Border.targetBadge TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.PositiveForeground}" />
+  </Style>
+  <Style Selector="Border.targetBadge controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.PositiveForeground}" />
+  </Style>
+  <Style Selector="Border.targetBadge TextBlock">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.targetBadge.underfunded">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.CreditBackground}" />
+  </Style>
+  <Style Selector="Border.targetBadge.underfunded TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.CreditForeground}" />
+  </Style>
+  <Style Selector="Border.targetBadge.underfunded controls|Icon">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Budget.CreditForeground}" />
+  </Style>
+  <Style Selector="TextBlock.cardDetail">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="TextBlock.cardDetail.uncovered">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- Inspector -->
+  <Style Selector="Border.inspector">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="16" />
+  </Style>
+  <Style Selector="TextBlock.inspectorSection">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="Margin" Value="0,12,0,4" />
+  </Style>
+  <Style Selector="TextBlock.explainAmount">
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+  </Style>
+  <Style Selector="Grid.explainLine.context TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="FontStyle" Value="Italic" />
+  </Style>
+  <Style Selector="controls|BudgetSparkline">
+    <Setter Property="PositiveBrush" Value="{DynamicResource Keel.Budget.BarPositive}" />
+    <Setter Property="NegativeBrush" Value="{DynamicResource Keel.Budget.BarNegative}" />
+    <Setter Property="BaselineBrush" Value="{DynamicResource Keel.BorderBrush}" />
+  </Style>
+  <Style Selector="Button.quickAssign">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+
+  <!-- Manage categories dialog -->
+  <Style Selector="Border.manageGroup">
+    <Setter Property="Background" Value="{DynamicResource Keel.Budget.GroupBackground}" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="Margin" Value="0,8,0,2" />
+  </Style>
+  <Style Selector="Button.small">
+    <Setter Property="MinWidth" Value="28" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="6" />
+  </Style>
+  <Style Selector="Button.small controls|Icon">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+  </Style>
+  <Style Selector="TextBox.inlineName">
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="6,4" />
+  </Style>
+  <Style Selector="TextBox.inlineName:focus">
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="TextBlock.hiddenTag">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="FontStyle" Value="Italic" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+</Styles>

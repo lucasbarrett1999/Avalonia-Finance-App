@@ -57,6 +57,18 @@ public enum LedgerError
     /// <summary>Finishing a reconciliation needs a zero difference or a balance adjustment.</summary>
     ReconciliationNotBalanced,
 
+    /// <summary>System groups and categories (Inflow, Ready to Assign, Credit Card Payments) cannot be changed this way.</summary>
+    SystemCategoryProtected,
+
+    /// <summary>The category group does not exist.</summary>
+    CategoryGroupNotFound,
+
+    /// <summary>The category has history (transactions, assignments or schedules); choose a replacement category.</summary>
+    ReplacementCategoryRequired,
+
+    /// <summary>The replacement category is the deleted one, is being deleted too, or is a system category.</summary>
+    InvalidReplacementCategory,
+
     /// <summary>The rule does not exist.</summary>
     RuleNotFound,
 

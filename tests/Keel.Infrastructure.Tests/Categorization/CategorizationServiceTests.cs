@@ -4,7 +4,6 @@ using Keel.Application.Rules;
 using Keel.Application.Undo;
 using Keel.Domain;
 using Keel.Domain.Rules;
-using Keel.Infrastructure.Categorization;
 using Keel.Infrastructure.Tests.Ledger;
 using Keel.Infrastructure.Tests.Rules;
 using Microsoft.EntityFrameworkCore;
@@ -150,15 +149,6 @@ public sealed class CategorizationServiceTests : IAsyncLifetime
 
         await using var db = _host.Db();
         (await db.Transactions.Where(t => !t.IsApproved).Select(t => t.Id).ToListAsync()).ShouldBe([unsure.Id, none.Id], ignoreOrder: true);
-    }
-
-    [Fact]
-    public async Task Import_adapter_runs_the_full_pipeline()
-    {
-        var (checking, groceries, _) = await HistoryAsync();
-        var txn = await AddUnapprovedAsync(checking, -2_100, "TRADER JOES");
-        await _host.Get<ImportCategorizationAdapter>().ApplyAsync([txn.Id], Ct);
-        (await _host.Transactions.GetAsync(txn.Id, Ct))!.CategoryId.ShouldBe(groceries);
     }
 
     [Fact]

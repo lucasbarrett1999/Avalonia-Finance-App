@@ -85,6 +85,9 @@ public sealed partial class SidebarAccountViewModel : ObservableObject
     private Task EditAsync() => _shell.EditAccountAsync(Account);
 
     [RelayCommand]
+    private Task ImportFileAsync() => _shell.ImportFileAsync(Id);
+
+    [RelayCommand]
     private Task MoveUpAsync() => _shell.MoveAccountAsync(this, -1);
 
     [RelayCommand]

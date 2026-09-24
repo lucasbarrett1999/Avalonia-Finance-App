@@ -136,7 +136,8 @@ internal static class MutationPlanner
             changes |= RuleChanges.Flagged;
         }
 
-        if (!before.Splits.SequenceEqual(after.Splits))
+        // Stored splits have no order, so compare them as a multiset.
+        if (!SameSplits(before.Splits, after.Splits))
         {
             changes |= RuleChanges.Splits;
         }
@@ -308,6 +309,28 @@ internal static class MutationPlanner
         {
             db.TransactionTags.Add(new TransactionTag { TransactionId = transactionId, TagId = tagId });
         }
+    }
+
+    private static bool SameSplits(IReadOnlyList<SnapshotSplit> a, IReadOnlyList<SnapshotSplit> b)
+    {
+        if (a.Count != b.Count)
+        {
+            return false;
+        }
+
+        var remaining = b.ToList();
+        foreach (var split in a)
+        {
+            var index = remaining.IndexOf(split);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            remaining.RemoveAt(index);
+        }
+
+        return true;
     }
 
     private static string? NullIfBlank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
