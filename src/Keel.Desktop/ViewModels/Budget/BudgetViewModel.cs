@@ -406,6 +406,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
         var month = CurrentMonth;
         if (value != row.Assigned)
         {
+            row.ShowPendingAssigned(value);
             QueueWrite(() => _budget.AssignAsync(row.Id, month, value, CancellationToken.None));
         }
 

@@ -137,7 +137,7 @@ public partial class BudgetView : UserControl
             return;
         }
 
-        var inGrid = ReferenceEquals(focused, GridHost) || (focused as Visual)?.FindAncestorOfType<Border>() is { Name: "GridHost" };
+        var inGrid = focused is Visual visual && visual.GetSelfAndVisualAncestors().Contains(GridHost);
         e.Handled = (inGrid && HandleGridKey(e)) || HandlePageKey(e);
     }
 
@@ -320,6 +320,9 @@ public partial class BudgetView : UserControl
         {
             return;     // clicks inside the editor belong to it
         }
+
+        // Save the open editor first (with its typed text), so the click's selection wins.
+        CommitFocusedEditor();
 
         var cell = source.GetSelfAndVisualAncestors().OfType<Border>().FirstOrDefault(b => b.Tag is string);
         if (cell?.DataContext is not BudgetRowViewModel row || !Enum.TryParse<BudgetColumn>((string)cell.Tag!, out var column))

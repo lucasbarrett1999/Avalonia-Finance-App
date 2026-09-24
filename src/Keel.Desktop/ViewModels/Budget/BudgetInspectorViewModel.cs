@@ -341,6 +341,7 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
             {
                 if (_monthNoteMonth != month)
                 {
+                    await SaveMonthNoteAsync();     // an unsaved note of the previous month
                     var note = await Task.Run(() => _budget.GetMonthNoteAsync(month, CancellationToken.None));
                     if (version != _version)
                     {

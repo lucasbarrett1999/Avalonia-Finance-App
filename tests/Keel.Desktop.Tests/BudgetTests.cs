@@ -552,4 +552,34 @@ public sealed class BudgetTests(ITestOutputHelper output) : IDisposable
         listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetInspector, "I"));
         listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetPreviousMonth, shortcuts.Format(shortcuts.PreviousMonth)));
     }
+
+    [AvaloniaFact]
+    public async Task Clicking_another_cell_saves_the_typed_amount_and_moves_the_cursor()
+    {
+        var ledger = await BudgetTestLedger.CreateAsync(_host);
+        var (window, _, vm, view) = await OpenAsync();
+        var rows = view.Named<ItemsControl>("BudgetRows");
+        Point CellCenter(BudgetRowViewModel row, string column)
+        {
+            var cell = rows.ContainerFromItem(row)!.GetVisualDescendants().OfType<Border>().First(b => (b.Tag as string) == column);
+            return cell.TranslatePoint(new Point(cell.Bounds.Width / 2, cell.Bounds.Height / 2), window)!.Value;
+        }
+
+        var click = CellCenter(vm.Row(ledger.Dining), "Assigned");
+        window.MouseDown(click, MouseButton.Left);
+        window.MouseUp(click, MouseButton.Left);
+        await UiTestHelpers.WaitUntilAsync(() => window.Focused() is MoneyTextBox { DataContext: BudgetCategoryRowViewModel { Name: "Dining" } }, "dining editor");
+        window.Type("75");
+
+        click = CellCenter(vm.Row(ledger.Rent), "Name");
+        window.MouseDown(click, MouseButton.Left);
+        window.MouseUp(click, MouseButton.Left);
+        vm.SelectedRow.ShouldBe(vm.Row(ledger.Rent));
+        vm.SelectedColumn.ShouldBe(BudgetColumn.Name);
+        vm.Row(ledger.Dining).AssignedText.ShouldBe(new Money(75_00, "USD").Format());   // shown at once
+        await vm.SettleAsync();
+        vm.Row(ledger.Dining).Assigned.ShouldBe(75_00);
+        vm.ReadyToAssign.ShouldBe(1_025_00);
+        window.Close();
+    }
 }

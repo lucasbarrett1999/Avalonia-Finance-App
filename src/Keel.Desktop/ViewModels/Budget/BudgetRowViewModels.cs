@@ -286,6 +286,9 @@ public sealed partial class BudgetCategoryRowViewModel : BudgetRowViewModel
     [RelayCommand]
     public void ShowTransactions() => _page?.OpenActivity(this);
 
+    /// <summary>Shows a just-committed Assigned value until the recomputed month arrives.</summary>
+    public void ShowPendingAssigned(long value) => AssignedText = LedgerText.Money(value, Currency);
+
     /// <summary>Takes the numbers of a month.</summary>
     public void Update(BudgetCategoryDto category)
     {
