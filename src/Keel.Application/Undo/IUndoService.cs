@@ -93,4 +93,7 @@ public enum LedgerAction
 
     /// <summary>Create a category.</summary>
     CreateCategory,
+
+    /// <summary>Import transactions (one file or sync batch).</summary>
+    ImportTransactions,
 }
