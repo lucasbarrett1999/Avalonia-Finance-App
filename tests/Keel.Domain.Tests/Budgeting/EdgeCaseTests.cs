@@ -7,8 +7,9 @@ namespace Keel.Domain.Tests.Budgeting;
 /// <summary>Golden edge cases around PRD 6.4 (M2 exit criteria). Assertions are the spec; Verify records the rest.</summary>
 public class EdgeCaseTests
 {
+    /// <summary>Refund on a card larger than that month's spend is floored at zero.</summary>
     [Fact]
-    public Task Refund_on_a_card_larger_than_that_months_spend_is_floored_at_zero()
+    public Task Refund_larger_than_card_spend()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -36,8 +37,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b, (groceries, "2026-08"), (pay, "2026-08")));
     }
 
+    /// <summary>Overspending on two cards is allocated proportionally with the rounding remainder on the largest card.</summary>
     [Fact]
-    public Task Overspending_on_two_cards_is_allocated_proportionally_with_the_rounding_remainder_on_the_largest_card()
+    public Task Two_cards_proportional_covered()
     {
         var b = new BudgetBuilder();
         var visa = b.Account("Visa", AccountType.CreditCard);
@@ -91,8 +93,9 @@ public class EdgeCaseTests
         month.Category(fun).CoveredByCard.ShouldBe([new AccountAmount(visa, 0), new AccountAmount(amex, 0), new AccountAmount(discover, 1)]);
     }
 
+    /// <summary>Card payment larger than the covered amount is cash overspending of the payment category.</summary>
     [Fact]
-    public Task Card_payment_larger_than_the_covered_amount_is_cash_overspending_of_the_payment_category()
+    public Task Card_payment_larger_than_covered()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -123,8 +126,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b, (pay, "2026-08")));
     }
 
+    /// <summary>Cash advance is categorized on both sides and flows through the payment category.</summary>
     [Fact]
-    public Task Cash_advance_is_categorized_on_both_sides_and_flows_through_the_payment_category()
+    public Task Cash_advance()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -151,8 +155,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(b.Compute("2026-08", "2026-08"), b, (advance, "2026-08"), (pay, "2026-08")));
     }
 
+    /// <summary>Category with activity but no assignment.</summary>
     [Fact]
-    public Task Category_with_activity_but_no_assignment()
+    public Task Activity_without_assignment()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -177,8 +182,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b));
     }
 
+    /// <summary>Assignments in future months reduce current ready to assign.</summary>
     [Fact]
-    public Task Assignments_in_future_months_reduce_current_ready_to_assign()
+    public Task Future_assignments_reduce_rta()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -200,8 +206,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b));
     }
 
+    /// <summary>Ready to assign can be negative.</summary>
     [Fact]
-    public Task Ready_to_assign_can_be_negative()
+    public Task Negative_rta()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -217,8 +224,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b));
     }
 
+    /// <summary>Overspending spanning cash and credit in the same month.</summary>
     [Fact]
-    public Task Overspending_spanning_cash_and_credit_in_the_same_month()
+    public Task Overspending_cash_and_credit()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -242,8 +250,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b, (dining, "2026-08")));
     }
 
+    /// <summary>Month with no data between two months with data.</summary>
     [Fact]
-    public Task Month_with_no_data_between_two_months_with_data()
+    public Task Empty_month_between_data()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -267,8 +276,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b));
     }
 
+    /// <summary>Category hidden mid-history still counts but leaves group rows.</summary>
     [Fact]
-    public Task Category_hidden_mid_history_still_counts_but_leaves_group_rows()
+    public Task Hidden_category_mid_history()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -297,8 +307,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b));
     }
 
+    /// <summary>Opening balances flow to ready to assign and tracking balances do not.</summary>
     [Fact]
-    public Task Opening_balances_flow_to_ready_to_assign_and_tracking_balances_do_not()
+    public Task Opening_balances()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -319,8 +330,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(snapshot, b));
     }
 
+    /// <summary>Transfers to tracking accounts are categorized outflows and on-budget transfers are ignored.</summary>
     [Fact]
-    public Task Transfers_to_tracking_accounts_are_categorized_outflows_and_on_budget_transfers_are_ignored()
+    public Task Tracking_account_transfers()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -345,8 +357,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(b.Compute("2026-08", "2026-08"), b, (retirement, "2026-08")));
     }
 
+    /// <summary>Month boundaries follow the civil calendar including leap day.</summary>
     [Fact]
-    public Task Month_boundaries_follow_the_civil_calendar_including_leap_day()
+    public Task Month_boundaries_and_leap_day()
     {
         var b = new BudgetBuilder();
         var checking = b.Account("Checking", AccountType.Checking);
@@ -372,8 +385,9 @@ public class EdgeCaseTests
         return Verify(SnapshotPrinter.Print(BudgetCalculator.Compute(b.Build(), M("2028-02"), M("2028-03")), b));
     }
 
+    /// <summary>Closed accounts are included historically.</summary>
     [Fact]
-    public Task Closed_accounts_are_included_historically()
+    public Task Closed_accounts_historical()
     {
         var b = new BudgetBuilder();
         var oldChecking = b.Account("Old Checking", AccountType.Checking, closed: true);
