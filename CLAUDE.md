@@ -68,6 +68,10 @@ src/
                         order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
                         Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
                         with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
+                        Rules/ (F-TXN-4, ADR 0020): TransactionSnapshot, RuleDefinition + versioned RuleJson,
+                        RuleEngine/CompiledRuleSet (mutation set + RuleTrace), RuleValidator, RuleSuggester.
+                        Categorization/ (F-TXN-5, ADR 0021): CategoryLearner.Train -> LearnerModel (Suggest,
+                        Predict, WithExample/WithoutExample, ToJson/FromJson), LearnerCategory, CategorySuggestion.
                         Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
                         JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
@@ -79,6 +83,8 @@ src/
                         Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
+                        Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
+                        learner; CategorizationResult with suggestions and CategorizationTrace, ADR 0022).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
@@ -119,6 +125,10 @@ tests/
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
                               reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
                               (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
+  Keel.Domain.Tests/Rules/     Every condition and action, ordering/continue, split exactness (CsCheck), regex, JSON, validator.
+  Keel.Domain.Tests/Categorization/  LabeledHistoryGenerator (64 payees, 30 categories; also in Keel.Benchmarks for
+                              CategoryLearnerBenchmarks), accuracy/calibration, determinism, JSON, 100k timing,
+                              CategorizationEngine (this project references Keel.Application for it).
   Keel.Infrastructure.Tests/Budgeting/  Aggregation against hand-built SQLite ledgers, BudgetService, 3-month
                               end-to-end golden, 100k-transaction month-switch timing.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
@@ -218,3 +228,12 @@ From PRD 15, plus decisions made while building M0.
   `.gitattributes`) and its reviewed `.expected.json`.
 - `PayeeNoiseTable` feeds stored fingerprints: bump `PayeeNormalizer.Version` when it changes
   (ADR 0005). Every table entry has a test.
+
+**Rules and learner**
+- Rules are pure: `RuleEngine.Compile(rules).Apply(snapshot)`; persist only `RuleJson` output and read with
+  `RuleDefinition.FromEntity` (newer formats throw `RuleFormatException`). New condition/action kinds get a new
+  `type` discriminator; changing a kind's meaning needs a format version bump.
+- The learner never writes below `CategoryLearner.MinimumConfidence` (0.60) and needs 3 examples of a payee or word.
+  `LearnerModel` holds integer counts only, so its JSON is identical on every OS; keep it that way. Accuracy
+  thresholds are asserted in `LearnerAccuracyTests` on the deterministic fixture; rerun them after any change to
+  features, smoothing or `PayeeNormalizer`.
