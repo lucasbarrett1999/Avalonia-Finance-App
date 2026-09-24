@@ -234,4 +234,631 @@
   <data name="Shortcut_ToggleSidebar" xml:space="preserve">
     <value>Collapse or expand the sidebar</value>
   </data>
+  <data name="LedgerError_AccountNotFound" xml:space="preserve">
+    <value>That account no longer exists.</value>
+  </data>
+  <data name="LedgerError_AccountClosed" xml:space="preserve">
+    <value>This account is closed. Reopen it to add or change transactions.</value>
+  </data>
+  <data name="LedgerError_AccountNameRequired" xml:space="preserve">
+    <value>Give the account a name.</value>
+  </data>
+  <data name="LedgerError_InvalidCurrency" xml:space="preserve">
+    <value>Use a three-letter currency code such as USD or EUR.</value>
+  </data>
+  <data name="LedgerError_OnBudgetNotAllowed" xml:space="preserve">
+    <value>Only savings and cash accounts can switch between budget and tracking.</value>
+  </data>
+  <data name="LedgerError_OnBudgetChangeWithTransactions" xml:space="preserve">
+    <value>Budget or tracking can only change before an account has transactions.</value>
+  </data>
+  <data name="LedgerError_AccountHasBalance" xml:space="preserve">
+    <value>This account still has a balance.</value>
+  </data>
+  <data name="LedgerError_TransactionNotFound" xml:space="preserve">
+    <value>That transaction no longer exists.</value>
+  </data>
+  <data name="LedgerError_CategoryNotFound" xml:space="preserve">
+    <value>That category no longer exists.</value>
+  </data>
+  <data name="LedgerError_CategoryNameRequired" xml:space="preserve">
+    <value>Give the category and its group a name.</value>
+  </data>
+  <data name="LedgerError_CategoryRequiredForTransfer" xml:space="preserve">
+    <value>Money moving between a budget and a tracking account needs a category.</value>
+  </data>
+  <data name="LedgerError_TransferToSameAccount" xml:space="preserve">
+    <value>A transfer needs two different accounts.</value>
+  </data>
+  <data name="LedgerError_SplitTooFewLines" xml:space="preserve">
+    <value>A split needs at least two lines.</value>
+  </data>
+  <data name="LedgerError_SplitZeroLine" xml:space="preserve">
+    <value>Every split line needs an amount.</value>
+  </data>
+  <data name="LedgerError_SplitSumMismatch" xml:space="preserve">
+    <value>The split lines must add up to the transaction amount.</value>
+  </data>
+  <data name="LedgerError_SplitTransfer" xml:space="preserve">
+    <value>Transfers cannot be split.</value>
+  </data>
+  <data name="LedgerError_ReconciledLocked" xml:space="preserve">
+    <value>Reconciled transactions are locked: their amount, date and account cannot change, and they cannot be deleted.</value>
+  </data>
+  <data name="LedgerError_ReconciliationNotBalanced" xml:space="preserve">
+    <value>The cleared balance does not match the statement yet.</value>
+  </data>
+  <data name="Action_CreateAccount" xml:space="preserve">
+    <value>add account</value>
+  </data>
+  <data name="Action_UpdateAccount" xml:space="preserve">
+    <value>edit account</value>
+  </data>
+  <data name="Action_CloseAccount" xml:space="preserve">
+    <value>close account</value>
+  </data>
+  <data name="Action_ReopenAccount" xml:space="preserve">
+    <value>reopen account</value>
+  </data>
+  <data name="Action_ReorderAccounts" xml:space="preserve">
+    <value>reorder accounts</value>
+  </data>
+  <data name="Action_AddTransaction" xml:space="preserve">
+    <value>add transaction</value>
+  </data>
+  <data name="Action_EditTransaction" xml:space="preserve">
+    <value>edit transaction</value>
+  </data>
+  <data name="Action_DeleteTransactions" xml:space="preserve">
+    <value>delete transactions</value>
+  </data>
+  <data name="Action_RestoreTransactions" xml:space="preserve">
+    <value>restore transactions</value>
+  </data>
+  <data name="Action_PurgeTransactions" xml:space="preserve">
+    <value>remove deleted transactions</value>
+  </data>
+  <data name="Action_ChangeCleared" xml:space="preserve">
+    <value>change cleared status</value>
+  </data>
+  <data name="Action_Approve" xml:space="preserve">
+    <value>approve</value>
+  </data>
+  <data name="Action_Categorize" xml:space="preserve">
+    <value>categorize</value>
+  </data>
+  <data name="Action_MoveTransactions" xml:space="preserve">
+    <value>move transactions</value>
+  </data>
+  <data name="Action_Reconcile" xml:space="preserve">
+    <value>reconcile</value>
+  </data>
+  <data name="Action_RecordBalance" xml:space="preserve">
+    <value>record balance</value>
+  </data>
+  <data name="Action_DeleteBalance" xml:space="preserve">
+    <value>delete balance</value>
+  </data>
+  <data name="Action_CreatePayee" xml:space="preserve">
+    <value>add payee</value>
+  </data>
+  <data name="Action_CreateCategory" xml:space="preserve">
+    <value>add category</value>
+  </data>
+  <data name="AccountType_Checking" xml:space="preserve">
+    <value>Checking</value>
+  </data>
+  <data name="AccountType_Savings" xml:space="preserve">
+    <value>Savings</value>
+  </data>
+  <data name="AccountType_Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="AccountType_CreditCard" xml:space="preserve">
+    <value>Credit card</value>
+  </data>
+  <data name="AccountType_LineOfCredit" xml:space="preserve">
+    <value>Line of credit</value>
+  </data>
+  <data name="AccountType_Loan" xml:space="preserve">
+    <value>Loan or mortgage</value>
+  </data>
+  <data name="AccountType_Investment" xml:space="preserve">
+    <value>Investment</value>
+  </data>
+  <data name="AccountType_OtherAsset" xml:space="preserve">
+    <value>Other asset</value>
+  </data>
+  <data name="AccountType_OtherLiability" xml:space="preserve">
+    <value>Other liability</value>
+  </data>
+  <data name="AccountGroup_Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="AccountGroup_Credit" xml:space="preserve">
+    <value>Credit</value>
+  </data>
+  <data name="AccountGroup_Tracking" xml:space="preserve">
+    <value>Tracking</value>
+  </data>
+  <data name="Status_Reconciled" xml:space="preserve">
+    <value>Reconciled: {0} transaction(s) locked.</value>
+  </data>
+  <data name="DatePreset_AllDates" xml:space="preserve">
+    <value>All dates</value>
+  </data>
+  <data name="DatePreset_ThisMonth" xml:space="preserve">
+    <value>This month</value>
+  </data>
+  <data name="DatePreset_LastMonth" xml:space="preserve">
+    <value>Last month</value>
+  </data>
+  <data name="DatePreset_LastThreeMonths" xml:space="preserve">
+    <value>Last 3 months</value>
+  </data>
+  <data name="DatePreset_ThisYear" xml:space="preserve">
+    <value>This year</value>
+  </data>
+  <data name="DatePreset_LastYear" xml:space="preserve">
+    <value>Last year</value>
+  </data>
+  <data name="StatusFilter_All" xml:space="preserve">
+    <value>Any status</value>
+  </data>
+  <data name="StatusFilter_Uncleared" xml:space="preserve">
+    <value>Uncleared</value>
+  </data>
+  <data name="StatusFilter_Cleared" xml:space="preserve">
+    <value>Cleared</value>
+  </data>
+  <data name="StatusFilter_Reconciled" xml:space="preserve">
+    <value>Reconciled</value>
+  </data>
+  <data name="StatusFilter_NotReconciled" xml:space="preserve">
+    <value>Not reconciled</value>
+  </data>
+  <data name="Nav_ClosedAccounts" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="Nav_AddAccount" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Nav_ShowClosed" xml:space="preserve">
+    <value>Show closed accounts</value>
+  </data>
+  <data name="Nav_AccountActions" xml:space="preserve">
+    <value>Account actions</value>
+  </data>
+  <data name="Nav_EditAccount" xml:space="preserve">
+    <value>Edit account</value>
+  </data>
+  <data name="Nav_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Nav_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Shell_UndoActionTip" xml:space="preserve">
+    <value>Undo {0} ({1})</value>
+  </data>
+  <data name="Shell_RedoActionTip" xml:space="preserve">
+    <value>Redo {0} ({1})</value>
+  </data>
+  <data name="Shell_StatusUndo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Status_Undone" xml:space="preserve">
+    <value>Undid {0}.</value>
+  </data>
+  <data name="Status_Redone" xml:space="preserve">
+    <value>Redid {0}.</value>
+  </data>
+  <data name="Status_UndoFailed" xml:space="preserve">
+    <value>Could not undo: {0}</value>
+  </data>
+  <data name="Status_AccountAdded" xml:space="preserve">
+    <value>Added {0}.</value>
+  </data>
+  <data name="Status_AccountSaved" xml:space="preserve">
+    <value>Saved {0}.</value>
+  </data>
+  <data name="Status_Deleted" xml:space="preserve">
+    <value>Deleted {0} transaction(s).</value>
+  </data>
+  <data name="Status_Categorized" xml:space="preserve">
+    <value>Categorized {0} transaction(s) as {1}.</value>
+  </data>
+  <data name="Status_Moved" xml:space="preserve">
+    <value>Moved {0} transaction(s) to {1}.</value>
+  </data>
+  <data name="Status_BalanceRecorded" xml:space="preserve">
+    <value>Balance recorded.</value>
+  </data>
+  <data name="Status_ReconciledWithAdjustment" xml:space="preserve">
+    <value>Reconciled: {0} transaction(s) locked, including a {1} balance adjustment.</value>
+  </data>
+  <data name="Status_Added" xml:space="preserve">
+    <value>Transaction added.</value>
+  </data>
+  <data name="Status_Saved" xml:space="preserve">
+    <value>Transaction saved.</value>
+  </data>
+  <data name="Register_TransferPayee" xml:space="preserve">
+    <value>Transfer: {0}</value>
+  </data>
+  <data name="Register_Subtitle" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Register_EmptyHeading" xml:space="preserve">
+    <value>No transactions yet</value>
+  </data>
+  <data name="Register_EmptyMessage" xml:space="preserve">
+    <value>Press N or choose Add transaction to record one. Transfers, splits and reconciliation all start here.</value>
+  </data>
+  <data name="Register_FilteredEmptyHeading" xml:space="preserve">
+    <value>Nothing matches these filters</value>
+  </data>
+  <data name="Register_FilteredEmptyMessage" xml:space="preserve">
+    <value>Try a wider date range or a different search, or clear the filters.</value>
+  </data>
+  <data name="Register_RowCount" xml:space="preserve">
+    <value>{0} transactions</value>
+  </data>
+  <data name="Register_SearchIgnored" xml:space="preserve">
+    <value>Ignored: {0}</value>
+  </data>
+  <data name="Register_Selected" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="Register_ErrorLoading" xml:space="preserve">
+    <value>The register could not be loaded: {0}</value>
+  </data>
+  <data name="Register_SnapshotValue" xml:space="preserve">
+    <value>{0} on {1}</value>
+  </data>
+  <data name="Register_FilterAllCategories" xml:space="preserve">
+    <value>All categories</value>
+  </data>
+  <data name="Register_Uncategorized" xml:space="preserve">
+    <value>Uncategorized</value>
+  </data>
+  <data name="Register_SplitCategory" xml:space="preserve">
+    <value>Split ({0})</value>
+  </data>
+  <data name="Register_RowAutomation" xml:space="preserve">
+    <value>{0}, {1}, {2}, {3}, {4}</value>
+  </data>
+  <data name="Register_Loading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+  <data name="Register_AddTransaction" xml:space="preserve">
+    <value>Add transaction</value>
+  </data>
+  <data name="Register_Reconcile" xml:space="preserve">
+    <value>Reconcile</value>
+  </data>
+  <data name="Register_RecordBalance" xml:space="preserve">
+    <value>Record balance</value>
+  </data>
+  <data name="Register_EditAccount" xml:space="preserve">
+    <value>Edit account</value>
+  </data>
+  <data name="Register_WorkingBalance" xml:space="preserve">
+    <value>Working balance</value>
+  </data>
+  <data name="Register_ClearedBalance" xml:space="preserve">
+    <value>Cleared balance</value>
+  </data>
+  <data name="Register_UnclearedBalance" xml:space="preserve">
+    <value>Uncleared</value>
+  </data>
+  <data name="Register_ReportedBalance" xml:space="preserve">
+    <value>Reported by bank</value>
+  </data>
+  <data name="Register_ReportedMismatch" xml:space="preserve">
+    <value>Differs from cleared: reconcile to find the gap</value>
+  </data>
+  <data name="Register_LatestSnapshot" xml:space="preserve">
+    <value>Latest recorded balance</value>
+  </data>
+  <data name="Register_NoSnapshot" xml:space="preserve">
+    <value>No balance recorded yet</value>
+  </data>
+  <data name="Register_Closed" xml:space="preserve">
+    <value>This account is closed. It stays in reports; reopen it from Edit account to change it.</value>
+  </data>
+  <data name="Register_SearchWatermark" xml:space="preserve">
+    <value>Search: payee, memo, amount:&gt;50, category:food, date:2026-08</value>
+  </data>
+  <data name="Register_SearchName" xml:space="preserve">
+    <value>Search this register</value>
+  </data>
+  <data name="Register_DateFilterName" xml:space="preserve">
+    <value>Date range</value>
+  </data>
+  <data name="Register_StatusFilterName" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Register_CategoryFilterName" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Register_UnapprovedOnly" xml:space="preserve">
+    <value>Unapproved only</value>
+  </data>
+  <data name="Register_ClearFilters" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="Register_Retry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="Register_KeyHints" xml:space="preserve">
+    <value>N new · Enter edit · C cleared · A approve · Delete delete · Esc cancel</value>
+  </data>
+  <data name="Register_ExpandSplit" xml:space="preserve">
+    <value>Show or hide split lines</value>
+  </data>
+  <data name="Register_Unapproved" xml:space="preserve">
+    <value>Unapproved</value>
+  </data>
+  <data name="Column_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Column_Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Column_Payee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="Column_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Column_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="Column_Outflow" xml:space="preserve">
+    <value>Outflow</value>
+  </data>
+  <data name="Column_Inflow" xml:space="preserve">
+    <value>Inflow</value>
+  </data>
+  <data name="Column_Cleared" xml:space="preserve">
+    <value>Cleared</value>
+  </data>
+  <data name="Column_Balance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="Bulk_CategorizeTitle" xml:space="preserve">
+    <value>Categorize</value>
+  </data>
+  <data name="Bulk_CategorizePrompt" xml:space="preserve">
+    <value>Choose a category for {0} transaction(s). Split and transfer rows keep theirs.</value>
+  </data>
+  <data name="Bulk_MoveTitle" xml:space="preserve">
+    <value>Move to account</value>
+  </data>
+  <data name="Bulk_MovePrompt" xml:space="preserve">
+    <value>Choose the account to move {0} transaction(s) to.</value>
+  </data>
+  <data name="Bulk_Categorize" xml:space="preserve">
+    <value>Categorize</value>
+  </data>
+  <data name="Bulk_Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Bulk_Clear" xml:space="preserve">
+    <value>Mark cleared</value>
+  </data>
+  <data name="Bulk_Unclear" xml:space="preserve">
+    <value>Mark uncleared</value>
+  </data>
+  <data name="Bulk_Move" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="Bulk_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Editor_Remaining" xml:space="preserve">
+    <value>Remaining: {0}</value>
+  </data>
+  <data name="Editor_ErrorAccount" xml:space="preserve">
+    <value>Choose an account.</value>
+  </data>
+  <data name="Editor_ErrorDate" xml:space="preserve">
+    <value>Enter a date.</value>
+  </data>
+  <data name="Editor_ErrorCategory" xml:space="preserve">
+    <value>No category matches that name. Pick one from the list.</value>
+  </data>
+  <data name="Editor_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Editor_SaveHint" xml:space="preserve">
+    <value>Enter saves · Ctrl/Cmd+Enter saves and adds another · Esc cancels</value>
+  </data>
+  <data name="Editor_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Editor_Split" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="Editor_AddSplitLine" xml:space="preserve">
+    <value>Add split line</value>
+  </data>
+  <data name="Editor_RemoveSplitLine" xml:space="preserve">
+    <value>Remove split line</value>
+  </data>
+  <data name="Editor_Payee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="Editor_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Editor_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="Editor_Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Editor_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Editor_Outflow" xml:space="preserve">
+    <value>Outflow</value>
+  </data>
+  <data name="Editor_Inflow" xml:space="preserve">
+    <value>Inflow</value>
+  </data>
+  <data name="Editor_Cleared" xml:space="preserve">
+    <value>Cleared</value>
+  </data>
+  <data name="Editor_CategoryNotNeeded" xml:space="preserve">
+    <value>No category for transfers between budget accounts</value>
+  </data>
+  <data name="Editor_Locked" xml:space="preserve">
+    <value>Reconciled: amount, date and account are locked.</value>
+  </data>
+  <data name="Reconcile_Title" xml:space="preserve">
+    <value>Reconcile</value>
+  </data>
+  <data name="Reconcile_StatementDate" xml:space="preserve">
+    <value>Statement date</value>
+  </data>
+  <data name="Reconcile_StatementBalance" xml:space="preserve">
+    <value>Statement balance</value>
+  </data>
+  <data name="Reconcile_Cleared" xml:space="preserve">
+    <value>Cleared balance</value>
+  </data>
+  <data name="Reconcile_Difference" xml:space="preserve">
+    <value>Difference</value>
+  </data>
+  <data name="Reconcile_Instructions" xml:space="preserve">
+    <value>Clear or unclear transactions (select a row and press C) until the difference is zero.</value>
+  </data>
+  <data name="Reconcile_Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Reconcile_FinishWithAdjustment" xml:space="preserve">
+    <value>Adjust and finish</value>
+  </data>
+  <data name="Reconcile_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Reconcile_Balanced" xml:space="preserve">
+    <value>Balanced. Finish locks the cleared transactions.</value>
+  </data>
+  <data name="AccountEditor_AddTitle" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="AccountEditor_EditTitle" xml:space="preserve">
+    <value>Edit account</value>
+  </data>
+  <data name="AccountEditor_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="AccountEditor_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="AccountEditor_Currency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="AccountEditor_OnBudget" xml:space="preserve">
+    <value>Use this account in the budget</value>
+  </data>
+  <data name="AccountEditor_Balance" xml:space="preserve">
+    <value>Current balance</value>
+  </data>
+  <data name="AccountEditor_AmountOwed" xml:space="preserve">
+    <value>Amount owed</value>
+  </data>
+  <data name="AccountEditor_OpeningDate" xml:space="preserve">
+    <value>As of</value>
+  </data>
+  <data name="AccountEditor_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AccountEditor_HintCash" xml:space="preserve">
+    <value>Budget account: its money is ready to assign to categories.</value>
+  </data>
+  <data name="AccountEditor_HintCredit" xml:space="preserve">
+    <value>Budget account: spending on it is covered by your categories and set aside for the payment.</value>
+  </data>
+  <data name="AccountEditor_HintTracking" xml:space="preserve">
+    <value>Tracking account: counts toward net worth but not the budget.</value>
+  </data>
+  <data name="AccountEditor_CloseWithBalance" xml:space="preserve">
+    <value>This account still has a balance of {0}. Close it anyway? It will stay in reports.</value>
+  </data>
+  <data name="AccountEditor_Close" xml:space="preserve">
+    <value>Close account</value>
+  </data>
+  <data name="AccountEditor_CloseAnyway" xml:space="preserve">
+    <value>Close anyway</value>
+  </data>
+  <data name="AccountEditor_Reopen" xml:space="preserve">
+    <value>Reopen account</value>
+  </data>
+  <data name="AccountEditor_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="AccountEditor_Create" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Dialog_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Dialog_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="RecordBalance_Title" xml:space="preserve">
+    <value>Record balance for {0}</value>
+  </data>
+  <data name="RecordBalance_Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="RecordBalance_Balance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="RecordBalance_History" xml:space="preserve">
+    <value>Recent balances</value>
+  </data>
+  <data name="RecordBalance_Save" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="Picker_ErrorNothingSelected" xml:space="preserve">
+    <value>Choose an item from the list.</value>
+  </data>
+  <data name="Picker_Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Shortcut_NewTransaction" xml:space="preserve">
+    <value>New transaction (register)</value>
+  </data>
+  <data name="Shortcut_EditTransaction" xml:space="preserve">
+    <value>Edit selected transaction</value>
+  </data>
+  <data name="Shortcut_ToggleCleared" xml:space="preserve">
+    <value>Toggle cleared</value>
+  </data>
+  <data name="Shortcut_Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Shortcut_Delete" xml:space="preserve">
+    <value>Delete with undo</value>
+  </data>
+  <data name="Shortcut_SaveAndNew" xml:space="preserve">
+    <value>Save and add another</value>
+  </data>
+  <data name="Shortcut_Cancel" xml:space="preserve">
+    <value>Cancel editing</value>
+  </data>
+  <data name="TxnStatus_Uncleared" xml:space="preserve">
+    <value>Uncleared</value>
+  </data>
+  <data name="TxnStatus_Cleared" xml:space="preserve">
+    <value>Cleared</value>
+  </data>
+  <data name="TxnStatus_Reconciled" xml:space="preserve">
+    <value>Reconciled</value>
+  </data>
 </root>

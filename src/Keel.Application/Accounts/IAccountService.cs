@@ -2,7 +2,7 @@ using Keel.Domain;
 
 namespace Keel.Application.Accounts;
 
-/// <summary>Account management use cases (F-ACC-1). Implemented in M1.</summary>
+/// <summary>Account management use cases (F-ACC-1). Every mutation is audited and undoable.</summary>
 public interface IAccountService
 {
     /// <summary>Lists accounts in sidebar order, with ledger-derived balances.</summary>
@@ -20,7 +20,10 @@ public interface IAccountService
     /// <summary>Edits name, on-budget flag (Savings and Cash only), and notes.</summary>
     Task<AccountDto> UpdateAccountAsync(UpdateAccountRequest request, CancellationToken ct);
 
-    /// <summary>Closes an account; a non-zero balance requires <paramref name="closeWithBalance"/>.</summary>
+    /// <summary>
+    /// Closes an account; a non-zero balance requires <paramref name="closeWithBalance"/>, otherwise
+    /// <see cref="Ledger.LedgerValidationException"/> with <see cref="Ledger.LedgerError.AccountHasBalance"/>.
+    /// </summary>
     Task CloseAccountAsync(Guid id, bool closeWithBalance, CancellationToken ct);
 
     /// <summary>Reopens a closed account.</summary>
@@ -42,6 +45,8 @@ public interface IAccountService
 /// <param name="ClearedBalance">Cleared and reconciled balance.</param>
 /// <param name="ReportedBalance">Provider-reported balance, when linked.</param>
 /// <param name="SyncStatus">Health of the linked connection, when linked.</param>
+/// <param name="OpeningDate">Date of the opening balance.</param>
+/// <param name="Notes">Notes.</param>
 public sealed record AccountDto(
     Guid Id,
     string Name,
@@ -53,7 +58,19 @@ public sealed record AccountDto(
     Money Balance,
     Money ClearedBalance,
     Money? ReportedBalance,
-    SyncStatus? SyncStatus);
+    SyncStatus? SyncStatus,
+    DateOnly OpeningDate = default,
+    string? Notes = null)
+{
+    /// <summary>Balance of uncleared transactions (ledger minus cleared).</summary>
+    public Money UnclearedBalance => Balance - ClearedBalance;
+
+    /// <summary>Whether the account is a liability (balances are money owed).</summary>
+    public bool IsLiability => AccountTypeInfo.IsLiability(Type);
+
+    /// <summary>Whether the user may change the on-budget flag of this type (Savings and Cash).</summary>
+    public bool CanOverrideOnBudget => AccountTypeInfo.CanOverrideOnBudget(Type);
+}
 
 /// <summary>Input for <see cref="IAccountService.CreateAccountAsync"/>.</summary>
 /// <param name="Name">Display name.</param>

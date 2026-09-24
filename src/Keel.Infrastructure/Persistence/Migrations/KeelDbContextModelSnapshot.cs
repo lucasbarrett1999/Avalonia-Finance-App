@@ -772,6 +772,12 @@ namespace Keel.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CategoryId", "Date");
 
+                    b.HasIndex("Date", "Id", "IsDeleted", "Amount", "Status")
+                        .HasDatabaseName("IX_Transactions_Register_All");
+
+                    b.HasIndex("AccountId", "Date", "Id", "IsDeleted", "Amount", "Status")
+                        .HasDatabaseName("IX_Transactions_Register_Account");
+
                     b.ToTable("Transactions");
                 });
 

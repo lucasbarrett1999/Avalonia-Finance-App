@@ -155,6 +155,101 @@ All commands ran after `export PATH=/root/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPT
 - The windowed app was not launched (no display in the sandbox). The headless tests start the
   same host, open the same default file, and render the real window.
 
+## M1 — Ledger
+
+Milestone 1 (PRD 12): F-ACC-1..5, F-ACC-7, payees, `MoneyTextBox`, register virtualization with a
+100k fixture generator, basic search (F-TXN-7), undo and audit events. Branch `claude/keel-m1-ledger`.
+
+### Added
+
+- **Domain** (`Keel.Domain/Ledger`): `TransferRules` (the on-budget side of an on/off-budget
+  transfer carries the category), `SplitRules`, `ReconciliationMath`, `RunningBalance` (ledger
+  order reference), `PayeeNames`, `SearchQuery` (`amount:>100 category:groceries date:2026-08
+  payee:"trader"`, free words, ranges) and `MoneyExpression` (locale input with `+ - * /`).
+- **Application**: `ITransactionService`, `IRegisterQuery`, `IPayeeService`, `ICategoryService`,
+  `IBalanceSnapshotService`, `IUndoService` with `LedgerAction`, `LedgerValidationException` with
+  `LedgerError`; `AccountDto` gains opening date, notes and derived uncleared balance.
+- **Infrastructure** (`Keel.Infrastructure/Ledger`): every mutation runs in `LedgerWriter` (one
+  transaction on the thread pool; an `AuditEvent` with before/after JSON per changed row; a session
+  undo entry, 50 deep; `LedgerChanged(accounts, months)` after commit). `UndoService` replays the
+  inverse (undo) or the original (redo) of the recorded rows, audited too. Services:
+  accounts (create with Starting Balance in Ready to Assign for on-budget assets, uncategorized
+  for credit and tracking accounts; a Credit Card Payment category per on-budget card; edit;
+  close with balance confirmation; reopen; reorder per group), transactions (add, edit, soft
+  delete, restore, purge, cleared toggle, bulk categorize/approve/clear/move, transfer pairs kept
+  in sync on edit/retarget/unlink, splits validated before the database constraint, reconciliation
+  with balance adjustment and locking), payees (get-or-create by normalized name, ranked
+  autocomplete, last category and memo), categories (picker list, minimal create), balance
+  snapshots (upsert, latest on or before a date). `RegisterQuery` pages in raw SQL (200 rows):
+  filters, sort, search, and running balances from a window sum for the page only. Migration
+  `RegisterIndexes` adds two covering register indexes.
+- **Fixtures**: `Keel.Infrastructure/Fixtures/LedgerFixtureGenerator`: deterministic ledger (ids
+  included) of exactly N transactions (default 100,000): 8 accounts (cash, credit, tracking),
+  40 categories in 8 groups, about 90 payees, paychecks, bills, card payments, on/off-budget
+  transfers, splits, snapshots, statuses and unapproved rows.
+- **Desktop**: sidebar Accounts section grouped Cash/Credit/Tracking with balances and totals
+  (closed accounts hidden, "show closed" toggle), account context menu (edit, move up/down), Add
+  account and Edit account dialogs (close/reopen), Record balance dialog for tracking accounts;
+  the account register and the All Accounts register (Account column) with header balances
+  (working, cleared, uncleared, reported with mismatch hint, latest snapshot), filter bar (date
+  presets, search, status, category, unapproved only), `DataGrid` over `RegisterSource`
+  (virtual `IDataGridCollectionView`, ADR 0010) with date/payee/category/memo/outflow/inflow/
+  cleared/running balance, unapproved accent bar, transfer rows, expandable split lines, inline
+  add/edit row (payee autocomplete with transfer targets, pre-fill from a known payee, category
+  search, split editor with remaining amount), multi-select bulk bar, reconcile bar, designed
+  empty, filtered-empty, loading and error states. Keyboard: `N`, `Enter`, `Esc`, `C`, `A`,
+  `Ctrl/Cmd+Enter`, `Delete` with an undo toast; `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z` (and the
+  platform redo gesture) and the top-bar undo/redo buttons; global search opens All Accounts
+  filtered. `MoneyTextBox` binds `long` minor units. In-window dialog layer, status strip toast.
+- **Tests**: Domain ledger rules, search syntax, amount math; Infrastructure service tests on real
+  SQLite files (accounts, transactions, transfers, splits, reconciliation, undo/redo, audit,
+  messages, payees, snapshots, register paging/sorting/filtering/search/running balance against
+  the reference, fixture determinism, 100k timing); headless UI: add via keyboard, save-and-new
+  with payee pre-fill, inline edit, `C` toggle, delete + Ctrl/Cmd+Z/redo, reconcile to zero and
+  with adjustment, split expansion and transfer rows, 100k All Accounts virtualization, DB
+  filtering and header sorting, sidebar and Add account, global search, `MoneyTextBox`; rendering
+  of the registers (fixture data), tracking register and Add account dialog in light and dark.
+- **Benchmarks**: `RegisterBenchmarks` (open All Accounts, open one account, last page,
+  payee-sorted page, search page) over the 100k fixture.
+
+### Decisions and deviations
+
+- [ADR 0009](docs/decisions/0009-register-running-balance.md): the running balance is the ledger
+  balance in (Date, Id) order under any sort or filter.
+- [ADR 0010](docs/decisions/0010-register-virtual-collection-view.md): custom paged collection view
+  (the DataGrid's own view copies its source) and a read-only grid with an inline editor row.
+- [ADR 0011](docs/decisions/0011-transfer-payees-and-split-transfers.md): transfer payees are
+  synthesized, not stored; split lines cannot be transfers in v1.
+- Interpretations (no PRD change): credit-card starting balances are uncategorized (PRD names only
+  assets and tracking accounts); reconciled rows refuse amount/date/account edits, deletion and the
+  `C` toggle; the on-budget flag can change only before an account has transactions; manual payee
+  names are normalized by trimming, collapsing whitespace and upper-casing (import normalization is
+  the M3 pipeline's).
+
+### Not in M1
+
+- Saved filters (F-TXN-7) and the register's Import file and Sync buttons (M3, M7) are not built;
+  the header shows no placeholder for them. Scheduled ghost rows are F-ACC-6 (P1).
+- Account health dots need bank connections (M7).
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+All commands ran after `export PATH=/root/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1`.
+
+| Command | Result |
+|---|---|
+| `dotnet ef migrations add RegisterIndexes --project src/Keel.Infrastructure --startup-project src/Keel.Infrastructure --output-dir Persistence/Migrations` | Generated `20260924114823_RegisterIndexes` |
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 202 passed, 0 failed, 0 skipped: Domain 105, Infrastructure 67, Desktop 30 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests` (100k) | Fixture generated in about 4.2 s; register open (count + summary + first 200 rows) best of 3: All accounts 82 ms, one account (44k rows) 64 ms; last page 124 ms / 73 ms. Asserted < 500 ms. |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short` | OpenAllAccounts 86.3 ms, OpenOneAccount 68.0 ms, LastPageAllAccounts 88.0 ms, FirstPageSortedByPayee 292.3 ms, SearchFirstPage 19.5 ms |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter RenderingTests` | 24 PNGs (screens, registers with fixture data, tracking register, Add account dialog; light and dark) reviewed by eye |
+
+### Not verified here
+
+- Windows and macOS run only in CI. The windowed app was not launched; headless tests drive the
+  real window, views and DI graph.
 ## M3 — Import parsers
 
 Parsing half of Milestone 3 (file import): pure parsers, normalization, deduplication logic,
@@ -280,6 +375,59 @@ services are a later task).
   variable items skipped, missing for Active items only, $1 trial charges, 90-day trial window.
 - [ADR 0033](docs/decisions/0033-cash-flow-forecast-definitions.md): horizon (today + N days), overdue
   occurrences, the double-count guard, the discretionary-spend definition, floor semantics.
+## M4 — Rules and learner
+
+Domain half of Milestone 4: the rules engine, the categorization learner and the categorization
+pipeline contract, all pure and persistence-free. The Review screen, the DB-backed rule and learner
+services and retroactive apply come in a later task, so the M4 exit criteria (review keyboard flow
+headless-tested) are not yet claimed.
+
+### Added
+
+- **Keel.Domain/Rules** (F-TXN-4, ADR 0020): `TransactionSnapshot`; `RuleDefinition` with
+  versioned `RuleJson` for `Rule.ConditionsJson`/`ActionsJson` (camelCase `type` discriminators,
+  newer versions refused with `RuleFormatException`); conditions payee contains/equals/starts
+  with/regex (raw or normalized via `PayeeNormalizer`, matching the renamed payee or the raw
+  descriptor), memo, amount equals/between/greater/less (magnitude or signed), direction, account
+  set, source set, date range, tag, combined with all/any; actions set payee, set category, set
+  memo, append memo, add tag, mark approved, flag, split by fixed amounts (last line takes the
+  rest) or percentages (banker's rounding, remainder last), set transfer account.
+  `RuleEngine.Compile/Apply` (sort order, first match wins unless continue, later rules see
+  earlier changes, regex compiled once with a 100 ms match timeout) returns `RuleMutations`
+  (result snapshot, changed fields, rule that set each field) and a `RuleTrace`. `RuleValidator`
+  (English messages, codes, paths, optional reference checks). `RuleSuggester.FromTransaction`
+  for "Create rule from this transaction".
+- **Keel.Domain/Categorization** (F-TXN-5, ADR 0021): `CategoryLearner.Train` → immutable
+  `LearnerModel` (naive Bayes with Laplace smoothing; exact-payee prior once a payee has 3
+  approved examples; payee tokens, log2 amount bucket, account, weekday, direction);
+  `Suggest`/`Predict` with confidence, explanation ("Suggested because 12 of 13 past 'TRADER
+  JOES' transactions were Groceries" or the driving words), 60% floor, hidden/system categories
+  only when the history is exclusively there; `WithExample`/`WithoutExample` (equal to a full
+  retrain); `WithCategories`; deterministic count-only JSON (`LearnerModelJson`).
+- **Keel.Application/Categorization** (ADR 0022): `ICategorizationEngine` and
+  `CategorizationEngine`: rules decide first (learner skipped), then the payee default category at
+  0.95 (F-TXN-9), then the learner; suggestions for the review queue and a `CategorizationTrace`.
+- **Tests** (Domain.Tests, which now also references Keel.Application): every condition and action,
+  ordering/continue/override, disabled and invalid rules, split exactness (CsCheck properties for
+  percentages and fixed amounts), invalid and overlong regex, regex timeout, pinned JSON format,
+  validator messages, suggester; learner thresholds, restricted categories, explanations,
+  determinism, incremental and removal equivalence, JSON round trip and errors, pipeline stages.
+  `LabeledHistoryGenerator`: deterministic 24-month history, 64 payees, 30 categories, 1,277
+  distinct descriptors for 2,452 transactions, 9 payees split across two categories, refunds, 1%
+  inconsistent labels.
+- **Benchmarks**: `CategoryLearnerBenchmarks` (`Train100k`, `Suggest`, `WithExample`).
+
+### Decisions and deviations
+
+- [ADR 0020](docs/decisions/0020-rule-format-and-engine-semantics.md): rule JSON format and
+  versioning, payee conditions match renamed or raw payee, amounts compare magnitude by default,
+  later continuing rules override earlier ones, fixed-amount split remainder, regex limits.
+- [ADR 0021](docs/decisions/0021-categorization-learner-model.md): learner model, features,
+  smoothing and tempering, the 3-example rule applied to words too, alternatives below 60% for
+  the review picker (never written), restricted categories, how the "85% after 200 approvals" exit
+  is measured.
+- [ADR 0022](docs/decisions/0022-categorization-pipeline.md): pipeline order, what "a rule decided"
+  means, payee default at 0.95, existing categories kept, trace contents.
 
 ### Verification (Linux sandbox, .NET SDK 10.0.401)
 
@@ -303,4 +451,21 @@ No packages were added.
 - Timing tests are sensitive to other processes on a shared machine: the existing
   `BudgetPerformanceTests` failed once during this work while the sandbox load average was about
   27 on 4 cores; the detector test asserts on the fastest of five runs for that reason.
+| `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 768 passed, 0 failed: Domain 506, Infrastructure 248, Desktop 14 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (no packages added) |
+| `dotnet test tests/Keel.Domain.Tests --filter LearnerAccuracyTests` | Chronological 80/20: top-1 89.8% (empty counts as wrong), coverage 93.9%, confident (≥ 0.9) 386 of 491 at 98.4% precision; random 80/20 seeds 1/7/2026: 90.1/92.4/89.2%, confident precision 98.5/98.4/99.5% |
+| same, after N approvals (next 500) | 200: precision 95.4%, coverage 56.2% (accuracy with empties 53.6%); 400: 76.0%; 600: 85.8%; 1000: 89.8% |
+| `dotnet test tests/Keel.Domain.Tests -c Release --filter LearnerPerformanceTests` | Train 100k examples (2,514 payees): median about 540 ms; `Suggest` about 62 µs; `WithExample` about 57 µs; JSON 345 KiB, write + read 38 ms |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*CategoryLearner*' --job short` | `Train100k` 200.5 ms (87 MB allocated); `Suggest` 17.3 µs (5.9 KB); `WithExample` 16.7 µs (8.7 KB) |
+
+### Not done here
+
+- Review screen (F-TXN-6), rule editor, DB-backed rule/learner services, model caching in `Setting`,
+  retroactive apply with preview (the engine's `ApplyAll` is ready for it) and wiring into the import
+  pipeline.
+- The transaction entity has no flag column; the `flag` action sets `TransactionSnapshot.IsFlagged`.
+- The "≥ 85% after 200 approvals" exit is met as accuracy of the suggestions made; counting empty
+  suggestions as wrong it is 53.6% at 200 and ≥ 85% from 600 approvals (ADR 0021).
 - Windows and macOS runs happen in CI only.

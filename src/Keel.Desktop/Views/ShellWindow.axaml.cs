@@ -105,6 +105,12 @@ public partial class ShellWindow : Window
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Search, Command = new RelayCommand(() => Shell.FocusSearch()) });
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Undo, Command = shell.UndoCommand });
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Redo, Command = shell.RedoCommand });
+        var shiftRedo = new KeyGesture(Key.Z, shortcuts.CommandModifiers | KeyModifiers.Shift);
+        if (!shiftRedo.Equals(shortcuts.Redo))
+        {
+            // Ctrl/Cmd+Shift+Z redoes everywhere, in addition to the platform's own redo gesture.
+            KeyBindings.Add(new KeyBinding { Gesture = shiftRedo, Command = shell.RedoCommand });
+        }
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.ToggleSidebar, Command = shell.ToggleSidebarCommand });
     }
 }

@@ -107,19 +107,3 @@ public sealed class ReportsViewModel : PageViewModel
     /// <inheritdoc />
     public override string EmptyMessage => Strings.Page_Reports_EmptyMessage;
 }
-
-/// <summary>The "All accounts" register (PRD 9.4).</summary>
-public sealed class AccountsViewModel : PageViewModel
-{
-    /// <inheritdoc />
-    public override string Title => Strings.Page_Accounts_Title;
-
-    /// <inheritdoc />
-    public override string Subtitle => Strings.Page_Accounts_Subtitle;
-
-    /// <inheritdoc />
-    public override string EmptyHeading => Strings.Page_Accounts_EmptyHeading;
-
-    /// <inheritdoc />
-    public override string EmptyMessage => Strings.Page_Accounts_EmptyMessage;
-}

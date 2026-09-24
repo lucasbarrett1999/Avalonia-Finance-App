@@ -46,6 +46,10 @@ dotnet ef migrations has-pending-model-changes --project src/Keel.Infrastructure
 # Render every screen to PNG (light and dark) for a visual check
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter RenderingTests
 
+# M1 ledger: headless register flows, 100k register timing, register benchmarks
+dotnet test tests/Keel.Desktop.Tests --filter RegisterTests
+dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger "console;verbosity=detailed"
+dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
 # Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
 KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
 ```
@@ -61,8 +65,14 @@ Directory.Packages.props (central package versions, pinned by PRD 7.1), global.j
 src/
   Keel.Domain/          Pure domain, no packages. Money + Currency, entities for every PRD 6.2
                         table (Entities/), enums, AccountTypeInfo (PRD 6.3), SystemIds (seeded rows).
+                        Ledger/ (M1): TransferRules, SplitRules, ReconciliationMath, RunningBalance (ledger
+                        order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
                         Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
                         with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
+                        Rules/ (F-TXN-4, ADR 0020): TransactionSnapshot, RuleDefinition + versioned RuleJson,
+                        RuleEngine/CompiledRuleSet (mutation set + RuleTrace), RuleValidator, RuleSuggester.
+                        Categorization/ (F-TXN-5, ADR 0021): CategoryLearner.Train -> LearnerModel (Suggest,
+                        Predict, WithExample/WithoutExample, ToJson/FromJson), LearnerCategory, CategorySuggestion.
                         Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
                         JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
                         Scheduling/: RecurrenceRule (RFC 5545 subset, ADR 0030: Parse/TryParse, canonical ToString,
@@ -76,15 +86,23 @@ src/
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
                         IAppSettingsStore/AppSettings, Messaging (IMessageBus, LedgerChanged, BudgetChanged).
+                        M1: Ledger/ (ITransactionService, IRegisterQuery + DTOs, LedgerValidationException),
+                        Payees/, Categories/, Accounts/IBalanceSnapshotService, Undo/IUndoService + LedgerAction.
                         Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
                         Recurring/ (IRecurringService), Scheduling/ (IScheduledTransactionService), Forecast/
                         (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs, not yet implemented.
+                        Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
+                        learner; CategorizationResult with suggestions and CategorizationTrace, ADR 0022).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
                         DependencyInjection.AddKeelInfrastructure.
+                        Ledger/ (M1): LedgerWriter (unit of work: audit + undo + LedgerChanged), LedgerSession,
+                        EntityChange, UndoHistory/UndoService, AccountService, TransactionService, PayeeService,
+                        CategoryService, BalanceSnapshotService, RegisterQuery (raw SQL, paged).
+                        Fixtures/LedgerFixtureGenerator (deterministic 100k-transaction ledger).
                         Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0008),
                         BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
                         Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
@@ -97,14 +115,23 @@ src/
                         Controls/ (Icon, EmptyState), Styles/ (Tokens, Icons, Controls, Shell),
                         Services/ (navigation, theme, window placement, shortcuts, startup, DI),
                         Resources/Strings.resx (all UI text).
+                        M1: ViewModels/AccountsViewModel (both registers), ViewModels/Register/ (RegisterSource
+                        virtual collection view, rows, TransactionEditorViewModel, ReconcileViewModel),
+                        ViewModels/Dialogs/ + Views/Dialogs/ (in-window dialogs), SidebarAccountViewModel,
+                        Controls/MoneyTextBox, Services/ (DialogService, StatusService, LedgerText), Styles/Register.
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
                               indexes, soft delete, split-sum constraint, data dir, settings, logging.
+                              M1: Ledger/ service tests (LedgerTestHost = real DI over a temp file),
+                              register paging/running balance/search, undo, fixture + 100k timing.
                               Import/: parser unit tests and Fixtures/ (bank files + .expected.json).
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
+                              M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
+                              100k virtualization), MoneyTextBoxTests, fixture rendering.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
+                              M1: RegisterBenchmarks over the 100k fixture.
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
                               reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
                               (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
@@ -113,6 +140,10 @@ tests/
                               golden, schedule/reconciler/math tables, 123k-transaction timing test (TimingCollection runs
                               alone). RecurringSeries/RecurringFixtureGenerator also compiled into Keel.Benchmarks.
   Keel.Domain.Tests/Alerts/, Forecast/  Alert rules and idempotence; ForecastScenario + Verify goldens.
+  Keel.Domain.Tests/Rules/     Every condition and action, ordering/continue, split exactness (CsCheck), regex, JSON, validator.
+  Keel.Domain.Tests/Categorization/  LabeledHistoryGenerator (64 payees, 30 categories; also in Keel.Benchmarks for
+                              CategoryLearnerBenchmarks), accuracy/calibration, determinism, JSON, 100k timing,
+                              CategorizationEngine (this project references Keel.Application for it).
   Keel.Infrastructure.Tests/Budgeting/  Aggregation against hand-built SQLite ledgers, BudgetService, 3-month
                               end-to-end golden, 100k-transaction month-switch timing.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
@@ -168,6 +199,18 @@ From PRD 15, plus decisions made while building M0.
   `%APPDATA%\Keel`, macOS `~/Library/Application Support/Keel`, Linux `$XDG_DATA_HOME/keel`
   (default `~/.local/share/keel`).
 - Logs never contain payee names, amounts, or secrets. Use `[LoggerMessage]` source-generated logging.
+- Every ledger mutation goes through `LedgerWriter.RunAsync(LedgerAction, ...)` and saves with
+  `LedgerSession.SaveAsync` (never `SaveChangesAsync` directly): it writes `AuditEvent` before/after
+  JSON per row, records the session undo entry (50 deep), and publishes `LedgerChanged` after the
+  commit. Undo replays recorded row states, so mutate tracked entities (no raw SQL writes) and add
+  new rows with a client key via `DbSet.Add`, not through a navigation collection.
+- Services run on the thread pool (`Task.Run`); view models receive `LedgerChanged` off the UI
+  thread and marshal with `Dispatcher.UIThread.Post`. An empty `AccountIds` set means "any account".
+- The register never loads all rows: `IRegisterQuery` pages in SQL (200 rows), running balances
+  are the ledger balance in (Date, Id) order (ADR 0009), and the grid binds to `RegisterSource`
+  (ADR 0010). Guids are compared in raw SQL as upper-case text (`RunningBalance.SortKey`).
+- Refused operations throw `LedgerValidationException(LedgerError)`; the UI maps codes to
+  `LedgerError_*` strings through `LedgerText`.
 - Budget math lives only in `BudgetCalculator` (PRD 6.4 literal; open points in ADR 0007). Services feed
   it from `BudgetAggregationQuery` and never compute budget numbers themselves. A changed golden file
   (`*.received.txt` next to the test) is reviewed by hand and then renamed to `*.verified.txt`; add a
@@ -188,6 +231,9 @@ From PRD 15, plus decisions made while building M0.
   in `Styles/Icons.axaml` drawn with `controls:Icon` (ADR 0004).
 - Shortcuts use the platform command modifier via `PlatformShortcuts` (Cmd on macOS, Ctrl
   elsewhere) and display with `PlatformShortcuts.Format` (glyphs on macOS).
+- Dialogs are in-window (`DialogService.ShowAsync(DialogViewModel)` rendered by the shell's dialog
+  layer through the view locator); the status strip (`StatusService`) carries the undo toast.
+- Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
 
 **Import**
 - Parsers are pure (bytes + `ImportOptions` in, `ParseResult` out) and never throw on bad rows:
@@ -208,3 +254,11 @@ From PRD 15, plus decisions made while building M0.
   every stored alert, dismissed ones included, to `AlertEvaluator.Evaluate`.
 - A changed recurring or forecast golden (`*.received.txt`) is reviewed by hand, then renamed to
   `*.verified.txt`.
+**Rules and learner**
+- Rules are pure: `RuleEngine.Compile(rules).Apply(snapshot)`; persist only `RuleJson` output and read with
+  `RuleDefinition.FromEntity` (newer formats throw `RuleFormatException`). New condition/action kinds get a new
+  `type` discriminator; changing a kind's meaning needs a format version bump.
+- The learner never writes below `CategoryLearner.MinimumConfidence` (0.60) and needs 3 examples of a payee or word.
+  `LearnerModel` holds integer counts only, so its JSON is identical on every OS; keep it that way. Accuracy
+  thresholds are asserted in `LearnerAccuracyTests` on the deterministic fixture; rerun them after any change to
+  features, smoothing or `PayeeNormalizer`.

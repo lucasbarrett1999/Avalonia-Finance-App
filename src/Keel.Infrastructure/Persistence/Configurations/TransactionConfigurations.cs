@@ -35,6 +35,13 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
         builder.HasIndex(t => t.ProviderTransactionId);
         builder.HasIndex(t => t.PayeeId);
         builder.HasIndex(t => t.TransferPairId);
+
+        // Covering indexes for the paged register (M1): ledger order (Date, Id) per account and
+        // across accounts, with the columns running balances and header sums read.
+        builder.HasIndex(t => new { t.AccountId, t.Date, t.Id, t.IsDeleted, t.Amount, t.Status })
+            .HasDatabaseName("IX_Transactions_Register_Account");
+        builder.HasIndex(t => new { t.Date, t.Id, t.IsDeleted, t.Amount, t.Status })
+            .HasDatabaseName("IX_Transactions_Register_All");
     }
 }
 
