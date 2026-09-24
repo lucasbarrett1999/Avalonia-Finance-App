@@ -7,6 +7,7 @@
              xmlns:conv="using:Keel.Desktop.Converters"
              xmlns:res="using:Keel.Desktop.Resources"
              xmlns:dlg="using:Keel.Desktop.ViewModels.Dialogs"
+             xmlns:syncviews="using:Keel.Desktop.Views.Sync"
              mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
              x:Class="Keel.Desktop.Views.ShellView"
              x:DataType="vm:ShellViewModel">
@@ -49,6 +50,15 @@
                          Data="{Binding IconKey, Converter={x:Static conv:ResourceConverters.Geometry}}" />
           <TextBlock DockPanel.Dock="Right" Classes="accountBalance navLabel" Classes.negative="{Binding IsNegative}"
                      Text="{Binding BalanceText}" Margin="8,0,0,0" />
+          <Panel DockPanel.Dock="Right" Classes="navLabel" Margin="6,0,0,0" IsVisible="{Binding IsLinked}"
+                 ToolTip.Tip="{Binding HealthToolTip}">
+            <Ellipse Classes="health" IsVisible="{Binding !IsSyncing}"
+                     Classes.ok="{Binding Health, Converter={x:Static syncviews:HealthKindConverter.Instance}, ConverterParameter=Ok}"
+                     Classes.attention="{Binding Health, Converter={x:Static syncviews:HealthKindConverter.Instance}, ConverterParameter=Attention}"
+                     Classes.error="{Binding Health, Converter={x:Static syncviews:HealthKindConverter.Instance}, ConverterParameter=Error}" />
+            <controls:Icon Classes="spin" Data="{StaticResource Icon.Sync}" Width="10" Height="10" IsVisible="{Binding IsSyncing}"
+                           Foreground="{DynamicResource Keel.TextSecondary}" />
+          </Panel>
           <TextBlock Classes="navLabel" Text="{Binding Name}" Margin="12,0,0,0" VerticalAlignment="Center"
                      TextTrimming="CharacterEllipsis" />
         </DockPanel>
@@ -98,12 +108,14 @@
                   AutomationProperties.Name="{x:Static res:Strings.Shell_Redo}">
             <controls:Icon Data="{StaticResource Icon.Redo}" />
           </Button>
-          <Button Theme="{StaticResource IconButtonTheme}" Command="{Binding SyncAllCommand}" Margin="8,0,0,0"
+          <Button x:Name="SyncAllButton" Theme="{StaticResource IconButtonTheme}" Command="{Binding SyncAllCommand}" Margin="8,0,0,0"
                   ToolTip.Tip="{Binding SyncToolTip}" ToolTip.ShowOnDisabled="True"
                   AutomationProperties.Name="{Binding SyncAllLabel}">
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <controls:Icon Data="{StaticResource Icon.Sync}" Width="16" Height="16" />
+              <controls:Icon Data="{StaticResource Icon.Sync}" Width="16" Height="16" Classes.spin="{Binding Sync.IsSyncing}" />
               <TextBlock Text="{Binding SyncAllLabel}" VerticalAlignment="Center" />
+              <TextBlock x:Name="LastSyncText" Classes="secondary" Text="{Binding Sync.LastSyncText}" VerticalAlignment="Center"
+                         FontSize="{StaticResource Keel.FontSize.Small}" IsVisible="{Binding Sync.HasConnections}" />
             </StackPanel>
           </Button>
           <Button Theme="{StaticResource IconButtonTheme}" IsEnabled="False"

@@ -3,17 +3,19 @@ using Keel.Application.Files;
 using Keel.Application.Settings;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
+using Keel.Desktop.ViewModels.Sync;
 
 namespace Keel.Desktop.ViewModels;
 
-/// <summary>Settings (PRD 9.9): appearance, data locations, and the shortcut reference.</summary>
+/// <summary>Settings (PRD 9.9): appearance, data locations, bank connections, and the shortcut reference.</summary>
 public sealed class SettingsViewModel : PageViewModel
 {
     private readonly ThemeService _themes;
 
     /// <summary>Creates the view model.</summary>
-    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts)
+    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts, ConnectionsSettingsViewModel connections)
     {
+        Connections = connections;
         ArgumentNullException.ThrowIfNull(dataDirectory);
         ArgumentNullException.ThrowIfNull(shortcuts);
         _themes = themes;
@@ -127,6 +129,9 @@ public sealed class SettingsViewModel : PageViewModel
 
     /// <summary>Shortcut reference for this platform.</summary>
     public IReadOnlyList<ShortcutViewModel> Shortcuts { get; }
+
+    /// <summary>The Connections section (F-SET-3).</summary>
+    public ConnectionsSettingsViewModel Connections { get; }
 }
 
 /// <summary>One row of the shortcut reference.</summary>

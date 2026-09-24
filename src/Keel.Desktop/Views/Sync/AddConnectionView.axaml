@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sync="using:Keel.Desktop.ViewModels.Sync"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Sync.AddConnectionView"
+             x:DataType="sync:AddConnectionViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="480">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+
+    <!-- Choose a provider -->
+    <StackPanel Spacing="10" IsVisible="{Binding IsChoosing}">
+      <StackPanel Spacing="10" IsVisible="{Binding !IsReconnect}">
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.AddConnection_Choose}" TextWrapping="Wrap" />
+        <ListBox x:Name="ProviderList" ItemsSource="{Binding Providers}" SelectedItem="{Binding SelectedProvider}"
+                 AutomationProperties.Name="{x:Static res:Strings.AddConnection_Choose}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="sync:ProviderChoice">
+              <StackPanel Spacing="2" Margin="0,4">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                <TextBlock Classes="secondary" Text="{Binding Description}" TextWrapping="Wrap" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <Border Classes="warning" IsVisible="{Binding ProviderHint, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock x:Name="ProviderHintText" Text="{Binding ProviderHint}" TextWrapping="Wrap" />
+        </Border>
+      </StackPanel>
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.AddConnection_ReconnectExplain}" TextWrapping="Wrap" IsVisible="{Binding IsReconnect}" />
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14" VerticalAlignment="Top" Foreground="{DynamicResource Keel.TextSecondary}" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.AddConnection_Privacy}" TextWrapping="Wrap" MaxWidth="440" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Waiting for the browser -->
+    <StackPanel x:Name="WaitingPanel" Spacing="10" IsVisible="{Binding IsWaiting}">
+      <ProgressBar IsIndeterminate="True" />
+      <TextBlock Text="{Binding WaitingMessage}" TextWrapping="Wrap" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.AddConnection_LinkHint}" TextWrapping="Wrap" />
+      <SelectableTextBlock Classes="path" Text="{Binding LinkUrl}" FontSize="{StaticResource Keel.FontSize.Small}" />
+      <Border Classes="warning" IsVisible="{Binding BrowserFailed}">
+        <TextBlock Text="{x:Static res:Strings.AddConnection_BrowserFailed}" TextWrapping="Wrap" />
+      </Border>
+      <Button HorizontalAlignment="Left" Command="{Binding OpenBrowserAgainCommand}" Content="{x:Static res:Strings.AddConnection_OpenAgain}" />
+    </StackPanel>
+
+    <TextBlock x:Name="AddConnectionError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button x:Name="CancelLinkButton" Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="StartLinkButton" Classes="accent" Command="{Binding ConfirmCommand}" IsVisible="{Binding !IsWaiting}"
+              IsEnabled="{Binding CanStart}" Content="{Binding ConfirmText}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

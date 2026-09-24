@@ -14,6 +14,7 @@ using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
 using Keel.Desktop.ViewModels.Import;
 using Keel.Desktop.ViewModels.Register;
+using Keel.Desktop.ViewModels.Sync;
 using Keel.Domain;
 using Keel.Domain.Ledger;
 
@@ -59,9 +60,11 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         DialogService dialogs,
         StatusService status,
         IMessenger messenger,
-        ImportWorkflow import)
+        ImportWorkflow import,
+        SyncCoordinator sync)
     {
         ArgumentNullException.ThrowIfNull(messenger);
+        AttachSync(sync);
         _import = import;
         _register = register;
         _transactions = transactions;

@@ -64,6 +64,9 @@
           </StackPanel>
         </Border>
 
+        <!-- Connections (F-SET-3) -->
+        <ContentControl x:Name="ConnectionsSection" Content="{Binding Connections}" />
+
         <!-- Keyboard -->
         <Border Classes="card">
           <StackPanel Spacing="12">

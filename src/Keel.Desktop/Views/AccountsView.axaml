@@ -26,6 +26,14 @@
             <TextBlock Text="{x:Static res:Strings.Register_ImportFile}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
+        <Button x:Name="SyncAccountButton" Classes="tool" Command="{Binding SyncAccountCommand}" IsVisible="{Binding IsLinked}"
+                ToolTip.Tip="{x:Static res:Strings.Register_SyncTip}"
+                AutomationProperties.Name="{x:Static res:Strings.Register_Sync}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Sync}" Classes.spin="{Binding IsSyncing}" />
+            <TextBlock Text="{x:Static res:Strings.Register_Sync}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button x:Name="ReconcileButton" Classes="tool" Command="{Binding StartReconcileCommand}" IsVisible="{Binding CanReconcile}"
                 AutomationProperties.Name="{x:Static res:Strings.Register_Reconcile}">
           <StackPanel Orientation="Horizontal" Spacing="6">
@@ -49,8 +57,26 @@
       <StackPanel>
         <TextBlock Classes="pageTitle" Text="{Binding Title}" />
         <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+        <TextBlock x:Name="LinkedSyncText" Classes="secondary" Margin="0,2,0,0" FontSize="{StaticResource Keel.FontSize.Small}"
+                   Text="{Binding LinkedSyncText}" IsVisible="{Binding IsLinked}" />
       </StackPanel>
     </DockPanel>
+
+    <!-- Connection problem: a state on the account with its fix (PRD 1.1 principle 3) -->
+    <Border DockPanel.Dock="Top" x:Name="ConnectionBanner" Classes="warning" Margin="0,16,0,0" IsVisible="{Binding HasConnectionProblem}">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0">
+          <Button x:Name="ReconnectAccountButton" Classes="accent" Command="{Binding ReconnectAccountCommand}" IsVisible="{Binding NeedsReconnect}"
+                  Content="{x:Static res:Strings.Connections_Reconnect}" AutomationProperties.Name="{x:Static res:Strings.Connections_Reconnect}" />
+          <Button Command="{Binding SyncAccountCommand}" IsVisible="{Binding !NeedsReconnect}"
+                  Content="{x:Static res:Strings.Register_TryAgain}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <controls:Icon Data="{StaticResource Icon.Alert}" Width="16" Height="16" Foreground="{DynamicResource Keel.Warning}" />
+          <TextBlock Text="{Binding ConnectionProblemText}" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
 
     <!-- Balances -->
     <WrapPanel DockPanel.Dock="Top" Margin="0,16,0,0" IsVisible="{Binding !HasNoAccounts}">

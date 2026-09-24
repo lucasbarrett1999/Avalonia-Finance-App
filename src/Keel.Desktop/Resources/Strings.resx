@@ -670,7 +670,7 @@
     <value>Settings</value>
   </data>
   <data name="Page_Settings_Subtitle" xml:space="preserve">
-    <value>Appearance, data, and shortcuts</value>
+    <value>Appearance, data, bank connections, and shortcuts</value>
   </data>
   <data name="Settings_Appearance" xml:space="preserve">
     <value>Appearance</value>
@@ -2207,5 +2207,419 @@
   </data>
   <data name="ImportWarning_WithCount" xml:space="preserve">
     <value>{0} ({1})</value>
+  </data>
+  <data name="Settings_Connections" xml:space="preserve">
+    <value>Connections</value>
+  </data>
+  <data name="Connections_Intro" xml:space="preserve">
+    <value>Bank sync is optional: link an institution to import its transactions automatically. File import and manual entry work without it.</value>
+  </data>
+  <data name="Connections_Add" xml:space="preserve">
+    <value>Add connection</value>
+  </data>
+  <data name="Connections_Loading" xml:space="preserve">
+    <value>Loading connections…</value>
+  </data>
+  <data name="Connections_LoadError" xml:space="preserve">
+    <value>Connections could not be loaded: {0}</value>
+  </data>
+  <data name="Connections_SecretStoreError" xml:space="preserve">
+    <value>The secret store failed: {0}</value>
+  </data>
+  <data name="Connections_EmptyHeading" xml:space="preserve">
+    <value>No connections yet</value>
+  </data>
+  <data name="Connections_EmptyMessage" xml:space="preserve">
+    <value>Enter your Plaid keys (or a SimpleFIN setup token) below, then choose Add connection to link a bank. Its accounts appear in the sidebar with a health dot.</value>
+  </data>
+  <data name="Connections_NoLinkedAccounts" xml:space="preserve">
+    <value>No accounts linked</value>
+  </data>
+  <data name="Connections_Reconnect" xml:space="preserve">
+    <value>Reconnect</value>
+  </data>
+  <data name="Connections_SyncNow" xml:space="preserve">
+    <value>Sync now</value>
+  </data>
+  <data name="Connections_Unlink" xml:space="preserve">
+    <value>Unlink</value>
+  </data>
+  <data name="Connections_PlaidKeys" xml:space="preserve">
+    <value>Plaid keys</value>
+  </data>
+  <data name="Connections_ByoWarning" xml:space="preserve">
+    <value>Keel uses your own Plaid developer keys. Never put a shared production secret into an app you give to others: anyone with the app could extract it. Get your own keys from the Plaid dashboard; a hosted token proxy that needs no keys is planned for later.</value>
+  </data>
+  <data name="Connections_ClientId" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="Connections_Secret" xml:space="preserve">
+    <value>Secret</value>
+  </data>
+  <data name="Connections_ClientIdWatermark" xml:space="preserve">
+    <value>Paste your Plaid client ID</value>
+  </data>
+  <data name="Connections_SecretWatermark" xml:space="preserve">
+    <value>Paste the secret for this environment</value>
+  </data>
+  <data name="Connections_Environment" xml:space="preserve">
+    <value>Environment</value>
+  </data>
+  <data name="Connections_ValueSet" xml:space="preserve">
+    <value>Stored (hidden)</value>
+  </data>
+  <data name="Connections_Replace" xml:space="preserve">
+    <value>Replace</value>
+  </data>
+  <data name="Connections_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Connections_Saved" xml:space="preserve">
+    <value>Saved to the secret store</value>
+  </data>
+  <data name="Connections_ErrorEmptyValue" xml:space="preserve">
+    <value>Enter a value to save.</value>
+  </data>
+  <data name="Connections_RemoveKeys" xml:space="preserve">
+    <value>Remove keys</value>
+  </data>
+  <data name="Connections_KeysRemoved" xml:space="preserve">
+    <value>Plaid keys removed from the secret store</value>
+  </data>
+  <data name="Connections_KeysHelp" xml:space="preserve">
+    <value>Sandbox uses test banks (sign in with user_good / pass_good). The user guide (docs/user-guide/bank-sync.md) explains how to get keys.</value>
+  </data>
+  <data name="Connections_SimpleFin" xml:space="preserve">
+    <value>SimpleFIN Bridge setup token</value>
+  </data>
+  <data name="Connections_SimpleFinHelp" xml:space="preserve">
+    <value>SimpleFIN needs no developer keys: create a setup token at your SimpleFIN Bridge account, paste it here, then add a SimpleFIN connection. The token is used once.</value>
+  </data>
+  <data name="Connections_SetupTokenWatermark" xml:space="preserve">
+    <value>Paste a SimpleFIN setup token</value>
+  </data>
+  <data name="Connections_Schedule" xml:space="preserve">
+    <value>Sync automatically</value>
+  </data>
+  <data name="Connections_IntervalOff" xml:space="preserve">
+    <value>Only when I ask</value>
+  </data>
+  <data name="Connections_IntervalHour" xml:space="preserve">
+    <value>Every hour</value>
+  </data>
+  <data name="Connections_IntervalHours" xml:space="preserve">
+    <value>Every {0} hours</value>
+  </data>
+  <data name="Connections_SyncOnStart" xml:space="preserve">
+    <value>Sync when Keel opens this file</value>
+  </data>
+  <data name="Connections_StoredIn" xml:space="preserve">
+    <value>Keys and access tokens are stored in:</value>
+  </data>
+  <data name="Connections_FallbackWarning" xml:space="preserve">
+    <value>No Secret Service (GNOME Keyring, KWallet or KeePassXC) was found, so secrets are in an encrypted file keyed to this machine and user. This is weaker: anyone who can read your files can decrypt it. Install and unlock a keyring for better protection.</value>
+  </data>
+  <data name="PlaidEnvironment_Sandbox" xml:space="preserve">
+    <value>Sandbox</value>
+  </data>
+  <data name="PlaidEnvironment_Production" xml:space="preserve">
+    <value>Production</value>
+  </data>
+  <data name="SecretBackend_WindowsDpapi" xml:space="preserve">
+    <value>Windows Data Protection (DPAPI)</value>
+  </data>
+  <data name="SecretBackend_MacOSKeychain" xml:space="preserve">
+    <value>macOS Keychain</value>
+  </data>
+  <data name="SecretBackend_LinuxSecretService" xml:space="preserve">
+    <value>Secret Service keyring (GNOME Keyring, KWallet, KeePassXC)</value>
+  </data>
+  <data name="SecretBackend_EncryptedFile" xml:space="preserve">
+    <value>Encrypted file (fallback)</value>
+  </data>
+  <data name="SecretBackend_InMemory" xml:space="preserve">
+    <value>Memory only (not saved)</value>
+  </data>
+  <data name="SyncProvider_Plaid" xml:space="preserve">
+    <value>Plaid</value>
+  </data>
+  <data name="SyncProvider_SimpleFin" xml:space="preserve">
+    <value>SimpleFIN Bridge</value>
+  </data>
+  <data name="SyncStatus_Ok" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="SyncStatus_NeedsReauth" xml:space="preserve">
+    <value>Sign-in needed</value>
+  </data>
+  <data name="SyncStatus_Error" xml:space="preserve">
+    <value>Sync failed</value>
+  </data>
+  <data name="SyncStatus_Disabled" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="AddConnection_Title" xml:space="preserve">
+    <value>Add a bank connection</value>
+  </data>
+  <data name="AddConnection_ReconnectTitle" xml:space="preserve">
+    <value>Reconnect {0}</value>
+  </data>
+  <data name="AddConnection_Choose" xml:space="preserve">
+    <value>Choose how to connect:</value>
+  </data>
+  <data name="AddConnection_PlaidDescription" xml:space="preserve">
+    <value>Most US and Canadian banks, through your own Plaid keys ({0}).</value>
+  </data>
+  <data name="AddConnection_PlaidNeedsKeys" xml:space="preserve">
+    <value>Enter your Plaid client ID and secret in Settings → Connections first.</value>
+  </data>
+  <data name="AddConnection_SimpleFinDescription" xml:space="preserve">
+    <value>Banks supported by SimpleFIN Bridge; no developer keys needed.</value>
+  </data>
+  <data name="AddConnection_SimpleFinNeedsToken" xml:space="preserve">
+    <value>Paste a SimpleFIN setup token in Settings → Connections first.</value>
+  </data>
+  <data name="AddConnection_ReconnectExplain" xml:space="preserve">
+    <value>Your bank needs you to sign in again. Keel opens the bank's sign-in in your browser; when you finish, syncing resumes.</value>
+  </data>
+  <data name="AddConnection_Privacy" xml:space="preserve">
+    <value>You sign in on the provider's page in your browser. Keel never sees your bank password; it stores only an access token in your OS secret store.</value>
+  </data>
+  <data name="AddConnection_Continue" xml:space="preserve">
+    <value>Continue in browser</value>
+  </data>
+  <data name="AddConnection_TryAgain" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="AddConnection_Waiting" xml:space="preserve">
+    <value>Finish linking your bank in the browser window. Keel is waiting for it and continues on its own.</value>
+  </data>
+  <data name="AddConnection_WaitingReconnect" xml:space="preserve">
+    <value>Sign in to your bank in the browser window. Keel is waiting for it and continues on its own.</value>
+  </data>
+  <data name="AddConnection_LinkHint" xml:space="preserve">
+    <value>If the browser did not open, open this link yourself:</value>
+  </data>
+  <data name="AddConnection_BrowserFailed" xml:space="preserve">
+    <value>The browser could not be opened. Copy the link above into your browser.</value>
+  </data>
+  <data name="AddConnection_OpenAgain" xml:space="preserve">
+    <value>Open browser again</value>
+  </data>
+  <data name="Mapping_Title" xml:space="preserve">
+    <value>Link accounts from {0}</value>
+  </data>
+  <data name="Mapping_Intro" xml:space="preserve">
+    <value>Choose where each bank account's transactions go. New accounts start at the bank's balance once their history has synced; linking an existing account keeps what is already there.</value>
+  </data>
+  <data name="Mapping_BankAccount" xml:space="preserve">
+    <value>Bank account</value>
+  </data>
+  <data name="Mapping_Balance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="Mapping_InKeel" xml:space="preserve">
+    <value>In Keel</value>
+  </data>
+  <data name="Mapping_CreateNew" xml:space="preserve">
+    <value>Create a new account</value>
+  </data>
+  <data name="Mapping_LinkTo" xml:space="preserve">
+    <value>Link to {0}</value>
+  </data>
+  <data name="Mapping_Skip" xml:space="preserve">
+    <value>Don't import</value>
+  </data>
+  <data name="Mapping_Mask" xml:space="preserve">
+    <value>•••• {0}</value>
+  </data>
+  <data name="Mapping_ChoiceName" xml:space="preserve">
+    <value>Where {0} goes</value>
+  </data>
+  <data name="Mapping_NewName" xml:space="preserve">
+    <value>New account name</value>
+  </data>
+  <data name="Mapping_NewType" xml:space="preserve">
+    <value>Account type</value>
+  </data>
+  <data name="Mapping_NoAccounts" xml:space="preserve">
+    <value>The institution returned no accounts.</value>
+  </data>
+  <data name="Mapping_ErrorNothingChosen" xml:space="preserve">
+    <value>Choose at least one account to import, or discard the link.</value>
+  </data>
+  <data name="Mapping_ErrorSameAccountTwice" xml:space="preserve">
+    <value>Each Keel account can be linked to one bank account only.</value>
+  </data>
+  <data name="Mapping_ErrorNameRequired" xml:space="preserve">
+    <value>Enter a name for each new account.</value>
+  </data>
+  <data name="Mapping_Discard" xml:space="preserve">
+    <value>Discard link</value>
+  </data>
+  <data name="Mapping_Save" xml:space="preserve">
+    <value>Link accounts</value>
+  </data>
+  <data name="Unlink_Title" xml:space="preserve">
+    <value>Unlink {0}?</value>
+  </data>
+  <data name="Unlink_Message" xml:space="preserve">
+    <value>{0} is removed from the provider and its access token is deleted. Accounts stay in Keel as manual accounts: {1}.</value>
+  </data>
+  <data name="Unlink_NoAccounts" xml:space="preserve">
+    <value>none are linked</value>
+  </data>
+  <data name="Unlink_KeepsTransactions" xml:space="preserve">
+    <value>Transactions already imported stay in Keel. You can link the bank again later.</value>
+  </data>
+  <data name="Unlink_Confirm" xml:space="preserve">
+    <value>Unlink</value>
+  </data>
+  <data name="Sync_NeverSynced" xml:space="preserve">
+    <value>Never synced</value>
+  </data>
+  <data name="Sync_JustNow" xml:space="preserve">
+    <value>Synced just now</value>
+  </data>
+  <data name="Sync_MinutesAgo" xml:space="preserve">
+    <value>Synced {0} min ago</value>
+  </data>
+  <data name="Sync_AtTime" xml:space="preserve">
+    <value>Synced at {0}</value>
+  </data>
+  <data name="Sync_OnDate" xml:space="preserve">
+    <value>Synced {0}</value>
+  </data>
+  <data name="Sync_AllToolTip" xml:space="preserve">
+    <value>Sync all connections ({0})</value>
+  </data>
+  <data name="Sync_Running" xml:space="preserve">
+    <value>Syncing…</value>
+  </data>
+  <data name="Sync_Progress" xml:space="preserve">
+    <value>Syncing {0}… {1} changes received</value>
+  </data>
+  <data name="Sync_ProgressMany" xml:space="preserve">
+    <value>Syncing {0} ({1} of {2})… {3} changes received</value>
+  </data>
+  <data name="Sync_Result" xml:space="preserve">
+    <value>Sync finished: {0} added, {1} updated, {2} removed</value>
+  </data>
+  <data name="Sync_ResultNothingNew" xml:space="preserve">
+    <value>Sync finished: nothing new</value>
+  </data>
+  <data name="Sync_ConnectionFailed" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Sync_MoreFailed" xml:space="preserve">
+    <value>{0} more connections need attention (Settings → Connections).</value>
+  </data>
+  <data name="Sync_Failed" xml:space="preserve">
+    <value>Sync failed: {0}</value>
+  </data>
+  <data name="Sync_Linked" xml:space="preserve">
+    <value>Linked {0} ({1} accounts); syncing…</value>
+  </data>
+  <data name="Sync_LinkDiscarded" xml:space="preserve">
+    <value>The link to {0} was discarded</value>
+  </data>
+  <data name="Sync_Reconnected" xml:space="preserve">
+    <value>{0} reconnected; syncing…</value>
+  </data>
+  <data name="Sync_Unlinked" xml:space="preserve">
+    <value>{0} unlinked; its transactions stay in Keel</value>
+  </data>
+  <data name="Nav_HealthTip" xml:space="preserve">
+    <value>Bank connection: {0}</value>
+  </data>
+  <data name="Register_Sync" xml:space="preserve">
+    <value>Sync</value>
+  </data>
+  <data name="Register_SyncTip" xml:space="preserve">
+    <value>Sync this account's bank connection</value>
+  </data>
+  <data name="Register_LinkedTo" xml:space="preserve">
+    <value>Linked to {0} · {1}</value>
+  </data>
+  <data name="Register_ConnectionNeedsReauth" xml:space="preserve">
+    <value>The bank needs you to sign in again. New transactions are not syncing until you reconnect; everything else keeps working.</value>
+  </data>
+  <data name="Register_ConnectionError" xml:space="preserve">
+    <value>The last sync failed. Your data here is unaffected.</value>
+  </data>
+  <data name="Register_ConnectionErrorWithReason" xml:space="preserve">
+    <value>The last sync failed: {0}</value>
+  </data>
+  <data name="Register_TryAgain" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+  <data name="SyncError_Generic" xml:space="preserve">
+    <value>The bank connection failed ({0}).</value>
+  </data>
+  <data name="SyncError_Generic_NoCode" xml:space="preserve">
+    <value>The bank connection failed.</value>
+  </data>
+  <data name="SyncError_UNKNOWN" xml:space="preserve">
+    <value>The bank connection failed for an unknown reason.</value>
+  </data>
+  <data name="SyncError_ITEM_LOGIN_REQUIRED" xml:space="preserve">
+    <value>the bank needs you to sign in again (Reconnect)</value>
+  </data>
+  <data name="SyncError_PENDING_EXPIRATION" xml:space="preserve">
+    <value>the bank's consent is about to expire (Reconnect)</value>
+  </data>
+  <data name="SyncError_PENDING_DISCONNECT" xml:space="preserve">
+    <value>the bank connection is about to stop working (Reconnect)</value>
+  </data>
+  <data name="SyncError_ACCESS_NOT_GRANTED" xml:space="preserve">
+    <value>the bank did not grant access to the accounts (Reconnect)</value>
+  </data>
+  <data name="SyncError_NO_ACCOUNTS" xml:space="preserve">
+    <value>the bank shared no accounts (Reconnect)</value>
+  </data>
+  <data name="SyncError_INVALID_API_KEYS" xml:space="preserve">
+    <value>Plaid rejected the client ID or secret; check them in Settings → Connections</value>
+  </data>
+  <data name="SyncError_INVALID_ACCESS_TOKEN" xml:space="preserve">
+    <value>the access token is no longer valid; unlink and link the bank again</value>
+  </data>
+  <data name="SyncError_ITEM_NOT_FOUND" xml:space="preserve">
+    <value>Plaid no longer knows this connection; unlink and link the bank again</value>
+  </data>
+  <data name="SyncError_INSTITUTION_DOWN" xml:space="preserve">
+    <value>the bank is not available right now; Keel tries again later</value>
+  </data>
+  <data name="SyncError_INSTITUTION_NOT_RESPONDING" xml:space="preserve">
+    <value>the bank is not responding; Keel tries again later</value>
+  </data>
+  <data name="SyncError_RATE_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>too many requests; Keel tries again later</value>
+  </data>
+  <data name="SyncError_INTERNAL_SERVER_ERROR" xml:space="preserve">
+    <value>the provider had an internal error; Keel tries again later</value>
+  </data>
+  <data name="SyncError_TRANSACTIONS_SYNC_MUTATION_DURING_PAGINATION" xml:space="preserve">
+    <value>the bank changed data during the sync; try again</value>
+  </data>
+  <data name="SyncError_KEEL_MISSING_CREDENTIALS" xml:space="preserve">
+    <value>enter your Plaid keys in Settings → Connections</value>
+  </data>
+  <data name="SyncError_KEEL_MISSING_ACCESS_TOKEN" xml:space="preserve">
+    <value>this machine's secret store has no access token for the connection (Reconnect or link again)</value>
+  </data>
+  <data name="SyncError_KEEL_NETWORK" xml:space="preserve">
+    <value>the provider could not be reached; check your internet connection</value>
+  </data>
+  <data name="SyncError_KEEL_LINK_EXPIRED" xml:space="preserve">
+    <value>the link timed out before it was finished</value>
+  </data>
+  <data name="SyncError_KEEL_LINK_EXITED" xml:space="preserve">
+    <value>the link was closed before an account was linked</value>
+  </data>
+  <data name="SyncError_KEEL_INVALID_SETUP_TOKEN" xml:space="preserve">
+    <value>the SimpleFIN setup token is not valid or was already used</value>
+  </data>
+  <data name="SyncError_KEEL_SECRET_STORE" xml:space="preserve">
+    <value>the OS secret store could not be read (is the keyring unlocked?)</value>
   </data>
 </root>
