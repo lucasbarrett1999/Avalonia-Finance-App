@@ -365,8 +365,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         }
 
         await Loading;
-        var account = AccountId is { } id ? AccountOptions.FirstOrDefault(a => a.Id == id) : AccountOptions.FirstOrDefault();
-        Editor = new TransactionEditorViewModel(_payees, AccountOptions, CategoryOptions, account, existing: null, canChooseAccount: IsAllAccounts);
+        var open = AccountOptions.Where(a => !a.IsClosed).ToList();
+        var account = AccountId is { } id ? open.FirstOrDefault(a => a.Id == id) : open.FirstOrDefault();
+        Editor = new TransactionEditorViewModel(_payees, open, CategoryOptions, account, existing: null, canChooseAccount: IsAllAccounts);
         EditorOpened?.Invoke(this, EventArgs.Empty);
     }
 
@@ -385,8 +386,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
             return;
         }
 
-        var account = AccountOptions.FirstOrDefault(a => a.Id == dto.AccountId);
-        Editor = new TransactionEditorViewModel(_payees, AccountOptions, CategoryOptions, account, dto, canChooseAccount: IsAllAccounts);
+        var choices = AccountOptions.Where(a => !a.IsClosed || a.Id == dto.AccountId || a.Id == dto.TransferAccountId).ToList();
+        var account = choices.FirstOrDefault(a => a.Id == dto.AccountId);
+        Editor = new TransactionEditorViewModel(_payees, choices, CategoryOptions, account, dto, canChooseAccount: IsAllAccounts);
         EditorOpened?.Invoke(this, EventArgs.Empty);
     }
 
@@ -651,7 +653,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
             if (andNew)
             {
                 var account = editor.Account;
-                Editor = new TransactionEditorViewModel(_payees, AccountOptions, CategoryOptions, account, null, IsAllAccounts);
+                Editor = new TransactionEditorViewModel(_payees, AccountOptions.Where(a => !a.IsClosed).ToList(), CategoryOptions, account, null, IsAllAccounts);
                 if (editor.Date is { } date)
                 {
                     Editor.Date = date;

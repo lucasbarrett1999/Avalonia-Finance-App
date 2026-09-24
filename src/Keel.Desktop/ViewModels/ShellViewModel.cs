@@ -153,8 +153,31 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
             groups.Add((null, Strings.Nav_ClosedAccounts, closed));
         }
 
+        groups = groups.Where(g => g.Items.Count > 0).ToList();
+        var sameShape = AccountGroups.Count == groups.Count
+            && AccountGroups.Zip(groups).All(p => p.First.Title == p.Second.Title
+                && p.First.Accounts.Select(a => a.Id).SequenceEqual(p.Second.Items.Select(a => a.Id)));
+        if (sameShape)
+        {
+            // Incremental refresh: same accounts in the same places, so update balances and names in place.
+            foreach (var (vm, (_, _, items)) in AccountGroups.Zip(groups))
+            {
+                for (var i = 0; i < items.Count; i++)
+                {
+                    vm.Accounts[i].Account = items[i];
+                }
+
+                var currency = items[0].Balance.Currency;
+                vm.TotalText = LedgerText.Money(items.Where(a => a.Balance.Currency == currency).Sum(a => a.Balance.Amount), currency);
+            }
+
+            HasAccounts = open.Count > 0;
+            HasClosedAccounts = closed.Count > 0;
+            return;
+        }
+
         AccountGroups.Clear();
-        foreach (var (group, title, items) in groups.Where(g => g.Items.Count > 0))
+        foreach (var (group, title, items) in groups)
         {
             var vm = new SidebarAccountGroupViewModel(group, title);
             foreach (var account in items)
