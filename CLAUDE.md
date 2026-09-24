@@ -68,7 +68,7 @@ src/
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
                         DependencyInjection.AddKeelInfrastructure.
-                        Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0006),
+                        Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0008),
                         BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
@@ -141,7 +141,7 @@ From PRD 15, plus decisions made while building M0.
   `%APPDATA%\Keel`, macOS `~/Library/Application Support/Keel`, Linux `$XDG_DATA_HOME/keel`
   (default `~/.local/share/keel`).
 - Logs never contain payee names, amounts, or secrets. Use `[LoggerMessage]` source-generated logging.
-- Budget math lives only in `BudgetCalculator` (PRD 6.4 literal; open points in ADR 0005). Services feed
+- Budget math lives only in `BudgetCalculator` (PRD 6.4 literal; open points in ADR 0007). Services feed
   it from `BudgetAggregationQuery` and never compute budget numbers themselves. A changed golden file
   (`*.received.txt` next to the test) is reviewed by hand and then renamed to `*.verified.txt`; add a
   golden case for every budget-math bug fixed (PRD 13).

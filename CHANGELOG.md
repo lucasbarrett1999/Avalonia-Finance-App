@@ -42,10 +42,10 @@ Domain half of Milestone 2 (the Budget screen is a later task).
 
 ### Decisions and deviations
 
-- [ADR 0005](docs/decisions/0005-budget-calculation-interpretations.md): interpretations of PRD 6.4
+- [ADR 0007](docs/decisions/0007-budget-calculation-interpretations.md): interpretations of PRD 6.4
   (Covered rounding direction, payment categories overspent = cash, what counts as a payment, cash
   advances, uncategorized activity, month totals include hidden categories, and more).
-- [ADR 0006](docs/decisions/0006-budget-service-targets-and-quick-assign.md): target formulas, fund
+- [ADR 0008](docs/decisions/0008-budget-service-targets-and-quick-assign.md): target formulas, fund
   targets order and limits, quick-assign definitions, move money, audit format, messages, currency,
   raw SQL for the aggregation.
 
@@ -64,7 +64,7 @@ Domain half of Milestone 2 (the Budget screen is a later task).
 ### Not done here
 
 - The Budget screen (PRD 9.3) and its headless tests; month switching < 100 ms at 100k rows needs the
-  screen to load a range and switch in memory (ADR 0006).
+  screen to load a range and switch in memory (ADR 0008).
 - Windows and macOS runs happen in CI only.
 
 ## [0.1.0-m0] - 2026-09-24 - Milestone 0: reset and skeleton
