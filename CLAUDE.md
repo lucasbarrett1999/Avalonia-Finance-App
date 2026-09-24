@@ -34,6 +34,7 @@ dotnet test Keel.sln --filter "FullyQualifiedName~MoneyTests"
 dotnet format Keel.sln                     # fix formatting; CI runs --verify-no-changes
 dotnet run --project src/Keel.Desktop      # run the app (not in the sandbox)
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*'
+dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RecurringDetector*' --job short
 
 # EF Core (dotnet-ef is a local tool: dotnet-tools.json)
 dotnet tool restore
@@ -74,8 +75,19 @@ src/
                         with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
                         Reports/ (M6): ReportPeriod (previous period, month-end points), BalanceSeries (ledger plus
                         latest snapshot, ADR 0060), GoalProjection (pace and completion month).
+                        Rules/ (F-TXN-4, ADR 0020): TransactionSnapshot, RuleDefinition + versioned RuleJson,
+                        RuleEngine/CompiledRuleSet (mutation set + RuleTrace), RuleValidator, RuleSuggester.
+                        Categorization/ (F-TXN-5, ADR 0021): CategoryLearner.Train -> LearnerModel (Suggest,
+                        Predict, WithExample/WithoutExample, ToJson/FromJson), LearnerCategory, CategorySuggestion.
                         Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
                         JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
+                        Scheduling/: RecurrenceRule (RFC 5545 subset, ADR 0030: Parse/TryParse, canonical ToString,
+                        Describe, Occurrences(start, from, to), NextAfter; short months and leap days clamp).
+                        Recurring/ (PRD 6.6, ADR 0031): RecurringDetector (RecurringTransaction in, DetectedRecurringItem
+                        out), CadenceWindow, RecurringSchedule (anchors, next date, InferRule), RecurringReconciler
+                        (create/update/no-op vs stored items), RecurringMath (F-REC-2 totals, F-REC-4 target), SubscriptionClassifier.
+                        Alerts/: AlertEvaluator (F-REC-3; idempotency keys in PayloadJson, ADR 0032).
+                        Forecast/: ForecastEngine (F-REP-4, ADR 0033; per-account and combined series, explain per day).
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
@@ -86,6 +98,10 @@ src/
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
                         Reports/IReportService (spending, income vs expense, net worth DTOs), Goals/IGoalService (M6).
+                        Recurring/ (IRecurringService), Scheduling/ (IScheduledTransactionService), Forecast/
+                        (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs, not yet implemented.
+                        Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
+                        learner; CategorizationResult with suggestions and CategorizationTrace, ADR 0022).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
@@ -136,6 +152,15 @@ tests/
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
                               reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
                               (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
+  Keel.Domain.Tests/Scheduling/  RecurrenceRule tables (RFC 5545 examples, short months, leap days) and CsCheck properties.
+  Keel.Domain.Tests/Recurring/  Detector per cadence with jitter/noise, labeled accuracy, RealisticLedger fixture + Verify
+                              golden, schedule/reconciler/math tables, 123k-transaction timing test (TimingCollection runs
+                              alone). RecurringSeries/RecurringFixtureGenerator also compiled into Keel.Benchmarks.
+  Keel.Domain.Tests/Alerts/, Forecast/  Alert rules and idempotence; ForecastScenario + Verify goldens.
+  Keel.Domain.Tests/Rules/     Every condition and action, ordering/continue, split exactness (CsCheck), regex, JSON, validator.
+  Keel.Domain.Tests/Categorization/  LabeledHistoryGenerator (64 payees, 30 categories; also in Keel.Benchmarks for
+                              CategoryLearnerBenchmarks), accuracy/calibration, determinism, JSON, 100k timing,
+                              CategorizationEngine (this project references Keel.Application for it).
   Keel.Infrastructure.Tests/Budgeting/  Aggregation against hand-built SQLite ledgers, BudgetService, 3-month
                               end-to-end golden, 100k-transaction month-switch timing.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
@@ -248,3 +273,21 @@ From PRD 15, plus decisions made while building M0.
 - Headless captures must wait for LiveCharts' throttled redraw (a few dispatcher cycles with short delays).
 - Upcoming bills and the forecast low point on Home are the only placeholders; wire them to the
   recurring and forecast services when those land (M5).
+**Recurring, scheduling and forecast (M5)**
+- Recurrence rules are stored in canonical form (`RecurrenceRule.Parse(text).ToString()`); the
+  schedule's start date is the rule's DTSTART. Days of month clamp to short months (ADR 0030).
+- Detection, reconciliation, alerts and the forecast are pure domain code; services load inputs,
+  apply the returned decisions and store alerts. Group by `PayeeNormalizer` output, never a second
+  normalizer. New detections are `RecurringStatus.Detected`; only `Active` items are forecast.
+- Alerts are idempotent by the `key` in `Alert.PayloadJson` (`AlertKeys.Of`); pass the keys of
+  every stored alert, dismissed ones included, to `AlertEvaluator.Evaluate`.
+- A changed recurring or forecast golden (`*.received.txt`) is reviewed by hand, then renamed to
+  `*.verified.txt`.
+**Rules and learner**
+- Rules are pure: `RuleEngine.Compile(rules).Apply(snapshot)`; persist only `RuleJson` output and read with
+  `RuleDefinition.FromEntity` (newer formats throw `RuleFormatException`). New condition/action kinds get a new
+  `type` discriminator; changing a kind's meaning needs a format version bump.
+- The learner never writes below `CategoryLearner.MinimumConfidence` (0.60) and needs 3 examples of a payee or word.
+  `LearnerModel` holds integer counts only, so its JSON is identical on every OS; keep it that way. Accuracy
+  thresholds are asserted in `LearnerAccuracyTests` on the deterministic fixture; rerun them after any change to
+  features, smoothing or `PayeeNormalizer`.
