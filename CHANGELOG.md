@@ -378,6 +378,59 @@ through the real service and database (`Every_fixture_imports_completely_and_ide
   reported balance, summary.
 - Small appends to M1 files: `LedgerSession.AddWrittenChanges`, `DialogViewModel.PreferredMaxWidth`
   and `DialogService.CurrentMaxWidth`, `AccountsViewModel`/`ShellViewModel` take `ImportWorkflow`.
+## M4 — Rules and learner
+
+Domain half of Milestone 4: the rules engine, the categorization learner and the categorization
+pipeline contract, all pure and persistence-free. The Review screen, the DB-backed rule and learner
+services and retroactive apply come in a later task, so the M4 exit criteria (review keyboard flow
+headless-tested) are not yet claimed.
+
+### Added
+
+- **Keel.Domain/Rules** (F-TXN-4, ADR 0020): `TransactionSnapshot`; `RuleDefinition` with
+  versioned `RuleJson` for `Rule.ConditionsJson`/`ActionsJson` (camelCase `type` discriminators,
+  newer versions refused with `RuleFormatException`); conditions payee contains/equals/starts
+  with/regex (raw or normalized via `PayeeNormalizer`, matching the renamed payee or the raw
+  descriptor), memo, amount equals/between/greater/less (magnitude or signed), direction, account
+  set, source set, date range, tag, combined with all/any; actions set payee, set category, set
+  memo, append memo, add tag, mark approved, flag, split by fixed amounts (last line takes the
+  rest) or percentages (banker's rounding, remainder last), set transfer account.
+  `RuleEngine.Compile/Apply` (sort order, first match wins unless continue, later rules see
+  earlier changes, regex compiled once with a 100 ms match timeout) returns `RuleMutations`
+  (result snapshot, changed fields, rule that set each field) and a `RuleTrace`. `RuleValidator`
+  (English messages, codes, paths, optional reference checks). `RuleSuggester.FromTransaction`
+  for "Create rule from this transaction".
+- **Keel.Domain/Categorization** (F-TXN-5, ADR 0021): `CategoryLearner.Train` → immutable
+  `LearnerModel` (naive Bayes with Laplace smoothing; exact-payee prior once a payee has 3
+  approved examples; payee tokens, log2 amount bucket, account, weekday, direction);
+  `Suggest`/`Predict` with confidence, explanation ("Suggested because 12 of 13 past 'TRADER
+  JOES' transactions were Groceries" or the driving words), 60% floor, hidden/system categories
+  only when the history is exclusively there; `WithExample`/`WithoutExample` (equal to a full
+  retrain); `WithCategories`; deterministic count-only JSON (`LearnerModelJson`).
+- **Keel.Application/Categorization** (ADR 0022): `ICategorizationEngine` and
+  `CategorizationEngine`: rules decide first (learner skipped), then the payee default category at
+  0.95 (F-TXN-9), then the learner; suggestions for the review queue and a `CategorizationTrace`.
+- **Tests** (Domain.Tests, which now also references Keel.Application): every condition and action,
+  ordering/continue/override, disabled and invalid rules, split exactness (CsCheck properties for
+  percentages and fixed amounts), invalid and overlong regex, regex timeout, pinned JSON format,
+  validator messages, suggester; learner thresholds, restricted categories, explanations,
+  determinism, incremental and removal equivalence, JSON round trip and errors, pipeline stages.
+  `LabeledHistoryGenerator`: deterministic 24-month history, 64 payees, 30 categories, 1,277
+  distinct descriptors for 2,452 transactions, 9 payees split across two categories, refunds, 1%
+  inconsistent labels.
+- **Benchmarks**: `CategoryLearnerBenchmarks` (`Train100k`, `Suggest`, `WithExample`).
+
+### Decisions and deviations
+
+- [ADR 0020](docs/decisions/0020-rule-format-and-engine-semantics.md): rule JSON format and
+  versioning, payee conditions match renamed or raw payee, amounts compare magnitude by default,
+  later continuing rules override earlier ones, fixed-amount split remainder, regex limits.
+- [ADR 0021](docs/decisions/0021-categorization-learner-model.md): learner model, features,
+  smoothing and tempering, the 3-example rule applied to words too, alternatives below 60% for
+  the review picker (never written), restricted categories, how the "85% after 200 approvals" exit
+  is measured.
+- [ADR 0022](docs/decisions/0022-categorization-pipeline.md): pipeline order, what "a rule decided"
+  means, payee default at 0.95, existing categories kept, trace contents.
 
 ### Verification (Linux sandbox, .NET SDK 10.0.401)
 
@@ -400,3 +453,21 @@ through the real service and database (`Every_fixture_imports_completely_and_ide
   hooks as hints but not applied (M4 rules). No keyboard shortcut for "Import file" yet.
 - `BudgetPerformanceTests` (M2, 200 ms bound) can fail when all three test assemblies run in
   parallel on a 4-core sandbox; it passes on its own.
+| `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 768 passed, 0 failed: Domain 506, Infrastructure 248, Desktop 14 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (no packages added) |
+| `dotnet test tests/Keel.Domain.Tests --filter LearnerAccuracyTests` | Chronological 80/20: top-1 89.8% (empty counts as wrong), coverage 93.9%, confident (≥ 0.9) 386 of 491 at 98.4% precision; random 80/20 seeds 1/7/2026: 90.1/92.4/89.2%, confident precision 98.5/98.4/99.5% |
+| same, after N approvals (next 500) | 200: precision 95.4%, coverage 56.2% (accuracy with empties 53.6%); 400: 76.0%; 600: 85.8%; 1000: 89.8% |
+| `dotnet test tests/Keel.Domain.Tests -c Release --filter LearnerPerformanceTests` | Train 100k examples (2,514 payees): median about 540 ms; `Suggest` about 62 µs; `WithExample` about 57 µs; JSON 345 KiB, write + read 38 ms |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*CategoryLearner*' --job short` | `Train100k` 200.5 ms (87 MB allocated); `Suggest` 17.3 µs (5.9 KB); `WithExample` 16.7 µs (8.7 KB) |
+
+### Not done here
+
+- Review screen (F-TXN-6), rule editor, DB-backed rule/learner services, model caching in `Setting`,
+  retroactive apply with preview (the engine's `ApplyAll` is ready for it) and wiring into the import
+  pipeline.
+- The transaction entity has no flag column; the `flag` action sets `TransactionSnapshot.IsFlagged`.
+- The "≥ 85% after 200 approvals" exit is met as accuracy of the suggestions made; counting empty
+  suggestions as wrong it is 53.6% at 200 and ≥ 85% from 600 approvals (ADR 0021).
+- Windows and macOS runs happen in CI only.
