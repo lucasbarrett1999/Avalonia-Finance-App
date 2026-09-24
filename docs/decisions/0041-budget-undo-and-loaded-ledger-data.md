@@ -27,6 +27,10 @@ months; the current month for target rows) when a unit of work changed budget ro
 `LedgerChanged` when it changed nothing else, so undoing an assignment refreshes the budget and not
 every register.
 
+**Month notes** (F-BUD-7) are `Setting` rows keyed `budget.monthNote.yyyy-MM` (a JSON string),
+written by `IBudgetService.SetMonthNoteAsync` with an audit event and an undo entry
+(`EditMonthNote`); `LedgerWriter` treats them as budget rows too. No schema change was needed.
+
 **Loaded ledger data.** `IBudgetService` gains (append-only) `LoadLedgerAsync(from, to)`, which
 returns the ledger-derived calculator input (accounts, groups, categories, aggregated activity,
 card payments) and the card balances of the range as an opaque `BudgetLedgerData`, and overloads of

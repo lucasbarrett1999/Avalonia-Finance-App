@@ -136,4 +136,28 @@ public sealed class BudgetUndoAndLedgerDataTests : IAsyncLifetime
         (await Budget.GetQuickAssignAsync(ledger, groceries, Sep, Ct)).ShouldBe(await Budget.GetQuickAssignAsync(groceries, Sep, Ct));
         await Should.ThrowAsync<ArgumentOutOfRangeException>(() => Budget.GetRangeAsync(ledger, Aug, new DateOnly(2026, 12, 1), Ct));
     }
+
+    [Fact]
+    public async Task Month_notes_are_stored_audited_and_undoable()
+    {
+        (await Budget.GetMonthNoteAsync(Aug, Ct)).ShouldBeNull();
+        _host.Bus.Messages.Clear();
+        await Budget.SetMonthNoteAsync(new DateOnly(2026, 8, 20), "  Car insurance due  ", Ct);
+        (await Budget.GetMonthNoteAsync(Aug, Ct)).ShouldBe("Car insurance due");
+        _host.Bus.Messages.ShouldHaveSingleItem().ShouldBeOfType<BudgetChanged>().Months.ShouldBe([Aug]);
+        Undo.NextUndo.ShouldBe(LedgerAction.EditMonthNote);
+
+        await Budget.SetMonthNoteAsync(Aug, "Car insurance paid", Ct);
+        await Budget.SetMonthNoteAsync(Aug, "Car insurance paid", Ct);    // unchanged: no-op
+        _host.Bus.Messages.Clear();
+        await Undo.UndoAsync(Ct);
+        (await Budget.GetMonthNoteAsync(Aug, Ct)).ShouldBe("Car insurance due");
+        _host.Bus.Messages.ShouldHaveSingleItem().ShouldBeOfType<BudgetChanged>().Months.ShouldBe([Aug]);
+
+        await Budget.SetMonthNoteAsync(Aug, " ", Ct);
+        (await Budget.GetMonthNoteAsync(Aug, Ct)).ShouldBeNull();
+        (await Budget.GetMonthNoteAsync(Sep, Ct)).ShouldBeNull();
+        await using var db = _host.Db();
+        (await db.AuditEvents.CountAsync(e => e.EntityType == "Setting" && e.EntityId == "budget.monthNote.2026-08")).ShouldBe(4);   // create, update, the undo replay, delete
+    }
 }

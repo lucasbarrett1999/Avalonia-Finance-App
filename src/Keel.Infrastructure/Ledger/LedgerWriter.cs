@@ -51,7 +51,7 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
                     result = await work(session).ConfigureAwait(false);
                     await session.SaveAsync(ct).ConfigureAwait(false);
                     var changes = session.Changes;
-                    var ledgerRows = changes.Count(c => !IsBudgetRow(c.EntityType));
+                    var ledgerRows = changes.Count(c => !IsBudgetRow(c));
                     message = ledgerRows == 0 ? null : await DescribeAsync(db, changes, ct).ConfigureAwait(false);
                     budgetMessage = ledgerRows == changes.Count ? null : DescribeBudget(changes);
                     await transaction.CommitAsync(ct).ConfigureAwait(false);
@@ -86,10 +86,20 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
     /// <summary>Changes of the most recent unit of work (for undo bookkeeping and tests).</summary>
     internal IReadOnlyList<EntityChange> LastChanges { get; private set; } = [];
 
-    private static bool IsBudgetRow(Type type) => type == typeof(BudgetAssignment) || type == typeof(Target);
+    private static bool IsBudgetRow(EntityChange change) =>
+        change.EntityType == typeof(BudgetAssignment) || change.EntityType == typeof(Target) || MonthNoteMonth(change) is not null;
 
-    // Months whose budget changed: assignment months; target changes count for the current month
-    // (as BudgetService publishes them).
+    // The month of a month-note setting row (Budgeting.BudgetService.MonthNoteKey), or null.
+    private static DateOnly? MonthNoteMonth(EntityChange change) =>
+        change.EntityType == typeof(Setting)
+        && change.Value(nameof(Setting.Key)) is string key
+        && key.StartsWith(Budgeting.BudgetService.MonthNotePrefix, StringComparison.Ordinal)
+        && DateOnly.TryParseExact(key[Budgeting.BudgetService.MonthNotePrefix.Length..] + "-01", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var month)
+            ? month
+            : null;
+
+    // Months whose budget changed: assignment and month-note months; target changes count for the
+    // current month (as BudgetService publishes them).
     private BudgetChanged DescribeBudget(IReadOnlyList<EntityChange> changes)
     {
         var months = new HashSet<DateOnly>();
@@ -102,6 +112,10 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
             else if (change.EntityType == typeof(Target))
             {
                 months.Add(BudgetMonth.Of(DateOnly.FromDateTime(time.GetLocalNow().DateTime)));
+            }
+            else if (MonthNoteMonth(change) is { } noteMonth)
+            {
+                months.Add(noteMonth);
             }
         }
 

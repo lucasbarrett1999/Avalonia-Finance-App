@@ -31,7 +31,8 @@ starter templates) on top of the M2 engine and the M1 ledger.
   spend and covered per card, overspending) or "How is Ready to Assign computed?" when no category
   is selected; target editor for the four F-BUD-4 types with needed-this-month, underfunded and
   monthly need; quick-assign buttons (F-BUD-5, also a row context menu and the `Q` palette); category
-  note (F-BUD-7); six-month Available sparkline (`Controls/BudgetSparkline`). `T` opens the target editor.
+  note and, with Ready to Assign, the month note (F-BUD-7); six-month Available sparkline
+  (`Controls/BudgetSparkline`). `T` opens the target editor.
 - **Manage categories** dialog (F-BUD-1): add, rename, reorder, hide/show and delete groups and
   categories; deleting something with history asks for a replacement; system groups read-only.
   Empty state offers it plus four starter templates (F-BUD-8: Simple, Detailed, Student, Family).
@@ -40,7 +41,8 @@ starter templates) on top of the M2 engine and the M1 ledger.
   ledger actions (ADR 0042).
 - **Services** (append-only): `IBudgetService.LoadLedgerAsync` and `GetRangeAsync`/`ExplainAsync`/
   `GetQuickAssignAsync` overloads over `BudgetLedgerData`; `ICategoryService` management, usage,
-  notes and templates; new `LedgerAction` and `LedgerError` values. `RegisterNavigation` gained an
+  notes and templates; `IBudgetService` month notes (a `Setting` row per month, undoable); new
+  `LedgerAction` and `LedgerError` values. `RegisterNavigation` gained an
   optional category filter. Budget shortcuts are in `PlatformShortcuts` and Settings > Keyboard shortcuts.
 - **Tests**: `BudgetTests` (headless): 6.4.7 numbers and pill colours through the real services
   (Groceries −50 yellow, Pay_Visa 300 with $50 not yet covered, RTA 1,100); assign in a cell and see
@@ -48,7 +50,8 @@ starter templates) on top of the M2 engine and the M1 ledger.
   and undo; drop a pill on a row; target → underfunded badge → fund targets; month switching with the
   keyboard and the picker, negative RTA banner; Activity opens the filtered register; in-place refresh
   after a ledger change; empty state and templates; manage categories; delete with replacement; quick
-  assign from the context menu and the palette; month switch over the 100k fixture.
+  assign from the context menu and the palette; inspector breakdown and notes; load error and retry;
+  shortcut registry; month switch over the 100k fixture.
   `BudgetUndoAndLedgerDataTests` and `CategoryManagementTests` (infrastructure). `RenderingTests`
   renders the budget grid, the Ready to Assign breakdown, the move-money and manage-categories
   dialogs and the month picker in light and dark.
@@ -67,15 +70,14 @@ starter templates) on top of the M2 engine and the M1 ledger.
 | Command | Result |
 |---|---|
 | `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
-| `dotnet test Keel.sln -c Release --no-build` | 689 passed, 0 failed, 0 skipped: Domain 350, Infrastructure 295, Desktop 44 |
+| `dotnet test Keel.sln -c Release --no-build` | 693 passed, 0 failed, 0 skipped: Domain 350, Infrastructure 296, Desktop 47 |
 | `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
 | `dotnet test tests/Keel.Desktop.Tests -c Release --filter Month_switch --logger "console;verbosity=detailed"` | 100k-transaction fixture: first budget load about 0.9 s; month switch (view model + layout) median about 30–50 ms, max under 105 ms; headless software rendering of the frame afterwards about 50–80 ms |
 | `KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter RenderingTests` | BudgetGrid, BudgetReadyToAssign, BudgetMoveMoney, BudgetManageCategories, BudgetMonthPicker and the empty Budget screen reviewed in light and dark |
 
 ### Not done here
 
-- Month notes (the per-month half of F-BUD-7; category notes are done), the three-month view and
-  Flex mode (P1).
+- The three-month view and Flex mode (P1, F-BUD-2/F-BUD-6).
 - Rules' JSON is not rewritten when a category is deleted (M4, ADR 0042).
 - Windows and macOS runs happen in CI only.
 

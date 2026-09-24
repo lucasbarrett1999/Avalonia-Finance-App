@@ -364,6 +364,61 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
         }
     }
 
+    /// <inheritdoc />
+    public async Task<string?> GetMonthNoteAsync(DateOnly month, CancellationToken ct)
+    {
+        var key = MonthNoteKey(month);
+        var db = contextFactory.CreateDbContext();
+        await using (db.ConfigureAwait(false))
+        {
+            var row = await db.Settings.AsNoTracking().SingleOrDefaultAsync(s => s.Key == key, ct).ConfigureAwait(false);
+            return row is null ? null : JsonSerializer.Deserialize<string>(row.ValueJson, JsonOptions);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SetMonthNoteAsync(DateOnly month, string? note, CancellationToken ct)
+    {
+        month = BudgetMonth.Of(month);
+        var key = MonthNoteKey(month);
+        var value = string.IsNullOrWhiteSpace(note) ? null : Serialize(note.Trim());
+        var db = contextFactory.CreateDbContext();
+        await using (db.ConfigureAwait(false))
+        {
+            var row = await db.Settings.SingleOrDefaultAsync(s => s.Key == key, ct).ConfigureAwait(false);
+            var before = row?.ValueJson;
+            if (before == value)
+            {
+                return;
+            }
+
+            if (row is null)
+            {
+                db.Settings.Add(new Setting { Key = key, ValueJson = value! });
+            }
+            else if (value is null)
+            {
+                db.Settings.Remove(row);
+            }
+            else
+            {
+                row.ValueJson = value;
+            }
+
+            Audit(db, before is null ? AuditEventKind.Created : value is null ? AuditEventKind.Deleted : AuditEventKind.Updated, nameof(Setting), key, before, value);
+            await SaveAndRecordAsync(db, LedgerAction.EditMonthNote, ct).ConfigureAwait(false);
+        }
+
+        messageBus.Publish(new BudgetChanged([month]));
+    }
+
+    /// <summary>The <see cref="Setting"/> key of a month note, e.g. <c>budget.monthNote.2026-08</c>.</summary>
+    public static string MonthNoteKey(DateOnly month) =>
+        MonthNotePrefix + BudgetMonth.Of(month).ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Prefix of month-note setting keys.</summary>
+    public const string MonthNotePrefix = "budget.monthNote.";
+
     private static async Task<BudgetInput> WithAssignmentsAsync(KeelDbContext db, BudgetLedgerData ledger, CancellationToken ct)
     {
         var assignments = await db.BudgetAssignments.AsNoTracking()
@@ -378,7 +433,8 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
         var changes = undoHistory is null
             ? []
             : EntityChange.Coalesce(db.ChangeTracker.Entries()
-                .Where(e => e.Entity is BudgetAssignment or Target && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .Where(e => (e.Entity is BudgetAssignment or Target || e.Entity is Setting { Key: var k } && k.StartsWith(MonthNotePrefix, StringComparison.Ordinal))
+                    && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
                 .Select(EntityChange.Capture)
                 .OfType<EntityChange>()
                 .ToList());

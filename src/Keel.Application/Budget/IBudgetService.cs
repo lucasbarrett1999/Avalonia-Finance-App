@@ -60,6 +60,12 @@ public interface IBudgetService
 
     /// <summary><see cref="GetQuickAssignAsync(Guid, DateOnly, CancellationToken)"/> over loaded ledger data.</summary>
     Task<QuickAssignDto> GetQuickAssignAsync(BudgetLedgerData ledger, Guid categoryId, DateOnly month, CancellationToken ct);
+
+    /// <summary>The free-text note of a month (F-BUD-7), or null.</summary>
+    Task<string?> GetMonthNoteAsync(DateOnly month, CancellationToken ct);
+
+    /// <summary>Sets or clears the note of a month (F-BUD-7); audited, undoable, publishes <see cref="Messaging.BudgetChanged"/>.</summary>
+    Task SetMonthNoteAsync(DateOnly month, string? note, CancellationToken ct);
 }
 
 /// <summary>How a category is overspent (6.4.4); drives red/yellow colouring.</summary>

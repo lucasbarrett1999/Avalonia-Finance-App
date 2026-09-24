@@ -13,6 +13,7 @@ public partial class BudgetInspectorView : UserControl
     {
         InitializeComponent();
         NoteBox.LostFocus += OnNoteLostFocus;
+        MonthNoteBox.LostFocus += (_, _) => (DataContext as BudgetInspectorViewModel)?.SaveMonthNoteCommand.ExecuteAsync(null);
         TargetAmountBox.AddHandler(KeyDownEvent, OnTargetAmountKeyDown);
     }
 

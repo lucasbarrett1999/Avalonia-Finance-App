@@ -1404,4 +1404,10 @@
   <data name="Budget_SetTargetMenu" xml:space="preserve">
     <value>Set target…</value>
   </data>
+  <data name="Inspector_MonthNote" xml:space="preserve">
+    <value>Note for {0}</value>
+  </data>
+  <data name="Action_EditMonthNote" xml:space="preserve">
+    <value>edit month note</value>
+  </data>
 </root>

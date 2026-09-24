@@ -141,4 +141,7 @@ public enum LedgerAction
 
     /// <summary>Apply a starter category template.</summary>
     ApplyCategoryTemplate,
+
+    /// <summary>Edit a month note.</summary>
+    EditMonthNote,
 }

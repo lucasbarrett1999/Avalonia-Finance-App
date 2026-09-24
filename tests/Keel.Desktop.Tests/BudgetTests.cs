@@ -470,4 +470,86 @@ public sealed class BudgetTests(ITestOutputHelper output) : IDisposable
         vm.ReadyToAssign.ShouldBe(1_100_00 - 1_500_00 - 450_00);
         window.Close();
     }
+
+    [AvaloniaFact]
+    public async Task A_load_failure_shows_the_error_state_with_retry()
+    {
+        await BudgetTestLedger.CreateAsync(_host);
+        var factory = _host.Get<Microsoft.EntityFrameworkCore.IDbContextFactory<Keel.Infrastructure.Persistence.KeelDbContext>>();
+        await Task.Run(async () =>
+        {
+            await using var db = factory.CreateDbContext();
+            await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(db.Database, "ALTER TABLE \"Targets\" RENAME TO \"TargetsAside\"");
+        });
+        var (window, _, vm, view) = await OpenAsync();
+        vm.HasError.ShouldBeTrue();
+        vm.ShowGrid.ShouldBeFalse();
+        view.Named<StackPanel>("ErrorState").IsEffectivelyVisible.ShouldBeTrue();
+
+        await Task.Run(async () =>
+        {
+            await using var db = factory.CreateDbContext();
+            await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(db.Database, "ALTER TABLE \"TargetsAside\" RENAME TO \"Targets\"");
+        });
+        vm.RetryCommand.Execute(null);
+        await vm.SettleAsync();
+        vm.HasError.ShouldBeFalse();
+        vm.ShowGrid.ShouldBeTrue();
+        vm.ReadyToAssign.ShouldBe(1_100_00);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task Inspector_explains_available_and_saves_category_and_month_notes()
+    {
+        var ledger = await BudgetTestLedger.CreateAsync(_host);
+        var (window, _, vm, view) = await OpenAsync();
+        vm.Select(vm.Row(ledger.Groceries), BudgetColumn.Available);
+        await vm.SettleAsync();
+        var inspector = vm.Inspector;
+        inspector.Title.ShouldBe("Groceries");
+        inspector.TotalText.ShouldBe(new Money(-50_00, "USD").Format());
+        inspector.Lines.Where(l => l.IsTerm).Select(l => l.AmountText).ShouldBe(
+            [new Money(0, "USD").Format(), new Money(400_00, "USD").Format(), new Money(-450_00, "USD").Format()]);
+        inspector.Lines.ShouldContain(l => l.Label.Contains("Visa", StringComparison.Ordinal) && !l.IsTerm);   // covered per card
+        inspector.History.Last().Value.ShouldBe(-50_00);
+
+        inspector.NoteText = "Costco run on the 1st";
+        await inspector.SaveNoteCommand.ExecuteAsync(null);
+        await vm.SettleAsync();
+        (await _host.Get<Keel.Application.Categories.ICategoryService>().GetNoteAsync(ledger.Groceries, CancellationToken.None)).ShouldBe("Costco run on the 1st");
+
+        vm.ExplainReadyToAssign();
+        await vm.SettleAsync();
+        inspector.IsReadyToAssign.ShouldBeTrue();
+        inspector.TotalText.ShouldBe(new Money(1_100_00, "USD").Format());
+        view.GetVisualDescendants().OfType<TextBox>().Single(b => b.Name == "MonthNoteBox").IsEffectivelyVisible.ShouldBeTrue();
+        inspector.MonthNoteText = "Paycheck came early";
+        await inspector.SaveMonthNoteCommand.ExecuteAsync(null);
+        await vm.SettleAsync();
+        (await _host.Get<IBudgetService>().GetMonthNoteAsync(August, CancellationToken.None)).ShouldBe("Paycheck came early");
+
+        window.Press(PhysicalKey.I);                                              // I toggles the inspector
+        vm.IsInspectorOpen.ShouldBeFalse();
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void Budget_shortcuts_are_platform_aware_and_listed_in_settings()
+    {
+        var mac = new PlatformShortcuts(KeyModifiers.Meta);
+        mac.Format(mac.FundTargets).ShouldBe("⇧⌘F");
+        mac.Format(mac.PreviousMonth).ShouldBe("⌥←");
+        var pc = new PlatformShortcuts(KeyModifiers.Control);
+        pc.Format(pc.FundTargets).ShouldBe("Ctrl+Shift+F");
+        pc.Format(pc.NextMonth).ShouldBe("Alt+→");
+
+        var shortcuts = _host.Get<PlatformShortcuts>();
+        var listed = _host.Get<SettingsViewModel>().Shortcuts;
+        listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetFundTargets, shortcuts.Format(shortcuts.FundTargets)));
+        listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetMoveMoney, "M"));
+        listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetSetTarget, "T"));
+        listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetInspector, "I"));
+        listed.ShouldContain(new ShortcutViewModel(Resources.Strings.Shortcut_BudgetPreviousMonth, shortcuts.Format(shortcuts.PreviousMonth)));
+    }
 }

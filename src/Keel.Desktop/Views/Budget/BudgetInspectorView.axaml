@@ -32,6 +32,13 @@
           </Grid>
         </Border>
 
+        <!-- Month note (F-BUD-7), with Ready to Assign -->
+        <StackPanel IsVisible="{Binding IsReadyToAssign}" Spacing="4">
+          <TextBlock Classes="inspectorSection" Text="{Binding MonthNoteLabel}" />
+          <TextBox x:Name="MonthNoteBox" Text="{Binding MonthNoteText}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"
+                   Watermark="{x:Static res:Strings.Inspector_NoteWatermark}" AutomationProperties.Name="{Binding MonthNoteLabel}" />
+        </StackPanel>
+
         <StackPanel IsVisible="{Binding IsCategory}" Spacing="4">
           <!-- Six-month history -->
           <TextBlock Classes="inspectorSection" Text="{x:Static res:Strings.Inspector_History}" />

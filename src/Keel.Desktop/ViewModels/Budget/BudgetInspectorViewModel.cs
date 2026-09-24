@@ -29,6 +29,8 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
     private readonly IAccountService _accounts;
     private Guid? _editorCategory;
     private string? _savedNote;
+    private DateOnly? _monthNoteMonth;
+    private string? _savedMonthNote;
     private int _version;
 
     /// <summary>Creates the inspector for <paramref name="page"/>.</summary>
@@ -143,6 +145,14 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
     /// <summary>The category note.</summary>
     [ObservableProperty]
     public partial string? NoteText { get; set; }
+
+    /// <summary>The note of the shown month (F-BUD-7), shown with Ready to Assign.</summary>
+    [ObservableProperty]
+    public partial string? MonthNoteText { get; set; }
+
+    /// <summary>"Note for August 2026".</summary>
+    [ObservableProperty]
+    public partial string MonthNoteLabel { get; private set; } = string.Empty;
 
     /// <summary>Available at the end of each of the last six months (sparkline).</summary>
     [ObservableProperty]
@@ -289,6 +299,19 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
         await _page.QueueWrite(() => _categories.SetNoteAsync(category.Id, NoteText, CancellationToken.None));
     }
 
+    /// <summary>Saves the month note when it changed (on leaving the field).</summary>
+    [RelayCommand]
+    public async Task SaveMonthNoteAsync()
+    {
+        if (_monthNoteMonth is not { } month || string.Equals((MonthNoteText ?? string.Empty).Trim(), _savedMonthNote ?? string.Empty, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _savedMonthNote = string.IsNullOrWhiteSpace(MonthNoteText) ? null : MonthNoteText.Trim();
+        await _page.QueueWrite(() => _budget.SetMonthNoteAsync(month, MonthNoteText, CancellationToken.None));
+    }
+
     private async Task LoadAsync(int version)
     {
         if (_page.Ledger is not { } ledger)
@@ -316,6 +339,20 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
 
             if (category is null)
             {
+                if (_monthNoteMonth != month)
+                {
+                    var note = await Task.Run(() => _budget.GetMonthNoteAsync(month, CancellationToken.None));
+                    if (version != _version)
+                    {
+                        return;
+                    }
+
+                    _monthNoteMonth = month;
+                    _savedMonthNote = note;
+                    MonthNoteText = note;
+                    MonthNoteLabel = LedgerText.Format(Strings.Inspector_MonthNote, BudgetText.Month(month));
+                }
+
                 return;
             }
 
