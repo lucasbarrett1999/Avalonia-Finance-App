@@ -161,8 +161,8 @@ From PRD 15, plus decisions made while building M0.
 - Services run on the thread pool (`Task.Run`); view models receive `LedgerChanged` off the UI
   thread and marshal with `Dispatcher.UIThread.Post`. An empty `AccountIds` set means "any account".
 - The register never loads all rows: `IRegisterQuery` pages in SQL (200 rows), running balances
-  are the ledger balance in (Date, Id) order (ADR 0005), and the grid binds to `RegisterSource`
-  (ADR 0006). Guids are compared in raw SQL as upper-case text (`RunningBalance.SortKey`).
+  are the ledger balance in (Date, Id) order (ADR 0009), and the grid binds to `RegisterSource`
+  (ADR 0010). Guids are compared in raw SQL as upper-case text (`RunningBalance.SortKey`).
 - Refused operations throw `LedgerValidationException(LedgerError)`; the UI maps codes to
   `LedgerError_*` strings through `LedgerText`.
 

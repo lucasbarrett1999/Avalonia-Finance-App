@@ -129,7 +129,7 @@ Milestone 1 (PRD 12): F-ACC-1..5, F-ACC-7, payees, `MoneyTextBox`, register virt
   the account register and the All Accounts register (Account column) with header balances
   (working, cleared, uncleared, reported with mismatch hint, latest snapshot), filter bar (date
   presets, search, status, category, unapproved only), `DataGrid` over `RegisterSource`
-  (virtual `IDataGridCollectionView`, ADR 0006) with date/payee/category/memo/outflow/inflow/
+  (virtual `IDataGridCollectionView`, ADR 0010) with date/payee/category/memo/outflow/inflow/
   cleared/running balance, unapproved accent bar, transfer rows, expandable split lines, inline
   add/edit row (payee autocomplete with transfer targets, pre-fill from a known payee, category
   search, split editor with remaining amount), multi-select bulk bar, reconcile bar, designed
@@ -150,11 +150,11 @@ Milestone 1 (PRD 12): F-ACC-1..5, F-ACC-7, payees, `MoneyTextBox`, register virt
 
 ### Decisions and deviations
 
-- [ADR 0005](docs/decisions/0005-register-running-balance.md): the running balance is the ledger
+- [ADR 0009](docs/decisions/0009-register-running-balance.md): the running balance is the ledger
   balance in (Date, Id) order under any sort or filter.
-- [ADR 0006](docs/decisions/0006-register-virtual-collection-view.md): custom paged collection view
+- [ADR 0010](docs/decisions/0010-register-virtual-collection-view.md): custom paged collection view
   (the DataGrid's own view copies its source) and a read-only grid with an inline editor row.
-- [ADR 0007](docs/decisions/0007-transfer-payees-and-split-transfers.md): transfer payees are
+- [ADR 0011](docs/decisions/0011-transfer-payees-and-split-transfers.md): transfer payees are
   synthesized, not stored; split lines cannot be transfers in v1.
 - Interpretations (no PRD change): credit-card starting balances are uncategorized (PRD names only
   assets and tracking accounts); reconciled rows refuse amount/date/account edits, deletion and the
