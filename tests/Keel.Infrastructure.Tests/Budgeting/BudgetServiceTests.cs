@@ -14,6 +14,7 @@ using static Keel.Infrastructure.Tests.Budgeting.TestLedger;
 
 namespace Keel.Infrastructure.Tests.Budgeting;
 
+[Collection(nameof(TimingCollection))]
 public sealed class BudgetServiceTests(ITestOutputHelper output) : IDisposable
 {
     private static readonly CancellationToken Ct = CancellationToken.None;
