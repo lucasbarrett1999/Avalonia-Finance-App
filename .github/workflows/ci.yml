@@ -41,7 +41,7 @@ jobs:
         run: dotnet build Keel.sln -c Release --no-restore
 
       - name: Test (Release)
-        run: dotnet test Keel.sln -c Release --no-build --logger "trx;LogFilePrefix=${{ matrix.os }}" --results-directory TestResults
+        run: dotnet test Keel.sln -c Release --no-build -m:1 --logger "trx;LogFilePrefix=${{ matrix.os }}" --results-directory TestResults
 
       - name: Upload test results
         if: always()

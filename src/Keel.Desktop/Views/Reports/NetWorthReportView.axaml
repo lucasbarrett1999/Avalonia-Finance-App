@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rep="using:Keel.Desktop.ViewModels.Reports"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Keel.Desktop.Views.Reports.NetWorthReportView"
+             x:DataType="rep:NetWorthReportViewModel">
+  <Panel>
+    <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,48,0,0" MaxWidth="420" Spacing="8">
+      <TextBlock Text="{x:Static res:Strings.Reports_NetWorth_EmptyHeading}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextAlignment="Center" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Reports_NetWorth_EmptyMessage}" TextWrapping="Wrap" TextAlignment="Center" />
+    </StackPanel>
+
+    <ScrollViewer IsVisible="{Binding HasData}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Bottom">
+            <Border Classes="tile" Margin="8,0,0,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Reports_Assets}" />
+                <TextBlock Classes="tileValue" Text="{Binding AssetsText}" />
+              </StackPanel>
+            </Border>
+            <Border Classes="tile" Margin="8,0,0,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Reports_Liabilities}" />
+                <TextBlock Classes="tileValue" Text="{Binding LiabilitiesText}" />
+              </StackPanel>
+            </Border>
+          </WrapPanel>
+          <StackPanel>
+            <TextBlock Classes="secondary" Text="{x:Static res:Strings.Reports_NetWorth_Title}" />
+            <TextBlock x:Name="NetWorthLatest" Classes="heroNumber" Classes.negative="{Binding IsLatestNegative}" Text="{Binding LatestText}" />
+            <TextBlock Classes="secondary" Text="{Binding ChangeText}" />
+          </StackPanel>
+        </DockPanel>
+
+        <Border Classes="card" Padding="16">
+          <StackPanel Spacing="8">
+            <DockPanel>
+              <CheckBox DockPanel.Dock="Right" x:Name="ShowAccountsBox" IsChecked="{Binding ShowAccounts}" Content="{x:Static res:Strings.Reports_ShowAccounts}" />
+              <WrapPanel VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,4">
+                  <controls:ChartSwatch Slot="-2" Kind="Line" Width="18" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Static res:Strings.Reports_NetWorth_Title}" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Series}" IsVisible="{Binding ShowAccounts}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="rep:NetWorthSeriesItem">
+                      <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,4">
+                        <controls:ChartSwatch Slot="{Binding Slot}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Name}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </WrapPanel>
+            </DockPanel>
+            <lvc:CartesianChart x:Name="NetWorthChart" Height="300" AutomationProperties.Name="{x:Static res:Strings.Reports_NetWorth_ChartName}" />
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Reports_NetWorth_Hint}" />
+          </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,16,300">
+          <Border Classes="card" Padding="12" VerticalAlignment="Top">
+            <StackPanel>
+              <Grid ColumnDefinitions="*,130,130,130" Margin="8,0,8,6">
+                <TextBlock Classes="tableHeader" Text="{x:Static res:Strings.Reports_Csv_Date}" />
+                <TextBlock Grid.Column="1" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Assets}" />
+                <TextBlock Grid.Column="2" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_Liabilities}" />
+                <TextBlock Grid.Column="3" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Reports_NetWorth_Title}" />
+              </Grid>
+              <ItemsControl x:Name="NetWorthRows" ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="rep:NetWorthRow">
+                    <Button Classes="chartRow" Command="{Binding $parent[ItemsControl].((rep:NetWorthReportViewModel)DataContext).OpenRowCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="{x:Static res:Strings.Reports_OpenMonth}" AutomationProperties.Name="{Binding DateText}">
+                      <Grid ColumnDefinitions="*,130,130,130">
+                        <TextBlock Text="{Binding DateText}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Classes="amount" Text="{Binding AssetsText}" />
+                        <TextBlock Grid.Column="2" Classes="amount" Text="{Binding LiabilitiesText}" />
+                        <TextBlock Grid.Column="3" Classes="amount" Classes.negative="{Binding IsNegative}" Text="{Binding NetWorthText}" FontWeight="SemiBold" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Grid.Column="2" Classes="card" Padding="12" VerticalAlignment="Top">
+            <StackPanel>
+              <TextBlock Classes="tableHeader" Margin="8,0,8,6" Text="{x:Static res:Strings.Reports_Accounts}" />
+              <ItemsControl x:Name="NetWorthAccounts" ItemsSource="{Binding Series}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="rep:NetWorthSeriesItem">
+                    <Button Classes="chartRow" Command="{Binding OpenCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="{Binding OpenLabel}" AutomationProperties.Name="{Binding OpenLabel}">
+                      <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Classes="amount" Text="{Binding LatestText}" />
+                        <controls:ChartSwatch DockPanel.Dock="Left" Slot="{Binding Slot}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                      </DockPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
+</UserControl>

@@ -22,10 +22,8 @@ namespace Keel.Desktop.ViewModels;
 /// <summary>Where to open the register: one account (or all), optionally with a search and a category filter.</summary>
 /// <param name="AccountId">Account, or null for All Accounts.</param>
 /// <param name="Search">Search text in the F-TXN-7 syntax.</param>
-/// <param name="CategoryId">Category filter (the budget's Activity cell), or null.</param>
-/// <param name="CategoryName">Name of <paramref name="CategoryId"/>.</param>
-/// <param name="CategoryGroup">Group of <paramref name="CategoryId"/>.</param>
-public sealed record RegisterNavigation(Guid? AccountId, string? Search = null, Guid? CategoryId = null, string? CategoryName = null, string? CategoryGroup = null);
+/// <param name="Category">Category filter to apply (report drill-down; <see cref="CategoryOption.All"/> clears it); other filters are reset.</param>
+public sealed record RegisterNavigation(Guid? AccountId, string? Search = null, CategoryOption? Category = null);
 
 /// <summary>
 /// The account register and the "All accounts" register (PRD 9.4, F-ACC-2..5): header balances,
@@ -337,10 +335,12 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         }
 
         SearchText = search ?? (sameTarget ? SearchText : null);
-        if (parameter is RegisterNavigation { CategoryId: { } categoryId } category)
+        if (parameter is RegisterNavigation { Category: { } category })
         {
-            SelectedCategoryFilter = CategoryFilters.FirstOrDefault(f => f.Id == categoryId)
-                ?? new CategoryOption(categoryId, category.CategoryName ?? string.Empty, category.CategoryGroup ?? string.Empty);
+            SelectedDatePreset = DatePresets[0];
+            SelectedStatusFilter = StatusFilters[0];
+            UnapprovedOnly = false;
+            SelectedCategoryFilter = CategoryFilters.FirstOrDefault(f => f.Id == category.Id) ?? category;
         }
 
         _suppressFilterReload = false;

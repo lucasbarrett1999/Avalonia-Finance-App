@@ -483,7 +483,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
         }
         else
         {
-            _navigation.NavigateTo<AccountsViewModel>(new RegisterNavigation(null, search, row.Id, row.Name, row.Group.Name));
+            _navigation.NavigateTo<AccountsViewModel>(new RegisterNavigation(null, search, new Keel.Desktop.ViewModels.Register.CategoryOption(row.Id, row.Name, row.Group.Name)));
         }
     }
 

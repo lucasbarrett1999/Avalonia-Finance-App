@@ -55,6 +55,10 @@ KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter Impo
 # M2 budget screen: headless grid flows (assign, Tab/Enter, move money, drag, targets, fund, months,
 # 6.4.7 numbers) and the month-switch timing over the 100k fixture
 dotnet test tests/Keel.Desktop.Tests --filter BudgetTests --logger "console;verbosity=detailed"
+# M6 reports, goals, dashboard: report query rules and 100k timings, headless flows, screenshots
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Reports|FullyQualifiedName~Goals" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter ReportsGoalsHomeTests
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests
 # M3 import pipeline: service tests on real SQLite (with the 10k-row timing), dialogs, benchmarks
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Import.Pipeline" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter "ImportDialogTests|Import_dialogs_render"
@@ -76,6 +80,8 @@ src/
                         order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
                         Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
                         with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
+                        Reports/ (M6): ReportPeriod (previous period, month-end points), BalanceSeries (ledger plus
+                        latest snapshot, ADR 0060), GoalProjection (pace and completion month).
                         Rules/ (F-TXN-4, ADR 0020): TransactionSnapshot, RuleDefinition + versioned RuleJson,
                         RuleEngine/CompiledRuleSet (mutation set + RuleTrace), RuleValidator, RuleSuggester.
                         Categorization/ (F-TXN-5, ADR 0021): CategoryLearner.Train -> LearnerModel (Suggest,
@@ -98,6 +104,7 @@ src/
                         Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
+                        Reports/IReportService (spending, income vs expense, net worth DTOs), Goals/IGoalService (M6).
                         M3 pipeline: IImportService (ImportBatch, IncomingTransaction, ImportPreview(+Row),
                         ImportSummary, ImportRowOverride, DedupOutcomes maps the domain DedupDecision),
                         IImportCategorizationHook + ImportDraft (M4 rules/learner seam), IImportSettingsStore
@@ -121,6 +128,9 @@ src/
                         Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
                         DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
                         OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
+                        AddKeelFileImportParsers (not yet wired into AddKeelInfrastructure).
+                        Reports/ReportService (raw-SQL GROUP BY report queries, ADR 0060), Goals/GoalService (goals over
+                        the category and budget services) (M6).
                         AddKeelFileImportParsers (called by AddKeelInfrastructure since the M3 pipeline).
                         M3 pipeline: ImportService (F-TXN-1 steps 1-7), ImportPlanner (dedup, payees, hooks,
                         transfers; shared by preview and import), BulkLedgerInsert (ADR 0052),
@@ -139,6 +149,12 @@ src/
                         row view models and cell cursor, BudgetInspectorViewModel, MoveMoney/QuickAssign/ManageCategories
                         dialogs, BudgetTemplate, BudgetText), Views/BudgetView (custom hierarchical grid, ADR 0040),
                         Views/Budget/ (inspector and dialogs), Controls/BudgetSparkline, Styles/Budget.
+                        M6: ViewModels/Reports/ (ReportsViewModel page + Spending/IncomeExpense/NetWorth report view
+                        models, ReportFormat incl. CSV), Views/Reports/ (LiveCharts views), ViewModels/Goals/ (GoalsViewModel,
+                        GoalCardViewModel, NewGoalViewModel wizard) + Views/Goals/, ViewModels/Home/ (HomeViewModel dashboard,
+                        card records), Styles/Charts.axaml (palette, chart chrome, report icons), Controls/ (ChartPalette,
+                        ChartSwatch, ChartSparkline, GoalProgressRing, ReportChartKit, ReportIconConverter). The page view
+                        models live in those folders but keep the Keel.Desktop.ViewModels namespace (ViewLocator).
                         M3: ViewModels/Import/ (ImportWorkflow, IImportFilePicker + StorageImportFilePicker,
                         CsvMappingViewModel, ImportPreviewViewModel) + Views/Import/ (CsvMappingView, ImportPreviewView);
                         entry points: register header ImportFileButton, sidebar account menu "Import file…".
@@ -158,6 +174,8 @@ tests/
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
                               M2: BudgetTests (BudgetTestLedger = PRD 6.4.7 through the real services), budget
                               rendering with fixture data, dialogs and month picker in both themes.
+                              M6: ReportsGoalsHomeTests (drill-downs incl. a real donut click, CSV export, goal
+                              wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
                               M3: ImportDialogTests (FakeFilePicker; mapping, preview, register and sidebar entry
                               points, undo from the toast), import dialogs in RenderingTests.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
@@ -297,6 +315,18 @@ From PRD 15, plus decisions made while building M0.
 - Desktop: the import flow is `ImportWorkflow`; tests swap `ImportWorkflow.FilePicker` for a fake.
   Wide dialogs override `DialogViewModel.PreferredMaxWidth`.
 
+**Reports, goals and dashboard (M6)**
+- Report numbers come only from `IReportService` (raw SQL `GROUP BY`, never row loads); the counting
+  rules (system rows, transfers and tracking toggles, uncategorized rows, previous period, net-worth
+  snapshot rule, goal pace) are in ADR 0060. With default toggles Spending equals the negated budget
+  Activity; keep the cross-check test green.
+- Charts use LiveCharts through `ReportChartKit` (animations off, built-in legend hidden) and colours
+  from `Styles/Charts.axaml` via `ChartPalette` slots: eight slots in fixed order, then "Other".
+  Every chart has a legend or table with names and values (colour is never the only signal) and every
+  chart element and table row drills down (usually to the register through `RegisterNavigation`).
+- Headless captures must wait for LiveCharts' throttled redraw (a few dispatcher cycles with short delays).
+- Upcoming bills and the forecast low point on Home are the only placeholders; wire them to the
+  recurring and forecast services when those land (M5).
 **Recurring, scheduling and forecast (M5)**
 - Recurrence rules are stored in canonical form (`RecurrenceRule.Parse(text).ToString()`); the
   schedule's start date is the rule's DTSTART. Days of month clamp to short months (ADR 0030).
