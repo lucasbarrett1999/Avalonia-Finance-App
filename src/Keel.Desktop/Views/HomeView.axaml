@@ -1,23 +1,191 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:home="using:Keel.Desktop.ViewModels.Home"
              xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.HomeView"
              x:DataType="vm:HomeViewModel">
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
-    <StackPanel DockPanel.Dock="Top">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
       <TextBlock Classes="pageTitle" Text="{Binding Title}" />
       <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
     </StackPanel>
-    <controls:EmptyState Icon="{StaticResource Icon.Home}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}">
-      <Border Classes="card" Padding="16,10" ToolTip.Tip="{Binding FilePath}">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <controls:Icon Data="{StaticResource Icon.File}" Width="16" Height="16"
-                         Foreground="{DynamicResource Keel.TextSecondary}" />
-          <TextBlock Classes="secondary" Text="{Binding FileLabel}" VerticalAlignment="Center" />
-          <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" VerticalAlignment="Center" />
+
+    <Border DockPanel.Dock="Top" Classes="warning" Margin="0,0,0,12" IsVisible="{Binding HasError}">
+      <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+    </Border>
+
+    <Panel>
+      <controls:EmptyState Icon="{StaticResource Icon.Home}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
+                           IsVisible="{Binding ShowEmptyState}">
+        <StackPanel Spacing="16" HorizontalAlignment="Center">
+          <Button x:Name="HomeAddAccountButton" Classes="accent" HorizontalAlignment="Center" Command="{Binding AddAccountCommand}"
+                  IsVisible="{Binding ShowEmptyState}" Content="{x:Static res:Strings.Home_AddFirstAccount}" />
+          <Border Classes="card" Padding="16,10" ToolTip.Tip="{Binding FilePath}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.File}" Width="16" Height="16"
+                             Foreground="{DynamicResource Keel.TextSecondary}" />
+              <TextBlock Classes="secondary" Text="{Binding FileLabel}" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
         </StackPanel>
-      </Border>
-    </controls:EmptyState>
+      </controls:EmptyState>
+
+      <ScrollViewer x:Name="DashboardScroll" IsVisible="{Binding ShowDashboard}" HorizontalScrollBarVisibility="Disabled">
+        <!-- Two-column responsive grid (PRD 9.2); the code-behind drops to one column when narrow. -->
+        <Grid x:Name="CardGrid" ColumnDefinitions="*,16,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,0,8,0">
+          <!-- Ready to Assign -->
+          <Border x:Name="ReadyToAssignCard" Classes="card" Margin="0,0,0,16">
+            <DockPanel>
+              <Button DockPanel.Dock="Bottom" x:Name="AssignButton" Classes="accent" HorizontalAlignment="Left" Margin="0,12,0,0"
+                      Command="{Binding AssignCommand}" Content="{x:Static res:Strings.Home_Assign}" />
+              <StackPanel Spacing="4">
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_ReadyToAssign}" />
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding MonthText}" />
+                <TextBlock x:Name="ReadyToAssignValue" Classes="heroNumber" Classes.negative="{Binding IsReadyToAssignNegative}"
+                           Text="{Binding ReadyToAssignText}" FontFeatures="+tnum" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" IsVisible="{Binding IsReadyToAssignNegative}"
+                                 Foreground="{DynamicResource Keel.Negative}" />
+                  <TextBlock Classes="secondary" Text="{Binding ReadyToAssignHint}" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </DockPanel>
+          </Border>
+
+          <!-- Review queue -->
+          <Border x:Name="ReviewCard" Grid.Column="2" Classes="card" Margin="0,0,0,16">
+            <DockPanel>
+              <Button DockPanel.Dock="Bottom" x:Name="StartReviewButton" HorizontalAlignment="Left" Margin="0,12,0,0"
+                      Command="{Binding StartReviewCommand}" Content="{x:Static res:Strings.Home_StartReview}" />
+              <StackPanel Spacing="4">
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_ReviewQueue}" />
+                <TextBlock x:Name="ReviewCountValue" Classes="heroNumber" Text="{Binding ReviewCount}" FontFeatures="+tnum" />
+                <TextBlock Classes="secondary" Text="{Binding ReviewText}" TextWrapping="Wrap" />
+              </StackPanel>
+            </DockPanel>
+          </Border>
+
+          <!-- Accounts overview -->
+          <Border x:Name="AccountsCard" Grid.Row="1" Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="8">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Classes="link" Command="{Binding OpenAccountsCommand}" Content="{x:Static res:Strings.Home_AllAccounts}" />
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_Accounts}" />
+              </DockPanel>
+              <ItemsControl ItemsSource="{Binding AccountGroups}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="home:HomeAccountGroup">
+                    <StackPanel Margin="0,4,0,4">
+                      <DockPanel Margin="8,0,8,2">
+                        <TextBlock DockPanel.Dock="Right" Classes="amount sectionHeader" Classes.negative="{Binding IsNegative}" Text="{Binding TotalText}" />
+                        <TextBlock Classes="sectionHeader" Text="{Binding Title}" />
+                      </DockPanel>
+                      <ItemsControl ItemsSource="{Binding Accounts}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="home:HomeAccountRow">
+                            <Button Classes="chartRow" Padding="8,4" Command="{Binding Open}" CommandParameter="{Binding Id}"
+                                    AutomationProperties.Name="{Binding Name}">
+                              <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Classes="amount" Classes.negative="{Binding IsNegative}" Text="{Binding BalanceText}" />
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                              </DockPanel>
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Upcoming bills: arrives with recurring detection (M5) -->
+          <Border x:Name="UpcomingBillsCard" Grid.Row="1" Grid.Column="2" Classes="pendingCard" Margin="0,0,0,16">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_UpcomingBills}" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Keel.IconCircle}" VerticalAlignment="Top">
+                  <controls:Icon Data="{StaticResource Icon.Bills}" Width="18" Height="18" Foreground="{DynamicResource Keel.IconCircleForeground}" />
+                </Border>
+                <StackPanel Spacing="4" MaxWidth="360">
+                  <TextBlock Text="{x:Static res:Strings.Home_PendingRecurringHeading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_UpcomingBillsPending}" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Budget alerts -->
+          <Border x:Name="BudgetAlertsCard" Grid.Row="2" Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="8">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Classes="link" Command="{Binding AssignCommand}" Content="{x:Static res:Strings.Home_OpenBudget}" />
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_BudgetAlerts}" />
+              </DockPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !HasAlerts}">
+                <controls:Icon Data="{StaticResource Icon.CheckCircle}" Width="16" Height="16" Foreground="{DynamicResource Keel.Positive}" />
+                <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_NoAlerts}" TextWrapping="Wrap" />
+              </StackPanel>
+              <ItemsControl x:Name="BudgetAlertRows" ItemsSource="{Binding Alerts}" IsVisible="{Binding HasAlerts}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="home:HomeBudgetAlert">
+                    <Button Classes="chartRow" Padding="8,4"
+                            Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).AssignCommand}">
+                      <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Classes="amount" Classes.negative="{Binding IsOverspent}" Text="{Binding AmountText}" />
+                        <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" Margin="0,0,8,0"
+                                       IsVisible="{Binding IsOverspent}" Foreground="{DynamicResource Keel.Negative}" />
+                        <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Goals}" Width="14" Height="14" Margin="0,0,8,0"
+                                       IsVisible="{Binding !IsOverspent}" Foreground="{DynamicResource Keel.Warning}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding KindText}" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </DockPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Forecast: arrives with the forecast engine (M5) -->
+          <Border x:Name="ForecastCard" Grid.Row="2" Grid.Column="2" Classes="pendingCard" Margin="0,0,0,16">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_Forecast}" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Keel.IconCircle}" VerticalAlignment="Top">
+                  <controls:Icon Data="{StaticResource Icon.Report.Trend}" Width="18" Height="18" Foreground="{DynamicResource Keel.IconCircleForeground}" />
+                </Border>
+                <StackPanel Spacing="4" MaxWidth="360">
+                  <TextBlock Text="{x:Static res:Strings.Home_PendingRecurringHeading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_ForecastPending}" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Net worth sparkline (12 months) -->
+          <Border x:Name="NetWorthCard" Grid.Row="3" Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="6">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" x:Name="NetWorthReportButton" Classes="link" Command="{Binding OpenNetWorthCommand}"
+                        Content="{x:Static res:Strings.Home_NetWorthReport}" />
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_NetWorth}" />
+              </DockPanel>
+              <TextBlock x:Name="NetWorthValue" Text="{Binding NetWorthText}" FontSize="22" FontWeight="SemiBold" FontFeatures="+tnum"
+                         Classes.negative="{Binding IsNetWorthNegative}" />
+              <TextBlock Classes="secondary" Text="{Binding NetWorthChangeText}" TextWrapping="Wrap" />
+              <controls:ChartSparkline Height="64" Margin="0,6,0,0" Values="{Binding NetWorthValues}" Slot="0" IsVisible="{Binding HasNetWorthTrend}"
+                                       AutomationProperties.Name="{x:Static res:Strings.Home_NetWorthTrend}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </ScrollViewer>
+    </Panel>
   </DockPanel>
 </UserControl>

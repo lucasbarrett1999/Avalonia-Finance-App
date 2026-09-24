@@ -1,14 +1,127 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:goals="using:Keel.Desktop.ViewModels.Goals"
              xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.GoalsView"
              x:DataType="vm:GoalsViewModel">
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
-    <StackPanel DockPanel.Dock="Top">
-      <TextBlock Classes="pageTitle" Text="{Binding Title}" />
-      <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
-    </StackPanel>
-    <controls:EmptyState Icon="{StaticResource Icon.Goals}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}" />
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+      <Button DockPanel.Dock="Right" x:Name="NewGoalButton" Classes="tool accent" VerticalAlignment="Top" Command="{Binding NewGoalCommand}"
+              IsVisible="{Binding ShowGoals}" AutomationProperties.Name="{x:Static res:Strings.Goals_New}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <controls:Icon Data="{StaticResource Icon.Plus}" />
+          <TextBlock Text="{x:Static res:Strings.Goals_New}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+      <StackPanel>
+        <TextBlock Classes="pageTitle" Text="{Binding Title}" />
+        <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+        <TextBlock Classes="secondary" Margin="0,8,0,0" Text="{Binding SummaryText}" IsVisible="{Binding ShowGoals}" />
+      </StackPanel>
+    </DockPanel>
+
+    <Border DockPanel.Dock="Top" Classes="warning" Margin="0,0,0,8" IsVisible="{Binding HasError}">
+      <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+    </Border>
+
+    <Panel>
+      <controls:EmptyState Icon="{StaticResource Icon.Goals}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
+                           IsVisible="{Binding ShowEmptyState}">
+        <Button x:Name="EmptyNewGoalButton" Classes="accent" Command="{Binding NewGoalCommand}" Content="{x:Static res:Strings.Goals_CreateFirst}" />
+      </controls:EmptyState>
+
+      <ScrollViewer IsVisible="{Binding ShowGoals}" HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl x:Name="GoalCards" ItemsSource="{Binding Goals}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="goals:GoalCardViewModel">
+              <Border Classes="card" Width="360" Margin="0,0,16,16" Padding="20">
+                <StackPanel Spacing="12">
+                  <!-- Name, date and status (icon + words, never colour alone) -->
+                  <DockPanel>
+                    <Border DockPanel.Dock="Right" Classes="statusChip" Classes.onTrack="{Binding IsOnTrack}" Classes.behind="{Binding IsBehind}" VerticalAlignment="Top">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <controls:Icon Data="{StaticResource Icon.Check}" Width="12" Height="12" IsVisible="{Binding IsOnTrack}" />
+                        <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="12" Height="12" IsVisible="{Binding IsBehind}" />
+                        <TextBlock Text="{Binding StatusText}" FontSize="{StaticResource Keel.FontSize.Small}" FontWeight="SemiBold" />
+                      </StackPanel>
+                    </Border>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="secondary" Text="{Binding TargetDateText}" />
+                    </StackPanel>
+                  </DockPanel>
+
+                  <!-- Progress ring: available / target -->
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <Panel Width="92" Height="92">
+                      <controls:GoalProgressRing Progress="{Binding Progress}" Thickness="9" />
+                      <TextBlock Text="{Binding PercentText}" FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Panel>
+                    <StackPanel VerticalAlignment="Center" Spacing="4" Width="220">
+                      <TextBlock Text="{Binding ProgressText}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                      <TextBlock Classes="secondary" Text="{Binding MonthlyNeedText}" TextWrapping="Wrap" />
+                      <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding LinkedAccountText}"
+                                 IsVisible="{Binding HasLinkedAccount}" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <!-- Projection at the current pace, and the what-if slider -->
+                  <Border Classes="bar" Padding="12">
+                    <StackPanel Spacing="6">
+                      <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding PaceText}" TextWrapping="Wrap" />
+                      <TextBlock x:Name="ProjectionText" Text="{Binding ProjectionText}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                      <DockPanel Margin="0,4,0,0">
+                        <TextBlock DockPanel.Dock="Right" Classes="secondary" Text="{Binding ExtraText}" VerticalAlignment="Center" Margin="8,0,0,0" MinWidth="110" TextAlignment="Right" />
+                        <TextBlock DockPanel.Dock="Left" Classes="fieldLabel" Text="{x:Static res:Strings.Goals_WhatIf}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <Slider x:Name="WhatIfSlider" Minimum="0" Maximum="{Binding SliderMaximum}" SmallChange="{Binding SliderStep}" LargeChange="{Binding SliderStep}"
+                                TickFrequency="{Binding SliderStep}" IsSnapToTickEnabled="True" Value="{Binding ExtraPerMonth}"
+                                AutomationProperties.Name="{x:Static res:Strings.Goals_WhatIfName}" />
+                      </DockPanel>
+                    </StackPanel>
+                  </Border>
+
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <Button Classes="link" Command="{Binding $parent[ItemsControl].((vm:GoalsViewModel)DataContext).OpenBudgetCommand}"
+                            Content="{x:Static res:Strings.Goals_AssignInBudget}" />
+                    <Button Classes="link" Command="{Binding $parent[ItemsControl].((vm:GoalsViewModel)DataContext).OpenTransactionsCommand}" CommandParameter="{Binding}"
+                            Content="{x:Static res:Strings.Reports_Transactions}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Panel>
   </DockPanel>
+
+  <UserControl.Styles>
+    <Style Selector="Border.statusChip">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="8,2" />
+      <Setter Property="Background" Value="{DynamicResource Keel.WindowBackground}" />
+    </Style>
+    <Style Selector="Border.statusChip.onTrack TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Positive}" />
+    </Style>
+    <Style Selector="Border.statusChip.onTrack controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Positive}" />
+    </Style>
+    <Style Selector="Border.statusChip.behind">
+      <Setter Property="Background" Value="{DynamicResource Keel.WarningBackground}" />
+    </Style>
+    <Style Selector="Border.statusChip.behind TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+    </Style>
+    <Style Selector="Border.statusChip.behind controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+    </Style>
+  </UserControl.Styles>
 </UserControl>

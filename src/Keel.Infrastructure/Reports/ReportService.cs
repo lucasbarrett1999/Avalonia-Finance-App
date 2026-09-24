@@ -169,12 +169,25 @@ public sealed class ReportService(IDbContextFactory<KeelDbContext> factory, Time
                     return new NetWorthReport(currency, [], []);
                 }
 
-                var end = points[^1];
                 var accounts = (await db.Accounts.AsNoTracking().ToListAsync(ct).ConfigureAwait(false))
                     .Where(a => query.IncludeTracking || a.IsOnBudget)
                     .Where(a => query.AccountIds is not { Count: > 0 } ids || ids.Contains(a.Id))
                     .OrderBy(a => AccountTypeInfo.GroupOf(a.Type, a.IsOnBudget)).ThenBy(a => a.SortOrder).ThenBy(a => a.Id)
                     .ToList();
+
+                // No points before the first account existed (they would read as a net worth of zero).
+                if (accounts.Count > 0)
+                {
+                    var firstOpened = accounts.Min(a => a.OpeningDate);
+                    points = [.. points.Where(p => p >= firstOpened)];
+                }
+
+                if (points.Count == 0 || accounts.Count == 0)
+                {
+                    return new NetWorthReport(currency, [], []);
+                }
+
+                var end = points[^1];
                 var snapshots = (await db.BalanceSnapshots.AsNoTracking().Where(s => s.Date <= end).ToListAsync(ct).ConfigureAwait(false))
                     .GroupBy(s => s.AccountId)
                     .ToDictionary(g => g.Key, g => g.Select(s => new ReportedBalance(s.Date, s.Balance)).ToList());
