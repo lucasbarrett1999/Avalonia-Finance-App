@@ -861,4 +861,319 @@
   <data name="TxnStatus_Reconciled" xml:space="preserve">
     <value>Reconciled</value>
   </data>
+  <data name="Action_ImportTransactions" xml:space="preserve">
+    <value>import transactions</value>
+  </data>
+  <data name="Register_ImportFile" xml:space="preserve">
+    <value>Import file</value>
+  </data>
+  <data name="Register_ImportFileTip" xml:space="preserve">
+    <value>Import a CSV, OFX, QFX or QIF file from your bank</value>
+  </data>
+  <data name="Nav_ImportFile" xml:space="preserve">
+    <value>Import file…</value>
+  </data>
+  <data name="Import_PickerTitle" xml:space="preserve">
+    <value>Import transactions into {0}</value>
+  </data>
+  <data name="Import_FileTypeName" xml:space="preserve">
+    <value>Bank files (CSV, OFX, QFX, QIF)</value>
+  </data>
+  <data name="Import_ChooseAccountTitle" xml:space="preserve">
+    <value>Import file</value>
+  </data>
+  <data name="Import_ChooseAccountPrompt" xml:space="preserve">
+    <value>Choose the account to import into.</value>
+  </data>
+  <data name="Import_Unsupported" xml:space="preserve">
+    <value>{0} is not a CSV, OFX, QFX or QIF file Keel can read.</value>
+  </data>
+  <data name="Import_NoRows" xml:space="preserve">
+    <value>No transactions could be read from {0}.</value>
+  </data>
+  <data name="Import_ReadFailed" xml:space="preserve">
+    <value>{0} could not be read: {1}</value>
+  </data>
+  <data name="Import_Failed" xml:space="preserve">
+    <value>The import failed: {0}</value>
+  </data>
+  <data name="Import_Summary" xml:space="preserve">
+    <value>Imported {0} into {1}: {2}.</value>
+  </data>
+  <data name="Import_SummaryAdded" xml:space="preserve">
+    <value>{0} new</value>
+  </data>
+  <data name="Import_SummaryUpdated" xml:space="preserve">
+    <value>{0} updated</value>
+  </data>
+  <data name="Import_SummaryMatched" xml:space="preserve">
+    <value>{0} matched to existing</value>
+  </data>
+  <data name="Import_SummaryTransfers" xml:space="preserve">
+    <value>transfers paired: {0}</value>
+  </data>
+  <data name="Import_SummaryDuplicates" xml:space="preserve">
+    <value>duplicates skipped: {0}</value>
+  </data>
+  <data name="Import_SummaryUncategorized" xml:space="preserve">
+    <value>{0} uncategorized</value>
+  </data>
+  <data name="Import_SummarySkipped" xml:space="preserve">
+    <value>{0} left out</value>
+  </data>
+  <data name="Import_SummaryBalance" xml:space="preserve">
+    <value>reported balance {0}</value>
+  </data>
+  <data name="Import_NothingNew" xml:space="preserve">
+    <value>Nothing new in {0}: all {1} rows are already in {2}.</value>
+  </data>
+  <data name="CsvMapping_Title" xml:space="preserve">
+    <value>Map the columns of {0}</value>
+  </data>
+  <data name="CsvMapping_Intro" xml:space="preserve">
+    <value>Tell Keel which column holds what. The preview shows the first 10 rows as they will be read.</value>
+  </data>
+  <data name="CsvMapping_Remembered" xml:space="preserve">
+    <value>Using the mapping you chose for this account last time.</value>
+  </data>
+  <data name="CsvMapping_Detected" xml:space="preserve">
+    <value>Keel detected this layout; check it against the preview.</value>
+  </data>
+  <data name="CsvMapping_None" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="CsvMapping_Column" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CsvMapping_Date" xml:space="preserve">
+    <value>Date column</value>
+  </data>
+  <data name="CsvMapping_DateFormat" xml:space="preserve">
+    <value>Date format</value>
+  </data>
+  <data name="CsvMapping_Payee" xml:space="preserve">
+    <value>Payee or description</value>
+  </data>
+  <data name="CsvMapping_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="CsvMapping_AmountLayout" xml:space="preserve">
+    <value>Amounts</value>
+  </data>
+  <data name="CsvMapping_Amount" xml:space="preserve">
+    <value>Amount column</value>
+  </data>
+  <data name="CsvMapping_Debit" xml:space="preserve">
+    <value>Debit (money out)</value>
+  </data>
+  <data name="CsvMapping_Credit" xml:space="preserve">
+    <value>Credit (money in)</value>
+  </data>
+  <data name="CsvMapping_Type" xml:space="preserve">
+    <value>Type column</value>
+  </data>
+  <data name="CsvMapping_Sign" xml:space="preserve">
+    <value>Sign</value>
+  </data>
+  <data name="CsvMapping_DecimalSeparator" xml:space="preserve">
+    <value>Decimal separator</value>
+  </data>
+  <data name="CsvMapping_SkipRows" xml:space="preserve">
+    <value>Lines to skip</value>
+  </data>
+  <data name="CsvMapping_HasHeader" xml:space="preserve">
+    <value>First line is a header</value>
+  </data>
+  <data name="CsvLayout_SignedAmount" xml:space="preserve">
+    <value>One amount column (+/−)</value>
+  </data>
+  <data name="CsvLayout_DebitCredit" xml:space="preserve">
+    <value>Debit and credit columns</value>
+  </data>
+  <data name="CsvLayout_AmountWithType" xml:space="preserve">
+    <value>Amount plus type column</value>
+  </data>
+  <data name="CsvSign_InflowPositive" xml:space="preserve">
+    <value>Money in is positive</value>
+  </data>
+  <data name="CsvSign_OutflowPositive" xml:space="preserve">
+    <value>Money out is positive</value>
+  </data>
+  <data name="CsvMapping_DecimalPoint" xml:space="preserve">
+    <value>Point (1,234.56)</value>
+  </data>
+  <data name="CsvMapping_DecimalComma" xml:space="preserve">
+    <value>Comma (1.234,56)</value>
+  </data>
+  <data name="CsvMapping_AmbiguousDates" xml:space="preserve">
+    <value>Dates such as 03/04/2026 could be March 4 or 3 April. Choose the order your bank uses; the preview updates.</value>
+  </data>
+  <data name="CsvMapping_MonthFirst" xml:space="preserve">
+    <value>Month first (US)</value>
+  </data>
+  <data name="CsvMapping_DayFirst" xml:space="preserve">
+    <value>Day first (EU)</value>
+  </data>
+  <data name="CsvMapping_ChooseDateOrder" xml:space="preserve">
+    <value>Choose month-first or day-first dates before continuing.</value>
+  </data>
+  <data name="CsvMapping_PreviewHeading" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="CsvMapping_PreviewCount" xml:space="preserve">
+    <value>{0} rows read</value>
+  </data>
+  <data name="CsvMapping_PreviewSkipped" xml:space="preserve">
+    <value>{0} rows read, {1} lines skipped</value>
+  </data>
+  <data name="CsvMapping_PreviewEmpty" xml:space="preserve">
+    <value>No rows can be read with this mapping. Check the date and amount columns.</value>
+  </data>
+  <data name="CsvMapping_ErrorDateColumn" xml:space="preserve">
+    <value>Choose the date column.</value>
+  </data>
+  <data name="CsvMapping_ErrorAmountColumns" xml:space="preserve">
+    <value>Choose the amount columns.</value>
+  </data>
+  <data name="CsvMapping_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="CsvMapping_ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="CsvMapping_ColPayee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="CsvMapping_ColMemo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="CsvMapping_ColAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="ImportPreview_Title" xml:space="preserve">
+    <value>Import {0} into {1}</value>
+  </data>
+  <data name="ImportPreview_Intro" xml:space="preserve">
+    <value>Every row with what the import will do. Uncheck rows to leave them out; check a duplicate to add it anyway.</value>
+  </data>
+  <data name="ImportPreview_Statement" xml:space="preserve">
+    <value>Account in file</value>
+  </data>
+  <data name="ImportPreview_ColImport" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="ImportPreview_ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ImportPreview_ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="ImportPreview_ColPayee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="ImportPreview_ColCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="ImportPreview_ColMemo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="ImportPreview_ColAmount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="ImportPreview_ColTransfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="ImportPreview_IncludeRow" xml:space="preserve">
+    <value>Import row {0}</value>
+  </data>
+  <data name="ImportPreview_PairRow" xml:space="preserve">
+    <value>Pair row {0} as a transfer</value>
+  </data>
+  <data name="ImportPreview_Totals" xml:space="preserve">
+    <value>Importing {0} of {1} rows. New: {2} · Matched: {3} · Updated: {4} · Transfer pairs: {5} · Duplicates left out: {6}</value>
+  </data>
+  <data name="ImportPreview_Net" xml:space="preserve">
+    <value>Net of new rows: {0}</value>
+  </data>
+  <data name="ImportPreview_ReportedBalance" xml:space="preserve">
+    <value>The file reports a balance of {0} on {1}; it will be recorded.</value>
+  </data>
+  <data name="ImportPreview_Import" xml:space="preserve">
+    <value>Import {0}</value>
+  </data>
+  <data name="ImportPreview_Empty" xml:space="preserve">
+    <value>The file has no rows for this account.</value>
+  </data>
+  <data name="ImportPreview_TransferTo" xml:space="preserve">
+    <value>Transfer: {0}</value>
+  </data>
+  <data name="ImportPreview_TransferAmbiguous" xml:space="preserve">
+    <value>Transfer: {0}?</value>
+  </data>
+  <data name="ImportStatus_Insert" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="ImportStatus_DuplicateSkipped" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="ImportStatus_MatchedToExisting" xml:space="preserve">
+    <value>Matched to existing</value>
+  </data>
+  <data name="ImportStatus_UpdateInPlace" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="ImportStatus_PendingToPosted" xml:space="preserve">
+    <value>Updated (posted)</value>
+  </data>
+  <data name="ImportStatus_Transfer" xml:space="preserve">
+    <value>Transfer pair</value>
+  </data>
+  <data name="ImportWarning_AmbiguousDateFormat" xml:space="preserve">
+    <value>Day and month order was ambiguous</value>
+  </data>
+  <data name="ImportWarning_InvalidDate" xml:space="preserve">
+    <value>Rows with an unreadable date were skipped</value>
+  </data>
+  <data name="ImportWarning_InvalidAmount" xml:space="preserve">
+    <value>Rows with an unreadable amount were skipped</value>
+  </data>
+  <data name="ImportWarning_SkippedRow" xml:space="preserve">
+    <value>Summary or footer lines were skipped</value>
+  </data>
+  <data name="ImportWarning_UnknownTransactionType" xml:space="preserve">
+    <value>Unknown transaction types kept their own sign</value>
+  </data>
+  <data name="ImportWarning_SignConventionGuessed" xml:space="preserve">
+    <value>The sign of amounts was guessed; check the preview</value>
+  </data>
+  <data name="ImportWarning_DuplicateProviderId" xml:space="preserve">
+    <value>The file repeats a transaction id</value>
+  </data>
+  <data name="ImportWarning_EncodingFallback" xml:space="preserve">
+    <value>The file was read as Windows-1252 text</value>
+  </data>
+  <data name="ImportWarning_MalformedMarkup" xml:space="preserve">
+    <value>The file's structure is damaged; readable rows were kept</value>
+  </data>
+  <data name="ImportWarning_UnsupportedSection" xml:space="preserve">
+    <value>Unsupported sections were ignored</value>
+  </data>
+  <data name="ImportWarning_InvalidMapping" xml:space="preserve">
+    <value>The column mapping does not fit the file</value>
+  </data>
+  <data name="ImportWarning_NoTransactions" xml:space="preserve">
+    <value>The file has no transactions</value>
+  </data>
+  <data name="ImportWarning_ReconciledNotUpdated" xml:space="preserve">
+    <value>Reconciled transactions were not changed</value>
+  </data>
+  <data name="ImportWarning_CurrencyMismatch" xml:space="preserve">
+    <value>Rows in another currency were skipped</value>
+  </data>
+  <data name="ImportWarning_OtherAccountsInFile" xml:space="preserve">
+    <value>The file holds several accounts; only the chosen one is imported</value>
+  </data>
+  <data name="ImportWarning_WithCount" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

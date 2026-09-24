@@ -18,6 +18,14 @@
             <TextBlock Text="{x:Static res:Strings.Register_AddTransaction}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
+        <Button x:Name="ImportFileButton" Classes="tool" Command="{Binding ImportFileCommand}" IsVisible="{Binding CanImportFile}"
+                ToolTip.Tip="{x:Static res:Strings.Register_ImportFileTip}"
+                AutomationProperties.Name="{x:Static res:Strings.Register_ImportFile}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Import}" />
+            <TextBlock Text="{x:Static res:Strings.Register_ImportFile}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
         <Button x:Name="ReconcileButton" Classes="tool" Command="{Binding StartReconcileCommand}" IsVisible="{Binding CanReconcile}"
                 AutomationProperties.Name="{x:Static res:Strings.Register_Reconcile}">
           <StackPanel Orientation="Horizontal" Spacing="6">

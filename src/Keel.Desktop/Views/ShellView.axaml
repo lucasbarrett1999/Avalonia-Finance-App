@@ -39,6 +39,7 @@
         <RadioButton.ContextMenu>
           <ContextMenu>
             <MenuItem Header="{x:Static res:Strings.Nav_EditAccount}" Command="{Binding EditCommand}" />
+            <MenuItem Header="{x:Static res:Strings.Nav_ImportFile}" Command="{Binding ImportFileCommand}" />
             <MenuItem Header="{x:Static res:Strings.Nav_MoveUp}" Command="{Binding MoveUpCommand}" />
             <MenuItem Header="{x:Static res:Strings.Nav_MoveDown}" Command="{Binding MoveDownCommand}" />
           </ContextMenu>
@@ -172,7 +173,8 @@
       <!-- Modal dialog layer -->
       <Border Grid.Column="0" Grid.ColumnSpan="3" x:Name="DialogLayer" Background="{DynamicResource Keel.Scrim}"
               IsVisible="{Binding Dialogs.Current, Converter={x:Static ObjectConverters.IsNotNull}}">
-        <Border Classes="dialog" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="420" MaxWidth="560">
+        <Border Classes="dialog" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="420"
+                MaxWidth="{Binding Dialogs.CurrentMaxWidth}">
           <ContentControl x:Name="DialogHost" Content="{Binding Dialogs.Current}" />
         </Border>
       </Border>

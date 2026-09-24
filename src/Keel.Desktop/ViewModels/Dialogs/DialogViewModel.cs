@@ -22,6 +22,9 @@ public abstract partial class DialogViewModel : ViewModelBase
     /// <summary>Whether <see cref="Error"/> is set.</summary>
     public bool HasError => !string.IsNullOrEmpty(Error);
 
+    /// <summary>Widest the dialog layer lets this dialog be (wide dialogs such as the import preview raise it).</summary>
+    public virtual double PreferredMaxWidth => 560;
+
     /// <summary>Whether a save is running.</summary>
     [ObservableProperty]
     public partial bool IsBusy { get; set; }

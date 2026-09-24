@@ -468,7 +468,7 @@ public sealed class ImportServiceTests : IAsyncLifetime
             rows[1][5].ShouldBe(rows[0][5]);
             rows[1][6].ShouldBe(rows[0][6]);
             rows[1][7].ShouldBe("0");
-            rows[1][8].Length.ShouldBe(rows[0][8].Length);
+            rows.ShouldAllBe(r => System.Text.RegularExpressions.Regex.IsMatch(r[8], @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,7})?$"));
         }
 
         // The register pages, searches and balances imported rows like any other.

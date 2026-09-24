@@ -1,0 +1,134 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:imp="using:Keel.Desktop.ViewModels.Import"
+             xmlns:reg="using:Keel.Desktop.ViewModels.Register"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Import.CsvMappingView"
+             x:DataType="imp:CsvMappingViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" Width="760">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold"
+               TextTrimming="CharacterEllipsis" />
+    <StackPanel Spacing="2">
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.CsvMapping_Intro}" TextWrapping="Wrap" />
+      <TextBlock x:Name="MappingSourceText" Classes="secondary" Text="{Binding SourceText}" TextWrapping="Wrap"
+                 FontSize="{StaticResource Keel.FontSize.Small}" />
+    </StackPanel>
+
+    <Border x:Name="AmbiguousDatesBar" Classes="warning" IsVisible="{Binding IsDateAmbiguous}">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
+          <Button x:Name="MonthFirstButton" Command="{Binding ChooseMonthFirstCommand}" Content="{x:Static res:Strings.CsvMapping_MonthFirst}" />
+          <Button x:Name="DayFirstButton" Command="{Binding ChooseDayFirstCommand}" Content="{x:Static res:Strings.CsvMapping_DayFirst}" />
+        </StackPanel>
+        <TextBlock Text="{x:Static res:Strings.CsvMapping_AmbiguousDates}" TextWrapping="Wrap" VerticalAlignment="Center" />
+      </DockPanel>
+    </Border>
+
+    <Grid ColumnDefinitions="*,12,*,12,*" RowDefinitions="Auto,10,Auto,10,Auto">
+      <StackPanel Grid.Row="0" Grid.Column="0">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Date}" />
+        <ComboBox x:Name="DateColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding DateColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Date}" />
+      </StackPanel>
+      <StackPanel Grid.Row="0" Grid.Column="2">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_DateFormat}" />
+        <ComboBox x:Name="DateFormatBox" HorizontalAlignment="Stretch" ItemsSource="{Binding DateFormats}" SelectedItem="{Binding SelectedDateFormat}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_DateFormat}" />
+      </StackPanel>
+      <StackPanel Grid.Row="0" Grid.Column="4">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Payee}" />
+        <ComboBox x:Name="PayeeColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding PayeeColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Payee}" />
+      </StackPanel>
+
+      <StackPanel Grid.Row="2" Grid.Column="0">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_AmountLayout}" />
+        <ComboBox x:Name="AmountLayoutBox" HorizontalAlignment="Stretch" ItemsSource="{Binding AmountLayouts}" SelectedItem="{Binding SelectedAmountLayout}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_AmountLayout}" />
+      </StackPanel>
+      <StackPanel Grid.Row="2" Grid.Column="2" IsVisible="{Binding UsesAmountColumn}">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Amount}" />
+        <ComboBox x:Name="AmountColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding AmountColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Amount}" />
+      </StackPanel>
+      <StackPanel Grid.Row="2" Grid.Column="2" IsVisible="{Binding IsDebitCredit}">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Debit}" />
+        <ComboBox x:Name="DebitColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding DebitColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Debit}" />
+      </StackPanel>
+      <StackPanel Grid.Row="2" Grid.Column="4" IsVisible="{Binding IsDebitCredit}">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Credit}" />
+        <ComboBox x:Name="CreditColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding CreditColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Credit}" />
+      </StackPanel>
+      <StackPanel Grid.Row="2" Grid.Column="4" IsVisible="{Binding IsAmountWithType}">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Type}" />
+        <ComboBox x:Name="TypeColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding TypeColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Type}" />
+      </StackPanel>
+      <StackPanel Grid.Row="2" Grid.Column="4" IsVisible="{Binding IsSignedAmount}">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Sign}" />
+        <ComboBox x:Name="SignBox" HorizontalAlignment="Stretch" ItemsSource="{Binding SignConventions}" SelectedItem="{Binding SelectedSignConvention}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Sign}" />
+      </StackPanel>
+
+      <StackPanel Grid.Row="4" Grid.Column="0">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_Memo}" />
+        <ComboBox x:Name="MemoColumnBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Columns}" SelectedItem="{Binding MemoColumn}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_Memo}" />
+      </StackPanel>
+      <StackPanel Grid.Row="4" Grid.Column="2">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_DecimalSeparator}" />
+        <ComboBox x:Name="DecimalBox" HorizontalAlignment="Stretch" ItemsSource="{Binding DecimalSeparators}" SelectedItem="{Binding SelectedDecimalSeparator}"
+                  AutomationProperties.Name="{x:Static res:Strings.CsvMapping_DecimalSeparator}" />
+      </StackPanel>
+      <Grid Grid.Row="4" Grid.Column="4" ColumnDefinitions="110,12,*">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_SkipRows}" />
+          <NumericUpDown x:Name="SkipRowsBox" Value="{Binding SkipRows}" Minimum="0" Maximum="1000" Increment="1" FormatString="0"
+                         AutomationProperties.Name="{x:Static res:Strings.CsvMapping_SkipRows}" />
+        </StackPanel>
+        <CheckBox Grid.Column="2" x:Name="HasHeaderBox" VerticalAlignment="Bottom" IsChecked="{Binding HasHeader}"
+                  Content="{x:Static res:Strings.CsvMapping_HasHeader}" />
+      </Grid>
+    </Grid>
+
+    <Border Classes="card" Padding="0">
+      <StackPanel>
+        <DockPanel Margin="12,8">
+          <TextBlock DockPanel.Dock="Right" x:Name="PreviewMessageText" Classes="secondary" Text="{Binding PreviewMessage}"
+                     FontSize="{StaticResource Keel.FontSize.Small}" VerticalAlignment="Center" />
+          <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.CsvMapping_PreviewHeading}" VerticalAlignment="Center" />
+        </DockPanel>
+        <Grid ColumnDefinitions="110,*,*,120" Margin="12,0,12,4">
+          <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_ColDate}" />
+          <TextBlock Grid.Column="1" Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_ColPayee}" />
+          <TextBlock Grid.Column="2" Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_ColMemo}" />
+          <TextBlock Grid.Column="3" Classes="fieldLabel" Text="{x:Static res:Strings.CsvMapping_ColAmount}" HorizontalAlignment="Right" />
+        </Grid>
+        <ItemsControl x:Name="PreviewRowsList" ItemsSource="{Binding PreviewRows}" MinHeight="40" Margin="0,0,0,8">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="imp:CsvPreviewRow">
+              <Grid ColumnDefinitions="110,*,*,120" Margin="12,3">
+                <TextBlock Text="{Binding Date}" />
+                <TextBlock Grid.Column="1" Text="{Binding Payee}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="2" Classes="secondary" Text="{Binding Memo}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="3" Classes="amount" Classes.negative="{Binding IsNegative}" Text="{Binding Amount}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="ContinueButton" Classes="accent" Command="{Binding ConfirmCommand}" IsDefault="True"
+              Content="{x:Static res:Strings.CsvMapping_Continue}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>
