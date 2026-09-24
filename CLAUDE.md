@@ -62,6 +62,11 @@ KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filte
 # M3 import pipeline: service tests on real SQLite (with the 10k-row timing), dialogs, benchmarks
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Import.Pipeline" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter "ImportDialogTests|Import_dialogs_render"
+# M4 review and rules UI: rule/learner/categorization services on real SQLite, headless review and rules
+# flows, screenshots of Review, Rules, the rule editor and the retroactive preview (light and dark)
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Rules|FullyQualifiedName~Tests.Categorization"
+dotnet test tests/Keel.Desktop.Tests --filter "ReviewTests|RulesUiTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReviewRulesRenderingTests
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*ImportBenchmarks*' --job short
 ```
 
@@ -113,6 +118,10 @@ src/
                         (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs, not yet implemented.
                         Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
                         learner; CategorizationResult with suggestions and CategorizationTrace, ADR 0022).
+                        M4 UI: Categorization/ICategorizationService (suggest, apply rules, full pipeline, review
+                        approvals, batch plan) + ILearnerService (Status, GetModelAsync, PeekModelAsync for hooks);
+                        Rules/IRuleService (+ RuleDto, RetroactiveScope/Preview/Result, RuleOutcomePreview,
+                        RulesChanged, RuleValidationException); Payees ListAsync/SetDefaultCategoryAsync/RenameAsync.
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
@@ -135,6 +144,10 @@ src/
                         M3 pipeline: ImportService (F-TXN-1 steps 1-7), ImportPlanner (dedup, payees, hooks,
                         transfers; shared by preview and import), BulkLedgerInsert (ADR 0052),
                         NoOpImportCategorizationHook, ImportSettingsStore (Setting table, ADR 0051).
+                        M4: Rules/ (RuleService; SnapshotSource = transactions as TransactionSnapshots incl. the
+                        "Flagged" tag; MutationPlanner = one plan for retroactive preview and apply, ADR 0026),
+                        Categorization/ (LearnerService: Setting-table cache kept current by replaying AuditEvents,
+                        ADR 0027; CategorizationService; RulesImportCategorizationHook registered after the no-op, ADR 0025).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -158,6 +171,12 @@ src/
                         M3: ViewModels/Import/ (ImportWorkflow, IImportFilePicker + StorageImportFilePicker,
                         CsvMappingViewModel, ImportPreviewViewModel) + Views/Import/ (CsvMappingView, ImportPreviewView);
                         entry points: register header ImportFileButton, sidebar account menu "Import file…".
+                        M4: ViewModels/Review/ (ReviewViewModel page in the Keel.Desktop.ViewModels namespace, queue items,
+                        suggestions, ReviewSplitViewModel, ShellViewModel.ReviewBadge partial) + Views/ReviewView,
+                        Views/Review/; ViewModels/Rules/ (RulesViewModel page "Manage rules", RuleEditorViewModel + parts,
+                        RetroactiveApplyViewModel, RuleEditorFlow, PayeesViewModel, Confirm/RenamePayee dialogs,
+                        AccountsViewModel.CreateRule partial) + Views/Rules/ (RulesPanel shared by Settings and the page,
+                        PayeesPanel, dialogs). Register grid context menu: "Create rule from this transaction…".
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
@@ -168,6 +187,10 @@ tests/
                               M3: Import/Pipeline/ (ImportKit helpers; every fixture imported twice through the
                               service, F-TXN-2 acceptance, fuzzy match, transfers, undo, mapping memory, CsCheck
                               import-twice property, 10k-row timing in a non-parallel collection).
+                              M4: Rules/ (RuleService CRUD/order/undo, retroactive preview = apply, transfers),
+                              Categorization/ (learner cache build, incremental = retrain after edits/undo/renames,
+                              version rebuild; categorization order; batch plan; unapproved paging; import hook;
+                              payee default and rename).
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
@@ -176,6 +199,9 @@ tests/
                               rendering with fixture data, dialogs and month picker in both themes.
                               M6: ReportsGoalsHomeTests (drill-downs incl. a real donut click, CSV export, goal
                               wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
+                              M4: ReviewTests (keyboard triage A/1/J/K/C/R/D/S/T, badge, batch, preparing state),
+                              RulesUiTests (editor validation, test, retroactive preview, reorder, register menu,
+                              payees), ReviewRulesRenderingTests (ReviewTestLedger).
                               M3: ImportDialogTests (FakeFilePicker; mapping, preview, register and sidebar entry
                               points, undo from the toast), import dialogs in RenderingTests.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
@@ -345,3 +371,13 @@ From PRD 15, plus decisions made while building M0.
   `LearnerModel` holds integer counts only, so its JSON is identical on every OS; keep it that way. Accuracy
   thresholds are asserted in `LearnerAccuracyTests` on the deterministic fixture; rerun them after any change to
   features, smoothing or `PayeeNormalizer`.
+**Review and rules UI (M4)**
+- Every categorization write goes through `ICategorizationService`/`IRuleService` (one `LedgerWriter` action
+  each); the learner follows automatically by replaying the audit log (ADR 0027), so never call it after a
+  write. Inside a ledger write (import hooks) use `ILearnerService.PeekModelAsync`, which never writes.
+- Retroactive apply and review approvals with rules write through `MutationPlanner.Plan` + `WriteAsync`; a
+  preview and its apply share the plan, so keep new rule effects in the planner (ADR 0026). The rule
+  "flag" is the reserved tag `Flagged`.
+- Review keys (ADR 0028): every decision approves and advances; `J/K` only move. Row templates bind to
+  commands through an owner property on the row view model (`Owner`, `Editor`, `Choose`), not
+  `$parent[...]`, which logs binding errors while a view is torn down.

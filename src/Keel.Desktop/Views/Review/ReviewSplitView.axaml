@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rv="using:Keel.Desktop.ViewModels.Review"
+             xmlns:reg="using:Keel.Desktop.ViewModels.Register"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Review.ReviewSplitView"
+             x:DataType="rv:ReviewSplitViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" Width="500">
+    <StackPanel>
+      <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+      <TextBlock Classes="secondary" Text="{Binding Prompt}" TextWrapping="Wrap" />
+    </StackPanel>
+    <ItemsControl x:Name="SplitLines" ItemsSource="{Binding Lines}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="reg:SplitLineViewModel">
+          <Grid ColumnDefinitions="*,8,110,8,90,8,90,4,Auto" Margin="0,0,0,6">
+            <AutoCompleteBox Text="{Binding CategoryText}" SelectedItem="{Binding Category}" ItemsSource="{Binding Categories}"
+                             FilterMode="ContainsOrdinal" MinimumPrefixLength="0"
+                             Watermark="{x:Static res:Strings.Editor_Category}" AutomationProperties.Name="{x:Static res:Strings.Editor_Category}" />
+            <TextBox Grid.Column="2" Text="{Binding Memo}" Watermark="{x:Static res:Strings.Editor_Memo}" AutomationProperties.Name="{x:Static res:Strings.Editor_Memo}" />
+            <controls:MoneyTextBox Grid.Column="4" Value="{Binding Outflow}" Watermark="{x:Static res:Strings.Editor_Outflow}"
+                                   AutomationProperties.Name="{x:Static res:Strings.Editor_Outflow}" />
+            <controls:MoneyTextBox Grid.Column="6" Value="{Binding Inflow}" Watermark="{x:Static res:Strings.Editor_Inflow}"
+                                   AutomationProperties.Name="{x:Static res:Strings.Editor_Inflow}" />
+            <Button Grid.Column="8" Padding="4" Command="{Binding $parent[ItemsControl].((rv:ReviewSplitViewModel)DataContext).RemoveLineCommand}"
+                    CommandParameter="{Binding}" ToolTip.Tip="{x:Static res:Strings.Editor_RemoveSplitLine}"
+                    AutomationProperties.Name="{x:Static res:Strings.Editor_RemoveSplitLine}">
+              <controls:Icon Data="{StaticResource Icon.Close}" Width="14" Height="14" />
+            </Button>
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <DockPanel>
+      <Button DockPanel.Dock="Left" Command="{Binding AddLineCommand}" Content="{x:Static res:Strings.Editor_AddSplitLine}" />
+      <TextBlock Classes="amount" Classes.negative="{Binding !IsBalanced}" Text="{Binding RemainingText}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+    </DockPanel>
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="SaveSplitButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.ReviewSplit_SaveApprove}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

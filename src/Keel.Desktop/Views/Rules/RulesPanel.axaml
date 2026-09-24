@@ -1,0 +1,120 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Rules.RulesPanel"
+             x:DataType="rules:RulesViewModel">
+  <UserControl.Styles>
+    <Style Selector="Border.ruleRow">
+      <Setter Property="Padding" Value="8,8" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.ruleRow.dropTarget">
+      <Setter Property="Background" Value="{DynamicResource Keel.NavSelected}" />
+    </Style>
+    <Style Selector="Border.ruleRow.disabled TextBlock.ruleName">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    </Style>
+    <Style Selector="Button.rowTool">
+      <Setter Property="Padding" Value="4" />
+      <Setter Property="MinWidth" Value="26" />
+      <Setter Property="MinHeight" Value="26" />
+    </Style>
+  </UserControl.Styles>
+  <DockPanel>
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+        <Button x:Name="ApplyAllRulesButton" Command="{Binding ApplyAllCommand}" IsVisible="{Binding HasRules}" Content="{x:Static res:Strings.Rules_ApplyAll}" />
+        <Button x:Name="NewRuleButton" Classes="accent" Command="{Binding NewRuleCommand}" AutomationProperties.Name="{x:Static res:Strings.Rules_NewRule}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Plus}" Width="14" Height="14" />
+            <TextBlock Text="{x:Static res:Strings.Rules_NewRule}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+      <TextBlock Classes="secondary" Text="{Binding CountText}" VerticalAlignment="Center" IsVisible="{Binding HasRules}" />
+    </DockPanel>
+
+    <Panel>
+      <ItemsControl x:Name="RuleRows" ItemsSource="{Binding Rules}" IsVisible="{Binding HasRules}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="rules:RuleRowViewModel">
+            <Border Classes="ruleRow" Classes.disabled="{Binding !IsEnabled}" DragDrop.AllowDrop="True" Tag="{Binding}">
+              <Grid ColumnDefinitions="Auto,28,Auto,*,Auto">
+                <Border x:Name="DragHandle" Classes="dragHandle" Background="Transparent" Width="20" Cursor="SizeAll" VerticalAlignment="Center"
+                        ToolTip.Tip="{x:Static res:Strings.Rules_DragHandle}" Tag="{Binding}">
+                  <controls:Icon Data="{StaticResource Icon.Menu}" Width="14" Height="14" Foreground="{DynamicResource Keel.TextSecondary}" />
+                </Border>
+                <TextBlock Grid.Column="1" Classes="secondary" Text="{Binding Position}" FontFeatures="+tnum" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <ToggleSwitch Grid.Column="2" IsChecked="{Binding IsEnabled}" OnContent="" OffContent="" MinWidth="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                              AutomationProperties.Name="{x:Static res:Strings.Rules_Enabled}" ToolTip.Tip="{x:Static res:Strings.Rules_Enabled}" />
+                <StackPanel Grid.Column="3" Spacing="2" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Classes="ruleName" Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Rules_Continues}" IsVisible="{Binding Continues}" VerticalAlignment="Center" />
+                    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding MatchCountText}" IsVisible="{Binding HasMatchCount}" VerticalAlignment="Center" />
+                    <ProgressBar IsIndeterminate="True" Width="60" MinWidth="60" IsVisible="{Binding IsCounting}" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <TextBlock Classes="secondary" Text="{Binding Summary}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+                  <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding HasProblems}">
+                    <controls:Icon Data="{StaticResource Icon.Bell}" Width="12" Height="12" Foreground="{DynamicResource Keel.Negative}" />
+                    <TextBlock Classes="error" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap">
+                      <Run Text="{x:Static res:Strings.Rules_Invalid}" /><Run Text=" " /><Run Text="{Binding ProblemText}" />
+                    </TextBlock>
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" Margin="8,0,0,0">
+                  <Button Classes="rowTool" Command="{Binding Owner.MoveUpCommand}" CommandParameter="{Binding}"
+                          IsEnabled="{Binding !IsFirst}" ToolTip.Tip="{x:Static res:Strings.Rules_MoveUp}" AutomationProperties.Name="{x:Static res:Strings.Rules_MoveUp}">
+                    <controls:Icon Data="{StaticResource Icon.ArrowUp}" Width="14" Height="14" />
+                  </Button>
+                  <Button Classes="rowTool" Command="{Binding Owner.MoveDownCommand}" CommandParameter="{Binding}"
+                          IsEnabled="{Binding !IsLast}" ToolTip.Tip="{x:Static res:Strings.Rules_MoveDown}" AutomationProperties.Name="{x:Static res:Strings.Rules_MoveDown}">
+                    <controls:Icon Data="{StaticResource Icon.ArrowDown}" Width="14" Height="14" />
+                  </Button>
+                  <Button Classes="rowTool" Command="{Binding Owner.CountMatchesCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Rules_CountMatches}" AutomationProperties.Name="{x:Static res:Strings.Rules_CountMatches}">
+                    <controls:Icon Data="{StaticResource Icon.Search}" Width="14" Height="14" />
+                  </Button>
+                  <Button Classes="rowTool" Command="{Binding Owner.ApplyToExistingCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Rules_ApplyToExisting}" AutomationProperties.Name="{x:Static res:Strings.Rules_ApplyToExisting}">
+                    <controls:Icon Data="{StaticResource Icon.Sync}" Width="14" Height="14" />
+                  </Button>
+                  <Button Classes="rowTool" Command="{Binding Owner.EditCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Rules_Edit}" AutomationProperties.Name="{x:Static res:Strings.Rules_Edit}">
+                    <controls:Icon Data="{StaticResource Icon.Edit}" Width="14" Height="14" />
+                  </Button>
+                  <Button Classes="rowTool" Command="{Binding Owner.DeleteCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Rules_Delete}" AutomationProperties.Name="{x:Static res:Strings.Rules_Delete}">
+                    <controls:Icon Data="{StaticResource Icon.Trash}" Width="14" Height="14" />
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <StackPanel x:Name="RulesEmpty" Spacing="8" Margin="0,8" IsVisible="{Binding IsEmpty}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <controls:Icon Data="{StaticResource Icon.Filter}" Width="18" Height="18" Foreground="{DynamicResource Keel.TextSecondary}" />
+          <TextBlock Text="{Binding EmptyHeading}" FontWeight="SemiBold" VerticalAlignment="Center" />
+        </StackPanel>
+        <TextBlock Classes="secondary" Text="{Binding EmptyMessage}" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoading}">
+        <ProgressBar IsIndeterminate="True" Width="120" VerticalAlignment="Center" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Rules_Loading}" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel Spacing="8" IsVisible="{Binding HasError}">
+        <TextBlock Classes="error" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+        <Button Command="{Binding RetryCommand}" Content="{x:Static res:Strings.Rules_Retry}" />
+      </StackPanel>
+    </Panel>
+  </DockPanel>
+</UserControl>

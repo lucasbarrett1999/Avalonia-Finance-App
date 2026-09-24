@@ -45,7 +45,8 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         DialogService dialogs,
         StatusService status,
         IMessenger messenger,
-        ImportWorkflow import)
+        ImportWorkflow import,
+        IRegisterQuery register)
     {
         ArgumentNullException.ThrowIfNull(navigation);
         _import = import;
@@ -86,6 +87,7 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         _navigation.Navigated += OnNavigated;
         _navigation.NavigateTo<HomeViewModel>();
         AccountsLoading = session.BudgetFile is null ? Task.CompletedTask : RefreshAccountsAsync();
+        StartReviewBadge(register, session.BudgetFile is not null);
     }
 
     /// <summary>In-window dialogs.</summary>
@@ -131,7 +133,11 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
 
     /// <inheritdoc />
     public void Receive(LedgerChanged message) =>
-        Dispatcher.UIThread.Post(() => AccountsLoading = RefreshAccountsAsync());
+        Dispatcher.UIThread.Post(() =>
+        {
+            AccountsLoading = RefreshAccountsAsync();
+            ReviewBadgeLoading = RefreshReviewBadgeAsync();
+        });
 
     /// <summary>Reloads the Accounts section of the sidebar.</summary>
     public async Task RefreshAccountsAsync()

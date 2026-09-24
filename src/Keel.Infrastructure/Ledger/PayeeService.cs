@@ -1,3 +1,4 @@
+using Keel.Application.Ledger;
 using Keel.Application.Payees;
 using Keel.Application.Undo;
 using Keel.Domain.Ledger;
@@ -117,4 +118,88 @@ public sealed class PayeeService(IDbContextFactory<KeelDbContext> factory, Ledge
         text.Replace("\\", "\\\\", StringComparison.Ordinal)
             .Replace("%", "\\%", StringComparison.Ordinal)
             .Replace("_", "\\_", StringComparison.Ordinal);
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<PayeeListItem>> ListAsync(string? search, int limit, CancellationToken ct) => Task.Run(
+        async () =>
+        {
+            var db = factory.CreateDbContext();
+            await using (db.ConfigureAwait(false))
+            {
+                var query = db.Payees.AsNoTracking().Where(p => p.IsTransferPayeeForAccountId == null);
+                var normalized = PayeeNames.Normalize(search);
+                if (normalized.Length > 0)
+                {
+                    var pattern = "%" + EscapeLike(normalized) + "%";
+                    query = query.Where(p => EF.Functions.Like(p.NormalizedName, pattern, "\\"));
+                }
+
+                var rows = await query
+                    .OrderBy(p => p.NormalizedName)
+                    .Take(Math.Max(1, limit))
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Name,
+                        p.DefaultCategoryId,
+                        CategoryName = db.Categories.Where(c => c.Id == p.DefaultCategoryId).Select(c => c.Name).FirstOrDefault(),
+                        Uses = db.Transactions.Count(t => t.PayeeId == p.Id),
+                    })
+                    .ToListAsync(ct).ConfigureAwait(false);
+                IReadOnlyList<PayeeListItem> result = rows
+                    .Select(r => new PayeeListItem(r.Id, r.Name, r.DefaultCategoryId, r.CategoryName, r.Uses))
+                    .ToList();
+                return result;
+            }
+        },
+        ct);
+
+    /// <inheritdoc />
+    public Task SetDefaultCategoryAsync(Guid payeeId, Guid? categoryId, CancellationToken ct) =>
+        writer.RunAsync(
+            LedgerAction.UpdatePayee,
+            async session =>
+            {
+                var payee = await session.Db.Payees.SingleOrDefaultAsync(p => p.Id == payeeId, ct).ConfigureAwait(false)
+                    ?? throw new LedgerValidationException(LedgerError.PayeeNotFound);
+                await LedgerLookups.EnsureCategoryAsync(session.Db, categoryId, ct).ConfigureAwait(false);
+                payee.DefaultCategoryId = categoryId;
+                return true;
+            },
+            ct);
+
+    /// <inheritdoc />
+    public Task<PayeeDto> RenameAsync(Guid payeeId, string name, CancellationToken ct)
+    {
+        var clean = PayeeNames.Clean(name);
+        if (clean.Length == 0)
+        {
+            throw new LedgerValidationException(LedgerError.PayeeNameRequired);
+        }
+
+        return writer.RunAsync(
+            LedgerAction.UpdatePayee,
+            async session =>
+            {
+                var db = session.Db;
+                var payee = await db.Payees.SingleOrDefaultAsync(p => p.Id == payeeId, ct).ConfigureAwait(false)
+                    ?? throw new LedgerValidationException(LedgerError.PayeeNotFound);
+                var normalized = PayeeNames.Normalize(clean);
+                var other = await db.Payees.SingleOrDefaultAsync(p => p.NormalizedName == normalized && p.Id != payeeId, ct).ConfigureAwait(false);
+                if (other is null)
+                {
+                    payee.Name = clean;
+                    payee.NormalizedName = normalized;
+                    return new PayeeDto(payee.Id, payee.Name, payee.DefaultCategoryId);
+                }
+
+                // The name is taken: this payee's transactions join that payee (F-TXN-9 rename is retroactive).
+                var rows = await db.Transactions.IgnoreQueryFilters().Where(t => t.PayeeId == payeeId).ToListAsync(ct).ConfigureAwait(false);
+                rows.ForEach(t => t.PayeeId = other.Id);
+                other.DefaultCategoryId ??= payee.DefaultCategoryId;
+                db.Payees.Remove(payee);
+                return new PayeeDto(other.Id, other.Name, other.DefaultCategoryId);
+            },
+            ct);
+    }
 }
