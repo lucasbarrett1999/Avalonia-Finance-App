@@ -59,6 +59,10 @@ dotnet test tests/Keel.Desktop.Tests --filter BudgetTests --logger "console;verb
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Reports|FullyQualifiedName~Goals" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter ReportsGoalsHomeTests
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests
+# M5 bills, scheduling, alerts and forecast: services on real SQLite, headless flows, screenshots
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Infrastructure.Tests.Recurring"
+dotnet test tests/Keel.Desktop.Tests --filter BillsScheduleAlertsTests
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter M5RenderingTests
 # M3 import pipeline: service tests on real SQLite (with the 10k-row timing), dialogs, benchmarks
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Import.Pipeline" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter "ImportDialogTests|Import_dialogs_render"
@@ -110,7 +114,7 @@ src/
                         IImportCategorizationHook + ImportDraft (M4 rules/learner seam), IImportSettingsStore
                         (RememberedCsvMapping), ImportBatchBuilder (ParseResult to batch), CsvDateFormats.
                         Recurring/ (IRecurringService), Scheduling/ (IScheduledTransactionService), Forecast/
-                        (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs, not yet implemented.
+                        (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs (implemented in Infrastructure, M5).
                         Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
                         learner; CategorizationResult with suggestions and CategorizationTrace, ADR 0022).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
@@ -135,6 +139,10 @@ src/
                         M3 pipeline: ImportService (F-TXN-1 steps 1-7), ImportPlanner (dedup, payees, hooks,
                         transfers; shared by preview and import), BulkLedgerInsert (ADR 0052),
                         NoOpImportCategorizationHook, ImportSettingsStore (Setting table, ADR 0051).
+                        M5 services (ADR 0035): Recurring/ (RecurringService: detection runs, item actions, totals,
+                        F-REC-4 targets, import watermark; RecurringInputs; DataFileSettings + M5Lookups), Scheduling/
+                        (ScheduledTransactionService, ScheduleRules: explicit rules anchored at NextDate), Alerts/AlertService,
+                        Forecast/ForecastService (per-day cache keyed by the audit-log position).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -158,6 +166,13 @@ src/
                         M3: ViewModels/Import/ (ImportWorkflow, IImportFilePicker + StorageImportFilePicker,
                         CsvMappingViewModel, ImportPreviewViewModel) + Views/Import/ (CsvMappingView, ImportPreviewView);
                         entry points: register header ImportFileButton, sidebar account menu "Import file…".
+                        M5: ViewModels/Bills/ (BillsViewModel page, rows, calendar, detail, RecurringItemEditor,
+                        ScheduledTransactionEditor with the recurrence builder, ScheduledPrompt, ScheduledGhosts +
+                        ScheduleEditorLauncher) + Views/BillsView, Views/Bills/ (dialogs, BillHistoryChart);
+                        ViewModels/Alerts/ + Views/Alerts/ (NotificationCenter under the top-bar bell);
+                        ViewModels/Forecast/ForecastReportViewModel (namespace ...Reports) + Views/Reports/ForecastReportView;
+                        ViewModels/Home/HomeViewModel.Recurring.cs (Upcoming bills and Forecast cards); Styles/Bills.axaml;
+                        Services/RecurringJobs (scheduled entry, daily and post-import detection, forecast invalidation).
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
@@ -178,6 +193,9 @@ tests/
                               wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
                               M3: ImportDialogTests (FakeFilePicker; mapping, preview, register and sidebar entry
                               points, undo from the toast), import dialogs in RenderingTests.
+                              M5: BillsScheduleAlertsTests (Bills tabs and confirm, schedule builder to ghost row to entry,
+                              startup prompt, bell badge/dismiss/navigate, forecast floor list and explain, Home cards),
+                              M5RenderingTests (Bills tabs, empty state, dialogs, bell panel, forecast, Home, ghost rows).
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
                               M1: RegisterBenchmarks over the 100k fixture.
                               M3: ImportBenchmarks (10k-row CSV parse, first import, all-duplicate re-import).
@@ -195,6 +213,10 @@ tests/
                               CategorizationEngine (this project references Keel.Application for it).
   Keel.Infrastructure.Tests/Budgeting/  Aggregation against hand-built SQLite ledgers, BudgetService, 3-month
                               end-to-end golden, 100k-transaction month-switch timing.
+  Keel.Infrastructure.Tests/Recurring/  M5 services on real SQLite (M5TestLedger, dates relative to today): detection to
+                              items (re-runs, dismissed, re-enable, undo), totals and targets, scheduled entry (auto,
+                              prompt, transfers, undo, interval phase), post-import detection, alert idempotence, forecast
+                              inputs, cache and settings.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
 .github/workflows/ci.yml  Build+test on windows/macos/ubuntu, format check, vulnerable-package scan.
 ```
@@ -325,8 +347,8 @@ From PRD 15, plus decisions made while building M0.
   Every chart has a legend or table with names and values (colour is never the only signal) and every
   chart element and table row drills down (usually to the register through `RegisterNavigation`).
 - Headless captures must wait for LiveCharts' throttled redraw (a few dispatcher cycles with short delays).
-- Upcoming bills and the forecast low point on Home are the only placeholders; wire them to the
-  recurring and forecast services when those land (M5).
+- Upcoming bills and the forecast low point on Home come from the recurring, scheduling and forecast
+  services (M5); no dashboard card is a placeholder any more.
 **Recurring, scheduling and forecast (M5)**
 - Recurrence rules are stored in canonical form (`RecurrenceRule.Parse(text).ToString()`); the
   schedule's start date is the rule's DTSTART. Days of month clamp to short months (ADR 0030).
@@ -337,6 +359,17 @@ From PRD 15, plus decisions made while building M0.
   every stored alert, dismissed ones included, to `AlertEvaluator.Evaluate`.
 - A changed recurring or forecast golden (`*.received.txt`) is reviewed by hand, then renamed to
   `*.verified.txt`.
+- Services (ADR 0035): scheduled rules are stored explicit, without COUNT/UNTIL (that is `EndDate`), and
+  evaluated from `NextDate`; only a schedule's next instance is entered or skipped, through
+  `TransactionService.SaveCoreAsync` inside the same `LedgerWriter` unit. Automatic detection runs use
+  `LedgerWriter.RunCoreAsync(..., Recording.None, ...)` (audited, not undoable); user item actions are
+  undoable. Alerts are written directly and publish `AlertsChanged`. Data-file settings for M5 live in the
+  `Setting` table through `DataFileSettings` (keys `recurring.*`, `forecast.settings`).
+- `RecurringJobs` (started by the shell) enters due schedules and prompts on start and day change, runs
+  detection once per app day and after imports (audit-log watermark), and invalidates the forecast on
+  `LedgerChanged`/`RecurringChanged`. Tests await `shell.Jobs.Running` before asserting.
+- Detail panels bound to a nullable view model use a `ContentControl` with a typed `DataTemplate`, so
+  `$parent[...]` bindings never run against a null `DataContext` (the rendering tests fail on binding warnings).
 **Rules and learner**
 - Rules are pure: `RuleEngine.Compile(rules).Apply(snapshot)`; persist only `RuleJson` output and read with
   `RuleDefinition.FromEntity` (newer formats throw `RuleFormatException`). New condition/action kinds get a new

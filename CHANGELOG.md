@@ -3,6 +3,76 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M5 — Bills, alerts, scheduling and forecast UI
+
+Second half of Milestone 5: the services behind the M5 contracts and every M5 screen (F-ACC-6,
+F-REC-1..4, F-REP-4, PRD 9.1 bell, 9.2 cards, 9.4 ghost rows, 9.6 Bills). Decisions in ADR 0035.
+
+### Added
+
+- `RecurringService`: detection on demand, once per app day and after every import (audit-log
+  watermark), decisions applied through `LedgerWriter` (audited; automatic runs not on the undo
+  stack), confirm / pause / resume / dismiss / re-enable / create / edit as undoable actions,
+  subscription designations by category group or tag (Setting table), F-REC-2 totals, occurrences
+  for the calendar and Home, F-REC-4 "create target" through `IBudgetService`.
+- `ScheduledTransactionService`: CRUD with explicit stored rules (COUNT/UNTIL become the end date),
+  next-date maintenance, due entry (auto-enter or prompt) creating `Source = Scheduled` rows with
+  `ScheduledFromId` through the ledger save path (transfers included), enter / skip one instance,
+  undo, rule check with description and next dates.
+- `AlertService`: `AlertEvaluator` proposals stored idempotently by key, read / dismiss, unread
+  count and `AlertsChanged`. `ForecastService`: engine inputs from cleared balances, schedules,
+  recurring items and (toggle) 90 days of outflows; explain per day; floor/toggle settings; cache per
+  day invalidated on `LedgerChanged`/`RecurringChanged` and by the audit-log position.
+- Bills screen: totals, Calendar (month grid, paid / expected / scheduled amounts, prev / next /
+  today), List (sortable DataGrid, status filter), Subscriptions (monthly and yearly totals, group
+  designation, price-change history), detail panel (amount history chart and table, detection
+  explanation, confirm / edit / pause / resume / dismiss / detect again, create scheduled transaction,
+  create target, item alerts, show transactions), "Run detection now", add item dialog, designed
+  empty, loading and error states.
+- Scheduled transactions: editor dialog with a recurrence builder (daily, weekly with weekdays,
+  monthly on a day or Nth weekday, twice monthly, yearly; every N; start; never / on a date / after
+  N times) showing the rule in words and the next five dates; register "Schedule" button and ghost
+  rows (italic, Enter now / Skip / Edit); startup and day-change prompt for due instances.
+- Notification center: top-bar bell with unread badge ("9+" above nine) and an in-window panel,
+  newest first, kind icons, dismiss, mark all read, open the item in Bills or the payee in the
+  register.
+- Reports: "Cash-flow forecast" (per-account and combined 90-day lines, shaded low point marker,
+  dashed floor line, floor and discretionary-spend settings, days below the floor as runs, per-day
+  "show the math", what was left out and why, CSV export). The toolbar hides the date range and
+  tracking toggle for it.
+- Home: Upcoming bills (7 days) and Forecast (sparkline of the lowest-balance account, low point,
+  days below the floor) replace the placeholders and link to Bills and the forecast report.
+- `RecurringJobs` (desktop): scheduled entry, prompt, daily and post-import detection, forecast
+  invalidation. Styles/Bills.axaml (light and dark tokens for calendar, pills, ghost rows, panel).
+- Tests: 17 Infrastructure tests on real SQLite (`Infrastructure.Tests.Recurring`), 6 headless
+  flows (`BillsScheduleAlertsTests`), 2 rendering tests (`M5RenderingTests`, 24 PNGs in light and
+  dark, reviewed).
+
+### Commands and results
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,470 passed, 0 failed: Domain 1,032, Infrastructure 364, Desktop 74 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `KEEL_SCREENSHOT_DIR=… dotnet test tests/Keel.Desktop.Tests --filter M5RenderingTests` | 2 passed; Bills (calendar, list with detail, subscriptions, empty), schedule dialog, prompt, bell panel, forecast (upper and lower), Home (upper and lower), register ghost rows, each light and dark |
+
+No packages were added. No migration: the M0 schema already had every table.
+
+### Exit criteria
+
+M5 (PRD 12): detector tests on synthetic and fixture series and the forecast golden test were met in
+the first half (see "M5 — Recurring, scheduling and forecast"); with this half the M5 scope (F-REC-1..3,
+F-ACC-6, F-REP-4 engine and report, notification center) is implemented and tested. The M6 exit
+"dashboard cards live" now holds for every card.
+
+### Not done here
+
+- No UI to designate subscription tags (the service supports them; tags are P1) and no PNG export
+  of reports (PRD 9.8, also open in M6).
+- A user edit of a detected item's amount or dates is overwritten by the next detection run (ADR 0031).
+- Windows and macOS were not run locally (GitHub-hosted runners were unavailable).
+
 ## M2 — Budget screen
 
 UI half of Milestone 2: the Budget screen (PRD 9.3, F-BUD-1..5, F-BUD-7 category notes, F-BUD-8
