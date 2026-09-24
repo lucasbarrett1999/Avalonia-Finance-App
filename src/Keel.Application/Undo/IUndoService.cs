@@ -93,4 +93,52 @@ public enum LedgerAction
 
     /// <summary>Create a category.</summary>
     CreateCategory,
+
+    /// <summary>Assign money to a category (budget).</summary>
+    AssignBudget,
+
+    /// <summary>Move money between categories (budget).</summary>
+    MoveMoney,
+
+    /// <summary>Fund underfunded targets (budget).</summary>
+    FundTargets,
+
+    /// <summary>Set a category target.</summary>
+    SetTarget,
+
+    /// <summary>Remove a category target.</summary>
+    DeleteTarget,
+
+    /// <summary>Create a category group.</summary>
+    CreateCategoryGroup,
+
+    /// <summary>Rename a category group.</summary>
+    RenameCategoryGroup,
+
+    /// <summary>Hide or show a category group.</summary>
+    HideCategoryGroup,
+
+    /// <summary>Reorder category groups.</summary>
+    ReorderCategoryGroups,
+
+    /// <summary>Delete a category group.</summary>
+    DeleteCategoryGroup,
+
+    /// <summary>Rename a category.</summary>
+    RenameCategory,
+
+    /// <summary>Hide or show a category.</summary>
+    HideCategory,
+
+    /// <summary>Move a category within or between groups.</summary>
+    MoveCategory,
+
+    /// <summary>Delete a category (re-assigning its history).</summary>
+    DeleteCategory,
+
+    /// <summary>Edit a category note.</summary>
+    EditCategoryNote,
+
+    /// <summary>Apply a starter category template.</summary>
+    ApplyCategoryTemplate,
 }

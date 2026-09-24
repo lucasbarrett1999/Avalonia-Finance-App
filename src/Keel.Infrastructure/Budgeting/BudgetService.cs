@@ -2,9 +2,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Keel.Application.Budget;
 using Keel.Application.Messaging;
+using Keel.Application.Undo;
 using Keel.Domain;
 using Keel.Domain.Budgeting;
 using Keel.Domain.Entities;
+using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,9 +17,10 @@ namespace Keel.Infrastructure.Budgeting;
 /// (<see cref="BudgetAggregationQuery"/>), computes with <see cref="BudgetCalculator"/>, and maps to
 /// DTOs. Mutations run in one short-lived context (one database transaction), write an
 /// <see cref="AuditEvent"/> per changed row with before/after JSON, and publish
-/// <see cref="BudgetChanged"/> after the commit.
+/// <see cref="BudgetChanged"/> after the commit. With an <see cref="UndoHistory"/> (the app's DI
+/// graph), each mutation also joins the session undo stack (ADR 0040).
 /// </summary>
-public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactory, IMessageBus messageBus, TimeProvider timeProvider) : IBudgetService
+public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactory, IMessageBus messageBus, TimeProvider timeProvider, UndoHistory? undoHistory = null) : IBudgetService
 {
     /// <summary>Audit entity type of assignment rows.</summary>
     public const string AssignmentEntityType = nameof(BudgetAssignment);
@@ -81,7 +84,7 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
                 return;
             }
 
-            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            await SaveAndRecordAsync(db, LedgerAction.AssignBudget, ct).ConfigureAwait(false);
         }
 
         messageBus.Publish(new BudgetChanged([month]));
@@ -118,7 +121,7 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
                 await SetAssignedAsync(db, to, month, current => checked(current + request.Amount), ct).ConfigureAwait(false);
             }
 
-            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            await SaveAndRecordAsync(db, LedgerAction.MoveMoney, ct).ConfigureAwait(false);
         }
 
         messageBus.Publish(new BudgetChanged([month]));
@@ -188,7 +191,7 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
             }
 
             Audit(db, before is null ? AuditEventKind.Created : AuditEventKind.Updated, TargetEntityType, target.CategoryId.ToString("D"), before, after);
-            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            await SaveAndRecordAsync(db, LedgerAction.SetTarget, ct).ConfigureAwait(false);
         }
 
         messageBus.Publish(new BudgetChanged([CurrentMonth()]));
@@ -208,7 +211,7 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
 
             db.Targets.Remove(row);
             Audit(db, AuditEventKind.Deleted, TargetEntityType, categoryId.ToString("D"), Serialize(ToState(row)), null);
-            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            await SaveAndRecordAsync(db, LedgerAction.DeleteTarget, ct).ConfigureAwait(false);
         }
 
         messageBus.Publish(new BudgetChanged([CurrentMonth()]));
@@ -260,7 +263,7 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
 
             if (count > 0)
             {
-                await db.SaveChangesAsync(ct).ConfigureAwait(false);
+                await SaveAndRecordAsync(db, LedgerAction.FundTargets, ct).ConfigureAwait(false);
             }
         }
 
@@ -284,6 +287,105 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
             var snapshot = BudgetCalculator.Compute(input, BudgetMonth.Add(month, -3), month);
             var status = target is null ? null : TargetCalculator.Compute(target, snapshot.Cell(categoryId, month));
             return BudgetDtoMapper.ToDto(QuickAssign.Compute(snapshot, categoryId, month, status), categoryId, month, await CurrencyAsync(db, ct).ConfigureAwait(false));
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<BudgetLedgerData> LoadLedgerAsync(DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        from = BudgetMonth.Of(from);
+        to = BudgetMonth.Of(to);
+        if (to < from)
+        {
+            throw new ArgumentException("The range ends before it starts.", nameof(to));
+        }
+
+        var db = contextFactory.CreateDbContext();
+        await using (db.ConfigureAwait(false))
+        {
+            var input = await BudgetAggregationQuery.LoadInputAsync(db, ct).ConfigureAwait(false);
+            var balances = await BudgetAggregationQuery.CardBalancesAsync(db, from, to, ct).ConfigureAwait(false);
+            var currency = await CurrencyAsync(db, ct).ConfigureAwait(false);
+
+            // Assignments are read fresh by every computation; the loaded data holds ledger aggregates only.
+            return new BudgetLedgerData(input with { Assignments = [] }, balances, currency, from, to);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<BudgetMonthDto>> GetRangeAsync(BudgetLedgerData ledger, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(ledger);
+        from = BudgetMonth.Of(from);
+        to = BudgetMonth.Of(to);
+        if (to < from || !ledger.Covers(from) || !ledger.Covers(to))
+        {
+            throw new ArgumentOutOfRangeException(nameof(to), "The range must lie within the loaded ledger data.");
+        }
+
+        var db = contextFactory.CreateDbContext();
+        await using (db.ConfigureAwait(false))
+        {
+            var input = await WithAssignmentsAsync(db, ledger, ct).ConfigureAwait(false);
+            var targets = await db.Targets.AsNoTracking().ToDictionaryAsync(t => t.CategoryId, ct).ConfigureAwait(false);
+            var snapshot = BudgetCalculator.Compute(input, from, to);
+            return [.. snapshot.Months.Select(m => BudgetDtoMapper.ToDto(m, input, targets, ledger.CardBalances[m.Month], ledger.Currency))];
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<BudgetExplanationDto> ExplainAsync(BudgetLedgerData ledger, Guid? categoryId, DateOnly month, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(ledger);
+        month = BudgetMonth.Of(month);
+        var db = contextFactory.CreateDbContext();
+        await using (db.ConfigureAwait(false))
+        {
+            var input = await WithAssignmentsAsync(db, ledger, ct).ConfigureAwait(false);
+            var snapshot = BudgetCalculator.Compute(input, month, month);
+            var explanation = categoryId is { } id ? snapshot.Explain(id, month) : snapshot.ExplainReadyToAssign(month);
+            return BudgetDtoMapper.ToDto(explanation, input, ledger.Currency);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<QuickAssignDto> GetQuickAssignAsync(BudgetLedgerData ledger, Guid categoryId, DateOnly month, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(ledger);
+        month = BudgetMonth.Of(month);
+        var db = contextFactory.CreateDbContext();
+        await using (db.ConfigureAwait(false))
+        {
+            var input = await WithAssignmentsAsync(db, ledger, ct).ConfigureAwait(false);
+            var target = await db.Targets.AsNoTracking().SingleOrDefaultAsync(t => t.CategoryId == categoryId, ct).ConfigureAwait(false);
+            var snapshot = BudgetCalculator.Compute(input, BudgetMonth.Add(month, -3), month);
+            var status = target is null ? null : TargetCalculator.Compute(target, snapshot.Cell(categoryId, month));
+            return BudgetDtoMapper.ToDto(QuickAssign.Compute(snapshot, categoryId, month, status), categoryId, month, ledger.Currency);
+        }
+    }
+
+    private static async Task<BudgetInput> WithAssignmentsAsync(KeelDbContext db, BudgetLedgerData ledger, CancellationToken ct)
+    {
+        var assignments = await db.BudgetAssignments.AsNoTracking()
+            .Select(a => new AssignmentTotal(a.CategoryId, a.Month, a.Assigned))
+            .ToListAsync(ct).ConfigureAwait(false);
+        return ledger.Input with { Assignments = assignments };
+    }
+
+    // Saves, then records the assignment and target rows the save changed as one undoable action.
+    private async Task SaveAndRecordAsync(KeelDbContext db, LedgerAction action, CancellationToken ct)
+    {
+        var changes = undoHistory is null
+            ? []
+            : EntityChange.Coalesce(db.ChangeTracker.Entries()
+                .Where(e => e.Entity is BudgetAssignment or Target && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .Select(EntityChange.Capture)
+                .OfType<EntityChange>()
+                .ToList());
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        if (changes.Count > 0)
+        {
+            undoHistory!.Record(new UndoEntry(action, changes));
         }
     }
 

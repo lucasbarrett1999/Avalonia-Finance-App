@@ -42,6 +42,24 @@ public interface IBudgetService
 
     /// <summary>Values for the quick-assign actions of a category (F-BUD-5).</summary>
     Task<QuickAssignDto> GetQuickAssignAsync(Guid categoryId, DateOnly month, CancellationToken ct);
+
+    /// <summary>
+    /// Loads the ledger-derived inputs of the budget (accounts, groups, categories, aggregated
+    /// activity, card payments, and card balances for <paramref name="from"/>..<paramref name="to"/>)
+    /// once. A screen keeps the result and recomputes with the overloads below after assignment or
+    /// target changes, which read only assignments and targets (ADR 0040); it loads again after
+    /// <see cref="Messaging.LedgerChanged"/>.
+    /// </summary>
+    Task<BudgetLedgerData> LoadLedgerAsync(DateOnly from, DateOnly to, CancellationToken ct);
+
+    /// <summary>Computes the grid from loaded ledger data plus the current assignments and targets (months within the loaded range).</summary>
+    Task<IReadOnlyList<BudgetMonthDto>> GetRangeAsync(BudgetLedgerData ledger, DateOnly from, DateOnly to, CancellationToken ct);
+
+    /// <summary><see cref="ExplainAsync(Guid?, DateOnly, CancellationToken)"/> over loaded ledger data.</summary>
+    Task<BudgetExplanationDto> ExplainAsync(BudgetLedgerData ledger, Guid? categoryId, DateOnly month, CancellationToken ct);
+
+    /// <summary><see cref="GetQuickAssignAsync(Guid, DateOnly, CancellationToken)"/> over loaded ledger data.</summary>
+    Task<QuickAssignDto> GetQuickAssignAsync(BudgetLedgerData ledger, Guid categoryId, DateOnly month, CancellationToken ct);
 }
 
 /// <summary>How a category is overspent (6.4.4); drives red/yellow colouring.</summary>
@@ -195,3 +213,23 @@ public sealed record ExplanationLineDto(
     Guid? CategoryId,
     string? CategoryName,
     DateOnly? Month);
+
+/// <summary>
+/// The ledger-derived part of the budget, loaded once by <see cref="IBudgetService.LoadLedgerAsync"/>
+/// and passed back to its overloads. View models treat it as opaque.
+/// </summary>
+/// <param name="Input">Calculator input without assignments (accounts, groups, categories, activity, card transfers).</param>
+/// <param name="CardBalances">Ledger balance of each on-budget credit account at the end of each loaded month.</param>
+/// <param name="Currency">Budget currency.</param>
+/// <param name="From">First loaded month.</param>
+/// <param name="To">Last loaded month.</param>
+public sealed record BudgetLedgerData(
+    BudgetInput Input,
+    IReadOnlyDictionary<DateOnly, Dictionary<Guid, long>> CardBalances,
+    string Currency,
+    DateOnly From,
+    DateOnly To)
+{
+    /// <summary>Whether <paramref name="month"/> lies in the loaded range.</summary>
+    public bool Covers(DateOnly month) => BudgetMonth.Of(month) >= From && BudgetMonth.Of(month) <= To;
+}
