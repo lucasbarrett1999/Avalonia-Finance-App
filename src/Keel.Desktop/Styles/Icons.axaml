@@ -40,4 +40,5 @@
   <StreamGeometry x:Key="Icon.ArrowDown">M12 5 V19 M19 12 L12 19 L5 12</StreamGeometry>
   <StreamGeometry x:Key="Icon.Circle">M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 Z</StreamGeometry>
   <StreamGeometry x:Key="Icon.Snapshot">M12 20 V10 M18 20 V4 M6 20 V16 M2 20 H22</StreamGeometry>
+  <StreamGeometry x:Key="Icon.Import">M21 15 V19 A2 2 0 0 1 19 21 H5 A2 2 0 0 1 3 19 V15 M7 10 L12 15 L17 10 M12 15 V3</StreamGeometry>
 </ResourceDictionary>

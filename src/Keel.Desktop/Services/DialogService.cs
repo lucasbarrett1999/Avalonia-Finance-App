@@ -11,7 +11,11 @@ public sealed partial class DialogService : ObservableObject
 {
     /// <summary>The dialog on screen, or null.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CurrentMaxWidth))]
     public partial DialogViewModel? Current { get; private set; }
+
+    /// <summary>Widest the dialog layer lets the current dialog be.</summary>
+    public double CurrentMaxWidth => Current?.PreferredMaxWidth ?? 560;
 
     /// <summary>Shows <paramref name="dialog"/> and completes when it closes; true when confirmed.</summary>
     public async Task<bool> ShowAsync(DialogViewModel dialog)
