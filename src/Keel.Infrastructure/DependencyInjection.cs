@@ -3,6 +3,7 @@ using Keel.Application.Budget;
 using Keel.Application.Categories;
 using Keel.Application.Files;
 using Keel.Application.Goals;
+using Keel.Application.Import;
 using Keel.Application.Ledger;
 using Keel.Application.Payees;
 using Keel.Application.Reports;
@@ -11,6 +12,7 @@ using Keel.Application.Undo;
 using Keel.Infrastructure.Budgeting;
 using Keel.Infrastructure.Files;
 using Keel.Infrastructure.Goals;
+using Keel.Infrastructure.Import;
 using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
 using Keel.Infrastructure.Reports;
@@ -53,6 +55,10 @@ public static class DependencyInjection
         services.AddSingleton<IBudgetService, BudgetService>();
         services.AddSingleton<IReportService, ReportService>();
         services.AddSingleton<IGoalService, GoalService>();
+        services.AddKeelFileImportParsers();
+        services.AddSingleton<IImportCategorizationHook, NoOpImportCategorizationHook>();
+        services.AddSingleton<IImportService, ImportService>();
+        services.AddSingleton<IImportSettingsStore, ImportSettingsStore>();
         return services;
     }
 }

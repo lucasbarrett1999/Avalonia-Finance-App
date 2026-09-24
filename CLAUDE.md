@@ -56,6 +56,10 @@ KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter Impo
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Reports|FullyQualifiedName~Goals" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter ReportsGoalsHomeTests
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests
+# M3 import pipeline: service tests on real SQLite (with the 10k-row timing), dialogs, benchmarks
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Import.Pipeline" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter "ImportDialogTests|Import_dialogs_render"
+dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*ImportBenchmarks*' --job short
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -98,6 +102,10 @@ src/
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
                         Reports/IReportService (spending, income vs expense, net worth DTOs), Goals/IGoalService (M6).
+                        M3 pipeline: IImportService (ImportBatch, IncomingTransaction, ImportPreview(+Row),
+                        ImportSummary, ImportRowOverride, DedupOutcomes maps the domain DedupDecision),
+                        IImportCategorizationHook + ImportDraft (M4 rules/learner seam), IImportSettingsStore
+                        (RememberedCsvMapping), ImportBatchBuilder (ParseResult to batch), CsvDateFormats.
                         Recurring/ (IRecurringService), Scheduling/ (IScheduledTransactionService), Forecast/
                         (IForecastService), Alerts/ (IAlertService): M5 contracts and DTOs, not yet implemented.
                         Categorization/: ICategorizationEngine + CategorizationEngine (rules, payee default 0.95,
@@ -118,6 +126,10 @@ src/
                         AddKeelFileImportParsers (not yet wired into AddKeelInfrastructure).
                         Reports/ReportService (raw-SQL GROUP BY report queries, ADR 0060), Goals/GoalService (goals over
                         the category and budget services) (M6).
+                        AddKeelFileImportParsers (called by AddKeelInfrastructure since the M3 pipeline).
+                        M3 pipeline: ImportService (F-TXN-1 steps 1-7), ImportPlanner (dedup, payees, hooks,
+                        transfers; shared by preview and import), BulkLedgerInsert (ADR 0052),
+                        NoOpImportCategorizationHook, ImportSettingsStore (Setting table, ADR 0051).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -134,6 +146,9 @@ src/
                         card records), Styles/Charts.axaml (palette, chart chrome, report icons), Controls/ (ChartPalette,
                         ChartSwatch, ChartSparkline, GoalProgressRing, ReportChartKit, ReportIconConverter). The page view
                         models live in those folders but keep the Keel.Desktop.ViewModels namespace (ViewLocator).
+                        M3: ViewModels/Import/ (ImportWorkflow, IImportFilePicker + StorageImportFilePicker,
+                        CsvMappingViewModel, ImportPreviewViewModel) + Views/Import/ (CsvMappingView, ImportPreviewView);
+                        entry points: register header ImportFileButton, sidebar account menu "Import file…".
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
@@ -141,14 +156,20 @@ tests/
                               M1: Ledger/ service tests (LedgerTestHost = real DI over a temp file),
                               register paging/running balance/search, undo, fixture + 100k timing.
                               Import/: parser unit tests and Fixtures/ (bank files + .expected.json).
+                              M3: Import/Pipeline/ (ImportKit helpers; every fixture imported twice through the
+                              service, F-TXN-2 acceptance, fuzzy match, transfers, undo, mapping memory, CsCheck
+                              import-twice property, 10k-row timing in a non-parallel collection).
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
                               M6: ReportsGoalsHomeTests (drill-downs incl. a real donut click, CSV export, goal
                               wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
+                              M3: ImportDialogTests (FakeFilePicker; mapping, preview, register and sidebar entry
+                              points, undo from the toast), import dialogs in RenderingTests.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
                               M1: RegisterBenchmarks over the 100k fixture.
+                              M3: ImportBenchmarks (10k-row CSV parse, first import, all-duplicate re-import).
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
                               reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
                               (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
@@ -260,6 +281,18 @@ From PRD 15, plus decisions made while building M0.
   `.gitattributes`) and its reviewed `.expected.json`.
 - `PayeeNoiseTable` feeds stored fingerprints: bump `PayeeNormalizer.Version` when it changes
   (ADR 0005). Every table entry has a test.
+- Every import source calls `IImportService.ImportTransactionsAsync(source, batch)`; never insert
+  imported rows another way. Dedup, payee resolution, hooks and transfer detection live in
+  `ImportPlanner`, which the preview and the import share, so a preview always matches its import.
+- Rules and the learner plug in as an `IImportCategorizationHook` registered in DI (all hooks run in
+  order; the no-op default stays). Hooks must not write; they also run during previews.
+- New imported rows are written by `BulkLedgerInsert` (ADR 0052): the one allowed raw-SQL ledger
+  write, because it records the same row snapshots and audit rows as `LedgerSession.SaveAsync`.
+  Columns and converters come from the EF model; add nothing hand-written there.
+- Import memory (CSV mapping per account with its header row, last folder) is in the `Setting`
+  table through `IImportSettingsStore`, not audited or undone (ADR 0051).
+- Desktop: the import flow is `ImportWorkflow`; tests swap `ImportWorkflow.FilePicker` for a fake.
+  Wide dialogs override `DialogViewModel.PreferredMaxWidth`.
 
 **Reports, goals and dashboard (M6)**
 - Report numbers come only from `IReportService` (raw SQL `GROUP BY`, never row loads); the counting

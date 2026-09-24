@@ -162,6 +162,15 @@ public enum ImportWarningCode
 
     /// <summary>The file contains no transactions.</summary>
     NoTransactions,
+
+    /// <summary>An update would change a reconciled transaction; the stored row was left unchanged.</summary>
+    ReconciledNotUpdated,
+
+    /// <summary>A row's currency differs from the account's; the row was skipped.</summary>
+    CurrencyMismatch,
+
+    /// <summary>The file describes several accounts; only the chosen one was imported.</summary>
+    OtherAccountsInFile,
 }
 
 /// <summary>A parse warning.</summary>

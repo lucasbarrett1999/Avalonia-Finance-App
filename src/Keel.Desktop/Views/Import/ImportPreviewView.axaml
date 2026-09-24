@@ -1,0 +1,122 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:imp="using:Keel.Desktop.ViewModels.Import"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Import.ImportPreviewView"
+             x:DataType="imp:ImportPreviewViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" Width="1040">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold"
+               TextTrimming="CharacterEllipsis" />
+    <DockPanel>
+      <StackPanel DockPanel.Dock="Right" Margin="16,0,0,0" IsVisible="{Binding HasStatements}">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.ImportPreview_Statement}" />
+        <ComboBox x:Name="StatementBox" MinWidth="220" ItemsSource="{Binding Statements}" SelectedItem="{Binding SelectedStatement}"
+                  AutomationProperties.Name="{x:Static res:Strings.ImportPreview_Statement}" />
+      </StackPanel>
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.ImportPreview_Intro}" TextWrapping="Wrap" VerticalAlignment="Center" />
+    </DockPanel>
+
+    <Border x:Name="WarningsBar" Classes="warning" IsVisible="{Binding HasWarnings}">
+      <ItemsControl ItemsSource="{Binding Warnings}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="x:String">
+            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </Border>
+
+    <Panel Height="380">
+      <DataGrid x:Name="PreviewGrid" Classes="register" ItemsSource="{Binding Rows}" IsVisible="{Binding !IsEmpty}"
+                AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" CanUserSortColumns="False"
+                CanUserReorderColumns="False" CanUserResizeColumns="True" AutomationProperties.Name="{Binding Title}">
+        <DataGrid.Columns>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColImport}" Width="88">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <CheckBox HorizontalAlignment="Center" MinWidth="0" Padding="0" IsChecked="{Binding Include}" IsEnabled="{Binding CanOverride}"
+                          AutomationProperties.Name="{Binding IncludeName}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColStatus}" Width="166">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <TextBlock Classes="cell" Classes.muted="{Binding !Include}" Text="{Binding StatusText}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColDate}" Width="108">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <TextBlock Classes="cell" Classes.muted="{Binding !Include}" Text="{Binding Date}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColPayee}" Width="2*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <TextBlock Classes="cell" Classes.muted="{Binding !Include}" Text="{Binding Payee}" ToolTip.Tip="{Binding RawPayee}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColCategory}" Width="*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <TextBlock Classes="cell" Classes.muted="{Binding !Include}" Text="{Binding Category}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColMemo}" Width="0.8*">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <TextBlock Classes="cell muted" Text="{Binding Memo}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColAmount}" Width="110">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <TextBlock Classes="cell amount" Classes.negative="{Binding IsNegative}" Classes.muted="{Binding !Include}"
+                           Text="{Binding AmountText}" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static res:Strings.ImportPreview_ColTransfer}" Width="180">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="imp:ImportPreviewRowViewModel">
+                <CheckBox Margin="8,0,0,0" MinWidth="0" IsVisible="{Binding HasTransfer}" IsEnabled="{Binding CanPair}"
+                          IsChecked="{Binding PairTransfer}" AutomationProperties.Name="{Binding PairName}">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <controls:Icon Data="{StaticResource Icon.Transfer}" Width="14" Height="14" />
+                    <TextBlock Text="{Binding TransferText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  </StackPanel>
+                </CheckBox>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+      <TextBlock Classes="secondary" IsVisible="{Binding IsEmpty}" Text="{x:Static res:Strings.ImportPreview_Empty}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Panel>
+
+    <StackPanel Spacing="2">
+      <TextBlock x:Name="TotalsText" Text="{Binding TotalsText}" TextWrapping="Wrap" />
+      <TextBlock Classes="secondary" Text="{Binding NetText}" FontSize="{StaticResource Keel.FontSize.Small}" />
+      <TextBlock Classes="secondary" Text="{Binding ReportedBalanceText}" IsVisible="{Binding HasReportedBalance}"
+                 FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="ImportButton" Classes="accent" Command="{Binding ConfirmCommand}" IsDefault="True"
+              IsEnabled="{Binding !IsBusy}" Content="{Binding ImportButtonText}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

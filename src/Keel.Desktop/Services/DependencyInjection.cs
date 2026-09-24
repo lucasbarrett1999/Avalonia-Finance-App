@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Keel.Application.Messaging;
 using Keel.Application.Navigation;
 using Keel.Desktop.ViewModels;
+using Keel.Desktop.ViewModels.Import;
 using Keel.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -37,6 +38,8 @@ public static class DependencyInjection
         services.AddSingleton<SettingsViewModel>();
 
         services.AddTransient<ShellWindow>();
+        services.AddSingleton<IImportFilePicker, StorageImportFilePicker>();
+        services.AddSingleton<ImportWorkflow>();
         return services;
     }
 }
