@@ -52,6 +52,9 @@ dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
 # Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
 KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
+# M2 budget screen: headless grid flows (assign, Tab/Enter, move money, drag, targets, fund, months,
+# 6.4.7 numbers) and the month-switch timing over the 100k fixture
+dotnet test tests/Keel.Desktop.Tests --filter BudgetTests --logger "console;verbosity=detailed"
 # M6 reports, goals, dashboard: report query rules and 100k timings, headless flows, screenshots
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Reports|FullyQualifiedName~Goals" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter ReportsGoalsHomeTests
@@ -120,6 +123,8 @@ src/
                         Fixtures/LedgerFixtureGenerator (deterministic 100k-transaction ledger).
                         Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0008),
                         BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
+                        M2 screen: BudgetService.LoadLedgerAsync + overloads over BudgetLedgerData and budget undo
+                        entries (ADR 0041); CategoryService group/category management, notes, templates (ADR 0042).
                         Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
                         DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
                         OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
@@ -140,6 +145,10 @@ src/
                         virtual collection view, rows, TransactionEditorViewModel, ReconcileViewModel),
                         ViewModels/Dialogs/ + Views/Dialogs/ (in-window dialogs), SidebarAccountViewModel,
                         Controls/MoneyTextBox, Services/ (DialogService, StatusService, LedgerText), Styles/Register.
+                        M2 budget screen: ViewModels/Budget/ (BudgetViewModel: range load + in-memory month switch,
+                        row view models and cell cursor, BudgetInspectorViewModel, MoveMoney/QuickAssign/ManageCategories
+                        dialogs, BudgetTemplate, BudgetText), Views/BudgetView (custom hierarchical grid, ADR 0040),
+                        Views/Budget/ (inspector and dialogs), Controls/BudgetSparkline, Styles/Budget.
                         M6: ViewModels/Reports/ (ReportsViewModel page + Spending/IncomeExpense/NetWorth report view
                         models, ReportFormat incl. CSV), Views/Reports/ (LiveCharts views), ViewModels/Goals/ (GoalsViewModel,
                         GoalCardViewModel, NewGoalViewModel wizard) + Views/Goals/, ViewModels/Home/ (HomeViewModel dashboard,
@@ -163,6 +172,8 @@ tests/
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
+                              M2: BudgetTests (BudgetTestLedger = PRD 6.4.7 through the real services), budget
+                              rendering with fixture data, dialogs and month picker in both themes.
                               M6: ReportsGoalsHomeTests (drill-downs incl. a real donut click, CSV export, goal
                               wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
                               M3: ImportDialogTests (FakeFilePicker; mapping, preview, register and sidebar entry
@@ -272,6 +283,16 @@ From PRD 15, plus decisions made while building M0.
 - Dialogs are in-window (`DialogService.ShowAsync(DialogViewModel)` rendered by the shell's dialog
   layer through the view locator); the status strip (`StatusService`) carries the undo toast.
 - Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
+- A form that saves on Enter from a `MoneyTextBox` handles `KeyDown` on the box (bubble) instead of a
+  `KeyBinding`: key bindings run before the box evaluates its text, so they would save the old value.
+- Budget screen keys (PRD 9.3, listed in Settings > Keyboard shortcuts from `PlatformShortcuts`):
+  arrows move the cell cursor; Enter/F2 edits Assigned (or opens Activity, moves money from
+  Available, toggles a group); typing a digit starts editing; in the editor Enter saves and moves down,
+  Tab/Shift+Tab save and edit the next/previous Assigned, Esc cancels; `M` move money, `T` target,
+  `I` inspector, `Q` quick-assign palette, `Alt+←/→` months, `Ctrl/Cmd+Shift+F` fund targets.
+- The budget view model keeps `BudgetLedgerData` (ADR 0041): recompute on `BudgetChanged`, reload on
+  `LedgerChanged` (lazily while hidden), all through one pump on the UI thread; budget writes go
+  through `BudgetViewModel.QueueWrite` so the undo order is the user's order.
 
 **Import**
 - Parsers are pure (bytes + `ImportOptions` in, `ParseResult` out) and never throw on bad rows:

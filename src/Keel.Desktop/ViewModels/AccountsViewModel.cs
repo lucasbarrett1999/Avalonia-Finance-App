@@ -19,7 +19,7 @@ using Keel.Domain.Ledger;
 
 namespace Keel.Desktop.ViewModels;
 
-/// <summary>Where to open the register: one account (or all), optionally with a search.</summary>
+/// <summary>Where to open the register: one account (or all), optionally with a search and a category filter.</summary>
 /// <param name="AccountId">Account, or null for All Accounts.</param>
 /// <param name="Search">Search text in the F-TXN-7 syntax.</param>
 /// <param name="Category">Category filter to apply (report drill-down; <see cref="CategoryOption.All"/> clears it); other filters are reset.</param>

@@ -33,6 +33,16 @@ public sealed class SettingsViewModel : PageViewModel
             new ShortcutViewModel(Strings.Shortcut_Delete, shortcuts.Format(new KeyGesture(Key.Delete))),
             new ShortcutViewModel(Strings.Shortcut_SaveAndNew, shortcuts.Format(new KeyGesture(Key.Enter, shortcuts.CommandModifiers))),
             new ShortcutViewModel(Strings.Shortcut_Cancel, shortcuts.Format(new KeyGesture(Key.Escape))),
+            new ShortcutViewModel(Strings.Shortcut_BudgetPreviousMonth, shortcuts.Format(shortcuts.PreviousMonth)),
+            new ShortcutViewModel(Strings.Shortcut_BudgetNextMonth, shortcuts.Format(shortcuts.NextMonth)),
+            new ShortcutViewModel(Strings.Shortcut_BudgetNavigate, "↑ ↓ ← →"),
+            new ShortcutViewModel(Strings.Shortcut_BudgetEdit, shortcuts.Format(new KeyGesture(Key.Enter))),
+            new ShortcutViewModel(Strings.Shortcut_BudgetNextAssigned, shortcuts.Format(new KeyGesture(Key.Tab))),
+            new ShortcutViewModel(Strings.Shortcut_BudgetMoveMoney, shortcuts.Format(shortcuts.MoveMoney)),
+            new ShortcutViewModel(Strings.Shortcut_BudgetSetTarget, shortcuts.Format(shortcuts.SetTarget)),
+            new ShortcutViewModel(Strings.Shortcut_BudgetFundTargets, shortcuts.Format(shortcuts.FundTargets)),
+            new ShortcutViewModel(Strings.Shortcut_BudgetInspector, shortcuts.Format(shortcuts.ToggleInspector)),
+            new ShortcutViewModel(Strings.Shortcut_BudgetQuickAssign, shortcuts.Format(shortcuts.QuickAssign)),
         ];
     }
 

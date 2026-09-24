@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:b="using:Keel.Desktop.ViewModels.Budget"
+             xmlns:reg="using:Keel.Desktop.ViewModels.Register"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Budget.BudgetInspectorView"
+             x:DataType="b:BudgetInspectorViewModel">
+  <Border Classes="inspector">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="4" Margin="0,0,8,0">
+        <TextBlock x:Name="InspectorTitle" Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold"
+                   TextWrapping="Wrap" />
+        <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" />
+
+        <!-- How is it computed? (principle 7) -->
+        <TextBlock Classes="inspectorSection" Text="{Binding ExplanationTitle}" />
+        <ItemsControl x:Name="ExplanationLines" ItemsSource="{Binding Lines}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="b:ExplanationLineViewModel">
+              <Grid Classes="explainLine" Classes.context="{Binding !IsTerm}" ColumnDefinitions="*,Auto" Margin="0,2">
+                <TextBlock Text="{Binding Label}" TextWrapping="Wrap" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="1" Classes="explainAmount" Text="{Binding AmountText}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Border BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="0,1,0,0" Padding="0,4,0,0">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{x:Static res:Strings.Inspector_Total}" FontWeight="SemiBold" />
+            <TextBlock x:Name="ExplanationTotal" Grid.Column="1" Classes="explainAmount" FontWeight="SemiBold" Text="{Binding TotalText}" />
+          </Grid>
+        </Border>
+
+        <!-- Month note (F-BUD-7), with Ready to Assign -->
+        <StackPanel IsVisible="{Binding IsReadyToAssign}" Spacing="4">
+          <TextBlock Classes="inspectorSection" Text="{Binding MonthNoteLabel}" />
+          <TextBox x:Name="MonthNoteBox" Text="{Binding MonthNoteText}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"
+                   Watermark="{x:Static res:Strings.Inspector_NoteWatermark}" AutomationProperties.Name="{Binding MonthNoteLabel}" />
+        </StackPanel>
+
+        <StackPanel IsVisible="{Binding IsCategory}" Spacing="4">
+          <!-- Six-month history -->
+          <TextBlock Classes="inspectorSection" Text="{x:Static res:Strings.Inspector_History}" />
+          <controls:BudgetSparkline x:Name="HistorySparkline" Height="48" Values="{Binding HistoryValues}"
+                                    AutomationProperties.Name="{Binding HistoryDescription}" />
+          <ItemsControl ItemsSource="{Binding History}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Rows="1" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="b:HistoryPoint">
+                <TextBlock Classes="secondary" FontSize="11" HorizontalAlignment="Center" Text="{Binding Label}" ToolTip.Tip="{Binding ValueText}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- Target (F-BUD-4) -->
+          <TextBlock Classes="inspectorSection" Text="{x:Static res:Strings.Inspector_Target}" />
+          <ItemsControl ItemsSource="{Binding TargetProgress}" IsVisible="{Binding HasTarget}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Classes="secondary" Text="{x:Static res:Strings.Inspector_NoTarget}" IsVisible="{Binding !HasTarget}" TextWrapping="Wrap" />
+          <TextBlock Classes="fieldLabel" Margin="0,8,0,4" Text="{x:Static res:Strings.Inspector_TargetType}" />
+          <ComboBox x:Name="TargetTypeBox" HorizontalAlignment="Stretch" ItemsSource="{Binding TargetTypes}" SelectedItem="{Binding SelectedTargetType}"
+                    AutomationProperties.Name="{x:Static res:Strings.Inspector_TargetType}" />
+          <Grid ColumnDefinitions="*,8,*" Margin="0,4,0,0">
+            <StackPanel>
+              <TextBlock Classes="fieldLabel" Text="{Binding TargetAmountLabel}" />
+              <controls:MoneyTextBox x:Name="TargetAmountBox" Value="{Binding TargetAmount}" ShowZeroAsEmpty="True"
+                                     AutomationProperties.Name="{Binding TargetAmountLabel}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" IsVisible="{Binding IsByDate}">
+              <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Inspector_TargetDate}" />
+              <CalendarDatePicker HorizontalAlignment="Stretch" SelectedDate="{Binding TargetDate}"
+                                  AutomationProperties.Name="{x:Static res:Strings.Inspector_TargetDate}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" IsVisible="{Binding IsDebt}">
+              <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Inspector_TargetAccount}" />
+              <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding DebtAccounts}" SelectedItem="{Binding SelectedDebtAccount}"
+                        AutomationProperties.Name="{x:Static res:Strings.Inspector_TargetAccount}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="reg:AccountOption">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+          </Grid>
+          <TextBlock Classes="error" Text="{Binding TargetError}" IsVisible="{Binding HasTargetError}" />
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+            <Button x:Name="SaveTargetButton" Classes="accent" Command="{Binding SaveTargetCommand}" Content="{x:Static res:Strings.Inspector_SaveTarget}" />
+            <Button x:Name="RemoveTargetButton" Command="{Binding RemoveTargetCommand}" IsVisible="{Binding HasTarget}"
+                    Content="{x:Static res:Strings.Inspector_RemoveTarget}" />
+          </StackPanel>
+
+          <!-- Quick assign (F-BUD-5) -->
+          <TextBlock Classes="inspectorSection" Text="{x:Static res:Strings.Inspector_QuickAssign}" />
+          <ItemsControl x:Name="QuickAssignList" ItemsSource="{Binding QuickAssign}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="b:QuickAssignChoice">
+                <Button Classes="quickAssign" Command="{Binding $parent[ItemsControl].((b:BudgetInspectorViewModel)DataContext).ApplyQuickAssignCommand}"
+                        CommandParameter="{Binding}" AutomationProperties.Name="{Binding Label}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Label}" />
+                    <TextBlock Grid.Column="1" Classes="explainAmount" Text="{Binding ValueText}" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- Note (F-BUD-7) -->
+          <TextBlock Classes="inspectorSection" Text="{x:Static res:Strings.Inspector_Note}" />
+          <TextBox x:Name="NoteBox" Text="{Binding NoteText}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="64"
+                   Watermark="{x:Static res:Strings.Inspector_NoteWatermark}" AutomationProperties.Name="{x:Static res:Strings.Inspector_Note}" />
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</UserControl>

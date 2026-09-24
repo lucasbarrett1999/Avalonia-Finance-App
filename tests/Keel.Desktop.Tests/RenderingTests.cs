@@ -137,6 +137,79 @@ public sealed class RenderingTests : IDisposable
     }
 
     [AvaloniaFact]
+    public async Task Budget_renders_fixture_data_in_light_and_dark()
+    {
+        var ledger = await BudgetTestLedger.CreateAsync(_host);
+        await Task.Run(async () =>
+        {
+            var budget = _host.Get<Keel.Application.Budget.IBudgetService>();
+            var transactions = _host.Get<Keel.Application.Ledger.ITransactionService>();
+            await budget.SetTargetAsync(new Keel.Application.Budget.TargetDto(ledger.Groceries, Keel.Domain.TargetType.MonthlySpending, 500_00), CancellationToken.None);
+            await budget.SetTargetAsync(new Keel.Application.Budget.TargetDto(ledger.Rent, Keel.Domain.TargetType.MonthlySetAside, 1_500_00), CancellationToken.None);
+            await transactions.SaveAsync(new Keel.Application.Ledger.SaveTransactionRequest(null, ledger.Checking, new DateOnly(2026, 8, 12), -42_50, "Bistro", ledger.Dining, null), CancellationToken.None);
+        });
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var budgetVm = _host.Get<BudgetViewModel>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+        shell.PrimaryItems.Single(i => i.PageType == typeof(BudgetViewModel)).NavigateCommand.Execute(null);
+        await budgetVm.SettleAsync();
+        budgetVm.GoToMonth(BudgetTestLedger.August);
+        await budgetVm.SettleAsync();
+
+        void Save(string name, AppTheme theme)
+        {
+            Dispatcher.UIThread.RunJobs();
+            using var frame = window.CaptureRenderedFrame()!;
+            frame.PixelSize.Width.ShouldBeGreaterThan(0);
+            if (!string.IsNullOrEmpty(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+                frame.Save(Path.Combine(outputDir, $"{name}-{theme}.png"));
+            }
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            budgetVm.Select(budgetVm.Row(ledger.Groceries), Keel.Desktop.ViewModels.Budget.BudgetColumn.Assigned);
+            await budgetVm.SettleAsync();
+            Save("BudgetGrid", theme);
+
+            budgetVm.ExplainReadyToAssign();
+            await budgetVm.SettleAsync();
+            Save("BudgetReadyToAssign", theme);
+
+            await Task.WhenAny(budgetVm.MoveMoneyAsync(ledger.Groceries), Task.Delay(200));
+            await budgetVm.SettleAsync();
+            Save("BudgetMoveMoney", theme);
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await budgetVm.SettleAsync();
+
+            var picker = window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "MonthPickerButton");
+            picker.Flyout!.ShowAt(picker);
+            await budgetVm.SettleAsync();
+            Save("BudgetMonthPicker", theme);
+            picker.Flyout.Hide();
+
+            var manage = budgetVm.ManageCategoriesAsync();
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, "manage dialog");
+            await budgetVm.SettleAsync();
+            Save("BudgetManageCategories", theme);
+            shell.Dialogs.Current!.ConfirmCommand.Execute(null);
+            await manage;
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
     public async Task Import_dialogs_render_in_light_and_dark()
     {
         var accounts = _host.Get<Keel.Application.Accounts.IAccountService>();
