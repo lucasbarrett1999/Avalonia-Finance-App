@@ -29,11 +29,7 @@
         <StackPanel>
           <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Goals_Amount}" />
           <controls:MoneyTextBox x:Name="GoalAmountBox" Value="{Binding Amount}" Currency="{Binding Currency}"
-                                 AutomationProperties.Name="{x:Static res:Strings.Goals_Amount}">
-            <controls:MoneyTextBox.KeyBindings>
-              <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
-            </controls:MoneyTextBox.KeyBindings>
-          </controls:MoneyTextBox>
+                                 AutomationProperties.Name="{x:Static res:Strings.Goals_Amount}" />
         </StackPanel>
         <StackPanel Grid.Column="2">
           <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Goals_Date}" />

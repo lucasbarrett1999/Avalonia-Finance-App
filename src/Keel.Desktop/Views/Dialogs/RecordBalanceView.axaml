@@ -19,11 +19,7 @@
       <StackPanel Grid.Column="2">
         <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.RecordBalance_Balance}" />
         <controls:MoneyTextBox x:Name="BalanceBox" Value="{Binding Balance}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
-                               AutomationProperties.Name="{x:Static res:Strings.RecordBalance_Balance}">
-          <controls:MoneyTextBox.KeyBindings>
-            <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
-          </controls:MoneyTextBox.KeyBindings>
-        </controls:MoneyTextBox>
+                               AutomationProperties.Name="{x:Static res:Strings.RecordBalance_Balance}" />
       </StackPanel>
     </Grid>
     <StackPanel IsVisible="{Binding HasHistory}" Spacing="4">
