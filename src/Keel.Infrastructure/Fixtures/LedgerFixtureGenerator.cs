@@ -181,12 +181,19 @@ public static class LedgerFixtureGenerator
         var mortgage = byName["Home Mortgage"].Id;
         var brokerage = byName["Brokerage"].Id;
 
-        void Transfer(Guid from, Guid to, DateOnly date, long amount, Guid? category, string? memo = null)
+        int Transfer(Guid from, Guid to, DateOnly date, long amount, Guid? category, string? memo = null)
         {
             var pair = ids.Next(date, 999_000 + rows.Count);
             rows.Add(new Row(from, date, null, string.Empty, -amount, category, TransactionSource.Manual, memo, to, pair));
             rows.Add(new Row(to, date, null, string.Empty, amount, null, TransactionSource.Manual, memo, from, pair));
+            return rows.Count - 2;
         }
+
+        // Amounts that keep balances realistic are filled in once spending is known.
+        var cardPayments = new List<(int Index, Guid Card, DateOnly SpendingMonth)>();
+        var atmWithdrawals = new List<(int Index, DateOnly SpendingMonth)>();
+        var billTransfers = new List<int>();
+        var paychecks = new List<int>();
 
         void Bill(Guid account, DateOnly date, string payee, string category, long min, long max)
         {
@@ -225,7 +232,7 @@ public static class LedgerFixtureGenerator
                 Bill(bills, Day(10), "State Farm", "Insurance", 142_00, 142_00);
                 Bill(everyday, Day(10), "Planet Fitness", "Fitness", 24_99, 24_99);
                 Bill(bills, Day(10), "Little Sprouts Daycare", "Childcare", 850_00, 850_00);
-                Transfer(everyday, wallet, Day(10), 200_00, null, "ATM");
+                atmWithdrawals.Add((Transfer(everyday, wallet, Day(10), 0, null, "ATM"), month));
             }
 
             if (In(Day(15)))
@@ -236,8 +243,8 @@ public static class LedgerFixtureGenerator
 
             if (In(Day(20)))
             {
-                Transfer(everyday, visa, Day(20), Between(random, 1_200_00, 1_900_00), null);
-                Transfer(everyday, master, Day(20), Between(random, 200_00, 600_00), null);
+                cardPayments.Add((Transfer(everyday, visa, Day(20), 0, null), visa, month.AddMonths(-1)));
+                cardPayments.Add((Transfer(everyday, master, Day(20), 0, null), master, month.AddMonths(-1)));
             }
 
             var monthEnd = Day(31);
@@ -252,8 +259,9 @@ public static class LedgerFixtureGenerator
         var payday = start.AddDays(((int)DayOfWeek.Friday - (int)start.DayOfWeek + 7) % 7 + 1);
         for (var d = payday; d <= end; d = d.AddDays(14))
         {
-            rows.Add(new Row(everyday, d, PayeeFor("Acme Corp Payroll").Id, "Acme Corp Payroll", 2_850_00, rta, TransactionSource.Manual, "paycheck"));
-            Transfer(everyday, bills, d, 1_400_00, null);
+            paychecks.Add(rows.Count);
+            rows.Add(new Row(everyday, d, PayeeFor("Acme Corp Payroll").Id, "Acme Corp Payroll", 0, rta, TransactionSource.Manual, "paycheck"));
+            billTransfers.Add(Transfer(everyday, bills, d, 0, null));
         }
 
         // Day-to-day spending fills the rest, spread evenly across the period.
@@ -300,6 +308,8 @@ public static class LedgerFixtureGenerator
                 splitSources.Add((rows.Count - 1, [spec.Category, "Household", "Personal Care"]));
             }
         }
+
+        FillComputedAmounts(rows, cardPayments, atmWithdrawals, billTransfers, paychecks, everyday, bills, wallet);
 
         // Order by date (stable), then assign time-ordered ids and statuses.
         var ordered = rows.Select((r, i) => (Row: r, Index: i)).OrderBy(x => x.Row.Date).ThenBy(x => x.Index).ToList();
@@ -432,6 +442,58 @@ public static class LedgerFixtureGenerator
         }
 
         return count;
+    }
+
+    // Card payments pay last month's card spending, ATM withdrawals cover the month's cash
+    // spending, the biweekly transfer covers Bills Checking, and paychecks cover Everyday Checking
+    // with a small surplus, so balances stay plausible at any fixture size.
+    private static void FillComputedAmounts(
+        List<Row> rows,
+        List<(int Index, Guid Card, DateOnly SpendingMonth)> cardPayments,
+        List<(int Index, DateOnly SpendingMonth)> atmWithdrawals,
+        List<int> billTransfers,
+        List<int> paychecks,
+        Guid everyday,
+        Guid bills,
+        Guid wallet)
+    {
+        var netByMonth = new Dictionary<(Guid, DateOnly), long>();
+        foreach (var row in rows.Where(r => r.TransferAccountId is null && r.Source != TransactionSource.System))
+        {
+            var key = (row.AccountId, new DateOnly(row.Date.Year, row.Date.Month, 1));
+            netByMonth[key] = netByMonth.GetValueOrDefault(key) + row.Amount;
+        }
+
+        void SetTransfer(int index, long amount)
+        {
+            rows[index] = rows[index] with { Amount = -amount };
+            rows[index + 1] = rows[index + 1] with { Amount = amount };
+        }
+
+        foreach (var (index, card, month) in cardPayments)
+        {
+            SetTransfer(index, Math.Max(25_00, -netByMonth.GetValueOrDefault((card, month))));
+        }
+
+        foreach (var (index, month) in atmWithdrawals)
+        {
+            var spent = -netByMonth.GetValueOrDefault((wallet, month));
+            SetTransfer(index, Math.Max(40_00, (spent + 19_99) / 20_00 * 20_00));
+        }
+
+        long Outflow(Guid account) => -rows.Where(r => r.AccountId == account && r.Amount < 0).Sum(r => r.Amount);
+
+        if (billTransfers.Count > 0)
+        {
+            var perTransfer = (Outflow(bills) / billTransfers.Count + 99_99) / 100_00 * 100_00;
+            billTransfers.ForEach(i => SetTransfer(i, perTransfer));
+        }
+
+        if (paychecks.Count > 0)
+        {
+            var perPaycheck = (Outflow(everyday) * 103 / 100 / paychecks.Count + 99_99) / 100_00 * 100_00;
+            paychecks.ForEach(i => rows[i] = rows[i] with { Amount = perPaycheck });
+        }
     }
 
     private static long Between(Random random, long min, long max) => min >= max ? min : min + random.NextInt64(max - min + 1);

@@ -16,6 +16,14 @@
       <SolidColorBrush x:Key="Keel.NavSelectedForeground" Color="#0B5566" />
       <SolidColorBrush x:Key="Keel.BadgeBackground" Color="#0B6477" />
       <SolidColorBrush x:Key="Keel.BadgeForeground" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="Keel.Negative" Color="#B42318" />
+      <SolidColorBrush x:Key="Keel.Positive" Color="#0B7A4B" />
+      <SolidColorBrush x:Key="Keel.Warning" Color="#8A5A00" />
+      <SolidColorBrush x:Key="Keel.WarningBackground" Color="#FFF4D6" />
+      <SolidColorBrush x:Key="Keel.Accent" Color="#0B6477" />
+      <SolidColorBrush x:Key="Keel.RowAlternate" Color="#FAFBFC" />
+      <SolidColorBrush x:Key="Keel.Scrim" Color="#66101418" />
+      <SolidColorBrush x:Key="Keel.EditorBackground" Color="#EEF6F8" />
     </ResourceDictionary>
     <ResourceDictionary x:Key="Dark">
       <SolidColorBrush x:Key="Keel.WindowBackground" Color="#15171C" />
@@ -31,6 +39,14 @@
       <SolidColorBrush x:Key="Keel.NavSelectedForeground" Color="#9BE0EE" />
       <SolidColorBrush x:Key="Keel.BadgeBackground" Color="#7CD4E6" />
       <SolidColorBrush x:Key="Keel.BadgeForeground" Color="#0F1D22" />
+      <SolidColorBrush x:Key="Keel.Negative" Color="#FF8A80" />
+      <SolidColorBrush x:Key="Keel.Positive" Color="#6FD6A4" />
+      <SolidColorBrush x:Key="Keel.Warning" Color="#F5C451" />
+      <SolidColorBrush x:Key="Keel.WarningBackground" Color="#3A3020" />
+      <SolidColorBrush x:Key="Keel.Accent" Color="#3FB5CC" />
+      <SolidColorBrush x:Key="Keel.RowAlternate" Color="#1D2127" />
+      <SolidColorBrush x:Key="Keel.Scrim" Color="#99000000" />
+      <SolidColorBrush x:Key="Keel.EditorBackground" Color="#1E3037" />
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 

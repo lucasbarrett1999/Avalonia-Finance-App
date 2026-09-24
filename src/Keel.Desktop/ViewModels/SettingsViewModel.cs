@@ -1,3 +1,4 @@
+using Avalonia.Input;
 using Keel.Application.Files;
 using Keel.Application.Settings;
 using Keel.Desktop.Resources;
@@ -25,6 +26,13 @@ public sealed class SettingsViewModel : PageViewModel
             new ShortcutViewModel(Strings.Shortcut_Undo, shortcuts.Format(shortcuts.Undo)),
             new ShortcutViewModel(Strings.Shortcut_Redo, shortcuts.Format(shortcuts.Redo)),
             new ShortcutViewModel(Strings.Shortcut_ToggleSidebar, shortcuts.Format(shortcuts.ToggleSidebar)),
+            new ShortcutViewModel(Strings.Shortcut_NewTransaction, "N"),
+            new ShortcutViewModel(Strings.Shortcut_EditTransaction, shortcuts.Format(new KeyGesture(Key.Enter))),
+            new ShortcutViewModel(Strings.Shortcut_ToggleCleared, "C"),
+            new ShortcutViewModel(Strings.Shortcut_Approve, "A"),
+            new ShortcutViewModel(Strings.Shortcut_Delete, shortcuts.Format(new KeyGesture(Key.Delete))),
+            new ShortcutViewModel(Strings.Shortcut_SaveAndNew, shortcuts.Format(new KeyGesture(Key.Enter, shortcuts.CommandModifiers))),
+            new ShortcutViewModel(Strings.Shortcut_Cancel, shortcuts.Format(new KeyGesture(Key.Escape))),
         ];
     }
 

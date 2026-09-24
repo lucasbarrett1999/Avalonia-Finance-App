@@ -16,6 +16,7 @@
     <PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
   </ItemGroup>
 
   <ItemGroup>
