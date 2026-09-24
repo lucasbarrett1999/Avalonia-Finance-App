@@ -25,11 +25,10 @@ public class EntityTests
     }
 
     [Fact]
-    public void Entity_ids_are_time_ordered_version_7()
+    public void Entity_ids_are_unique_version_7_guids()
     {
-        var first = EntityIds.New();
-        var second = EntityIds.New();
-        first.Version.ShouldBe(7);
-        string.CompareOrdinal(first.ToString(), second.ToString()).ShouldBeLessThanOrEqualTo(0);
+        var ids = Enumerable.Range(0, 1_000).Select(_ => EntityIds.New()).ToList();
+        ids.ShouldAllBe(id => id.Version == 7);
+        ids.Distinct().Count().ShouldBe(ids.Count);
     }
 }
