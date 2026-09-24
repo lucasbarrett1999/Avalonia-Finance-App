@@ -47,10 +47,8 @@ public partial class AccountsView : UserControl
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        if (Avalonia.Application.Current is App { } && App.Services?.GetService(typeof(PlatformShortcuts)) is PlatformShortcuts shortcuts)
-        {
-            _commandModifier = shortcuts.CommandModifiers;
-        }
+        // Same source as PlatformShortcuts: Cmd on macOS, Ctrl elsewhere.
+        _commandModifier = PlatformShortcuts.FromCurrentPlatform().CommandModifiers;
     }
 
     /// <inheritdoc />
