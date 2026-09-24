@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Keel.Domain\Keel.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Keel.Application\Keel.Application.csproj" />
   </ItemGroup>
 </Project>
