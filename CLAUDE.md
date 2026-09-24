@@ -44,6 +44,11 @@ dotnet ef migrations has-pending-model-changes --project src/Keel.Infrastructure
 
 # Render every screen to PNG (light and dark) for a visual check
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter RenderingTests
+
+# M1 ledger: headless register flows, 100k register timing, register benchmarks
+dotnet test tests/Keel.Desktop.Tests --filter RegisterTests
+dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger "console;verbosity=detailed"
+dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -57,27 +62,44 @@ Directory.Packages.props (central package versions, pinned by PRD 7.1), global.j
 src/
   Keel.Domain/          Pure domain, no packages. Money + Currency, entities for every PRD 6.2
                         table (Entities/), enums, AccountTypeInfo (PRD 6.3), SystemIds (seeded rows).
+                        Ledger/ (M1): TransferRules, SplitRules, ReconciliationMath, RunningBalance (ledger
+                        order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
                         IAppSettingsStore/AppSettings, Messaging (IMessageBus, LedgerChanged, BudgetChanged).
+                        M1: Ledger/ (ITransactionService, IRegisterQuery + DTOs, LedgerValidationException),
+                        Payees/, Categories/, Accounts/IBalanceSnapshotService, Undo/IUndoService + LedgerAction.
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
                         DependencyInjection.AddKeelInfrastructure.
+                        Ledger/ (M1): LedgerWriter (unit of work: audit + undo + LedgerChanged), LedgerSession,
+                        EntityChange, UndoHistory/UndoService, AccountService, TransactionService, PayeeService,
+                        CategoryService, BalanceSnapshotService, RegisterQuery (raw SQL, paged).
+                        Fixtures/LedgerFixtureGenerator (deterministic 100k-transaction ledger).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
                         Controls/ (Icon, EmptyState), Styles/ (Tokens, Icons, Controls, Shell),
                         Services/ (navigation, theme, window placement, shortcuts, startup, DI),
                         Resources/Strings.resx (all UI text).
+                        M1: ViewModels/AccountsViewModel (both registers), ViewModels/Register/ (RegisterSource
+                        virtual collection view, rows, TransactionEditorViewModel, ReconcileViewModel),
+                        ViewModels/Dialogs/ + Views/Dialogs/ (in-window dialogs), SidebarAccountViewModel,
+                        Controls/MoneyTextBox, Services/ (DialogService, StatusService, LedgerText), Styles/Register.
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
                               indexes, soft delete, split-sum constraint, data dir, settings, logging.
+                              M1: Ledger/ service tests (LedgerTestHost = real DI over a temp file),
+                              register paging/running balance/search, undo, fixture + 100k timing.
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
+                              M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
+                              100k virtualization), MoneyTextBoxTests, fixture rendering.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
+                              M1: RegisterBenchmarks over the 100k fixture.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
 .github/workflows/ci.yml  Build+test on windows/macos/ubuntu, format check, vulnerable-package scan.
 ```
@@ -131,6 +153,18 @@ From PRD 15, plus decisions made while building M0.
   `%APPDATA%\Keel`, macOS `~/Library/Application Support/Keel`, Linux `$XDG_DATA_HOME/keel`
   (default `~/.local/share/keel`).
 - Logs never contain payee names, amounts, or secrets. Use `[LoggerMessage]` source-generated logging.
+- Every ledger mutation goes through `LedgerWriter.RunAsync(LedgerAction, ...)` and saves with
+  `LedgerSession.SaveAsync` (never `SaveChangesAsync` directly): it writes `AuditEvent` before/after
+  JSON per row, records the session undo entry (50 deep), and publishes `LedgerChanged` after the
+  commit. Undo replays recorded row states, so mutate tracked entities (no raw SQL writes) and add
+  new rows with a client key via `DbSet.Add`, not through a navigation collection.
+- Services run on the thread pool (`Task.Run`); view models receive `LedgerChanged` off the UI
+  thread and marshal with `Dispatcher.UIThread.Post`. An empty `AccountIds` set means "any account".
+- The register never loads all rows: `IRegisterQuery` pages in SQL (200 rows), running balances
+  are the ledger balance in (Date, Id) order (ADR 0005), and the grid binds to `RegisterSource`
+  (ADR 0006). Guids are compared in raw SQL as upper-case text (`RunningBalance.SortKey`).
+- Refused operations throw `LedgerValidationException(LedgerError)`; the UI maps codes to
+  `LedgerError_*` strings through `LedgerText`.
 
 **UI**
 - MVVM with CommunityToolkit.Mvvm (`[ObservableProperty]` partial properties, `[RelayCommand]`);
@@ -147,3 +181,6 @@ From PRD 15, plus decisions made while building M0.
   in `Styles/Icons.axaml` drawn with `controls:Icon` (ADR 0004).
 - Shortcuts use the platform command modifier via `PlatformShortcuts` (Cmd on macOS, Ctrl
   elsewhere) and display with `PlatformShortcuts.Format` (glyphs on macOS).
+- Dialogs are in-window (`DialogService.ShowAsync(DialogViewModel)` rendered by the shell's dialog
+  layer through the view locator); the status strip (`StatusService`) carries the undo toast.
+- Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
