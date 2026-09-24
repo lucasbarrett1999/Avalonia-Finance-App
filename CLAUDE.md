@@ -57,14 +57,19 @@ Directory.Packages.props (central package versions, pinned by PRD 7.1), global.j
 src/
   Keel.Domain/          Pure domain, no packages. Money + Currency, entities for every PRD 6.2
                         table (Entities/), enums, AccountTypeInfo (PRD 6.3), SystemIds (seeded rows).
+                        Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
+                        with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
                         IAppSettingsStore/AppSettings, Messaging (IMessageBus, LedgerChanged, BudgetChanged).
+                        Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
                         DependencyInjection.AddKeelInfrastructure.
+                        Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0006),
+                        BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -78,6 +83,11 @@ tests/
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
+  Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
+                              reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
+                              (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
+  Keel.Infrastructure.Tests/Budgeting/  Aggregation against hand-built SQLite ledgers, BudgetService, 3-month
+                              end-to-end golden, 100k-transaction month-switch timing.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
 .github/workflows/ci.yml  Build+test on windows/macos/ubuntu, format check, vulnerable-package scan.
 ```
@@ -131,6 +141,10 @@ From PRD 15, plus decisions made while building M0.
   `%APPDATA%\Keel`, macOS `~/Library/Application Support/Keel`, Linux `$XDG_DATA_HOME/keel`
   (default `~/.local/share/keel`).
 - Logs never contain payee names, amounts, or secrets. Use `[LoggerMessage]` source-generated logging.
+- Budget math lives only in `BudgetCalculator` (PRD 6.4 literal; open points in ADR 0005). Services feed
+  it from `BudgetAggregationQuery` and never compute budget numbers themselves. A changed golden file
+  (`*.received.txt` next to the test) is reviewed by hand and then renamed to `*.verified.txt`; add a
+  golden case for every budget-math bug fixed (PRD 13).
 
 **UI**
 - MVVM with CommunityToolkit.Mvvm (`[ObservableProperty]` partial properties, `[RelayCommand]`);

@@ -1,0 +1,30 @@
+﻿== 2026-07 ==  Ready to Assign -2,945.00 (USD); assigned in future 4,445.00; uncategorized 0.00
+Totals: assigned 2,500.00, activity -1,940.00, available 560.00
+[Credit Card Payments] assigned 0.00, activity 120.00, available 120.00
+  Pay_Visa     carry      0.00  assigned      0.00  activity    120.00  available    120.00  None  covered 320.00, payments 200.00, card balance -150.00, difference -30.00
+[Everyday] assigned 2,500.00, activity -2,060.00, available 440.00
+  Rent         carry      0.00  assigned  1,500.00  activity -1,500.00  available      0.00  None  target MonthlySetAside 1,500.00: needed 1,500.00, underfunded 0.00
+  Groceries    carry      0.00  assigned    500.00  activity   -320.00  available    180.00  None  target MonthlySpending 450.00: needed 450.00, underfunded 0.00
+  Dining       carry      0.00  assigned    200.00  activity   -240.00  available    -40.00  Cash
+  Vacation     carry      0.00  assigned    300.00  activity      0.00  available    300.00  None  target SavingsBalanceByDate 1,500.00: needed 250.00, underfunded 0.00
+
+== 2026-08 ==  Ready to Assign 1,045.00 (USD); assigned in future 1,995.00; uncategorized 0.00
+Totals: assigned 2,450.00, activity -1,980.00, available 1,070.00
+[Credit Card Payments] assigned 0.00, activity 180.00, available 300.00
+  Pay_Visa     carry    120.00  assigned      0.00  activity    180.00  available    300.00  None  covered 650.00, payments 470.00, card balance -340.00, difference -40.00
+[Everyday] assigned 2,450.00, activity -2,160.00, available 770.00
+  Rent         carry      0.00  assigned  1,500.00  activity -1,500.00  available      0.00  None  target MonthlySetAside 1,500.00: needed 1,500.00, underfunded 0.00
+  Groceries    carry    180.00  assigned    400.00  activity   -400.00  available    180.00  None  target MonthlySpending 450.00: needed 270.00, underfunded 0.00
+  Dining       carry      0.00  assigned    250.00  activity   -260.00  available    -10.00  Credit
+  Vacation     carry    300.00  assigned    300.00  activity      0.00  available    600.00  None  target SavingsBalanceByDate 1,500.00: needed 240.00, underfunded 0.00
+
+== 2026-09 ==  Ready to Assign 5,045.00 (USD); assigned in future 0.00; uncategorized 0.00
+Totals: assigned 1,995.00, activity -1,700.00, available 1,375.00
+[Credit Card Payments] assigned 0.00, activity 100.00, available 400.00
+  Pay_Visa     carry    300.00  assigned      0.00  activity    100.00  available    400.00  None  covered 100.00, payments 0.00, card balance -440.00, difference -40.00
+[Everyday] assigned 1,995.00, activity -1,800.00, available 975.00
+  Rent         carry      0.00  assigned  1,500.00  activity -1,500.00  available      0.00  None  target MonthlySetAside 1,500.00: needed 1,500.00, underfunded 0.00
+  Groceries    carry    180.00  assigned    270.00  activity   -300.00  available    150.00  None  target MonthlySpending 450.00: needed 270.00, underfunded 0.00
+  Dining       carry      0.00  assigned     50.00  activity      0.00  available     50.00  None
+  Vacation     carry    600.00  assigned    175.00  activity      0.00  available    775.00  None  target SavingsBalanceByDate 1,500.00: needed 225.00, underfunded 50.00
+
