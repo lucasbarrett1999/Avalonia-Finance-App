@@ -46,6 +46,7 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         StatusService status,
         IMessenger messenger,
         ImportWorkflow import,
+        IRegisterQuery register,
         Alerts.NotificationCenterViewModel? notifications = null,
         RecurringJobs? jobs = null)
     {
@@ -88,6 +89,7 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         _navigation.Navigated += OnNavigated;
         _navigation.NavigateTo<HomeViewModel>();
         AccountsLoading = session.BudgetFile is null ? Task.CompletedTask : RefreshAccountsAsync();
+        StartReviewBadge(register, session.BudgetFile is not null);
         Notifications = notifications;
         Jobs = jobs;
         jobs?.Start();
@@ -142,7 +144,11 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
 
     /// <inheritdoc />
     public void Receive(LedgerChanged message) =>
-        Dispatcher.UIThread.Post(() => AccountsLoading = RefreshAccountsAsync());
+        Dispatcher.UIThread.Post(() =>
+        {
+            AccountsLoading = RefreshAccountsAsync();
+            ReviewBadgeLoading = RefreshReviewBadgeAsync();
+        });
 
     /// <summary>Reloads the Accounts section of the sidebar.</summary>
     public async Task RefreshAccountsAsync()

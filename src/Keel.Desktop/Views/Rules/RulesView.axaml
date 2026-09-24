@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:views="using:Keel.Desktop.Views.Rules"
+             x:Class="Keel.Desktop.Views.Rules.RulesView"
+             x:DataType="rules:RulesViewModel">
+  <DockPanel Margin="{StaticResource Keel.PagePadding}">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+      <TextBlock Classes="pageTitle" Text="{Binding Title}" />
+      <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+    </StackPanel>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <Border Classes="card" MaxWidth="980" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <views:RulesPanel x:Name="RulesList" />
+      </Border>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

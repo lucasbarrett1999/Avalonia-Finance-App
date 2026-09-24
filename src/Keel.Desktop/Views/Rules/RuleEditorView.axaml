@@ -1,0 +1,250 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:reg="using:Keel.Desktop.ViewModels.Register"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Rules.RuleEditorView"
+             x:DataType="rules:RuleEditorViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <UserControl.Styles>
+    <Style Selector="Border.part">
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="Margin" Value="0,0,0,8" />
+      <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+      <Setter Property="Background" Value="{DynamicResource Keel.WindowBackground}" />
+    </Style>
+    <Style Selector="Border.part.problem">
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.Negative}" />
+    </Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+  <DockPanel Width="700">
+    <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" Margin="0,0,0,12" />
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+      <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+      <DockPanel>
+        <CheckBox x:Name="ApplyToExistingBox" IsChecked="{Binding ApplyToExisting}" Content="{x:Static res:Strings.RuleEditor_ApplyToExisting}" />
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+          <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+          <Button x:Name="SaveRuleButton" Classes="accent" Command="{Binding SaveCommand}" Content="{x:Static res:Strings.RuleEditor_Save}" />
+        </StackPanel>
+      </DockPanel>
+    </StackPanel>
+    <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <Grid ColumnDefinitions="*,16,Auto">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.RuleEditor_Name}" />
+            <TextBox x:Name="RuleNameBox" Text="{Binding Name}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Name}" />
+          </StackPanel>
+          <CheckBox Grid.Column="2" VerticalAlignment="Bottom" IsChecked="{Binding IsEnabled}" Content="{x:Static res:Strings.RuleEditor_Enabled}" />
+        </Grid>
+        <ItemsControl x:Name="GeneralProblems" ItemsSource="{Binding GeneralProblems}" IsVisible="{Binding HasGeneralProblems}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="rules:RuleProblemViewModel">
+              <TextBlock Classes="secondary" Classes.error="{Binding IsError}" Text="{Binding Message}" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Conditions -->
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Classes="section" Text="{x:Static res:Strings.RuleEditor_When}" />
+          <ComboBox x:Name="MatchModeBox" ItemsSource="{Binding MatchModes}" SelectedItem="{Binding MatchMode}" MinWidth="200"
+                    AutomationProperties.Name="{x:Static res:Strings.RuleEditor_When}" />
+        </StackPanel>
+        <ItemsControl x:Name="ConditionRows" ItemsSource="{Binding Conditions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="rules:ConditionEditorViewModel">
+              <Border Classes="part" Classes.problem="{Binding ProblemIsError}">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="130,8,*,8,Auto">
+                    <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}"
+                              AutomationProperties.Name="{x:Static res:Strings.RuleEditor_When}" />
+                    <Panel Grid.Column="2">
+                      <!-- Payee / memo -->
+                      <Grid ColumnDefinitions="140,8,*" IsVisible="{Binding IsText}">
+                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding TextOperators}" SelectedItem="{Binding TextOperator}"
+                                  AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Value}" />
+                        <TextBox Grid.Column="2" Text="{Binding Text}" Watermark="{x:Static res:Strings.RuleEditor_Value}"
+                                 AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Value}" />
+                      </Grid>
+                      <!-- Amount -->
+                      <Grid ColumnDefinitions="140,8,*,8,Auto,8,*" IsVisible="{Binding IsAmount}">
+                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding AmountOperators}" SelectedItem="{Binding AmountOperator}"
+                                  AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Amount}" />
+                        <controls:MoneyTextBox Grid.Column="2" Value="{Binding Amount}" Currency="{Binding Context.Currency}" ShowZeroAsEmpty="False"
+                                               AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Amount}" />
+                        <TextBlock Grid.Column="4" Classes="secondary" Text="{x:Static res:Strings.RuleEditor_And}" VerticalAlignment="Center" IsVisible="{Binding IsBetween}" />
+                        <controls:MoneyTextBox Grid.Column="6" Value="{Binding AmountMax}" Currency="{Binding Context.Currency}" ShowZeroAsEmpty="False"
+                                               IsVisible="{Binding IsBetween}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Amount}" />
+                      </Grid>
+                      <!-- Direction -->
+                      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Directions}" SelectedItem="{Binding Direction}" IsVisible="{Binding IsDirection}"
+                                AutomationProperties.Name="{x:Static res:Strings.RuleCondition_Direction}" />
+                      <!-- Account -->
+                      <ItemsControl ItemsSource="{Binding Accounts}" IsVisible="{Binding IsAccount}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="rules:CheckItem">
+                            <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Label}" Margin="0,0,12,0" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                      <!-- Date range -->
+                      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsDateRange}">
+                        <TextBlock Classes="secondary" Text="{x:Static res:Strings.RuleEditor_From}" VerticalAlignment="Center" />
+                        <CalendarDatePicker SelectedDate="{Binding From}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_From}" />
+                        <TextBlock Classes="secondary" Text="{x:Static res:Strings.RuleEditor_To}" VerticalAlignment="Center" />
+                        <CalendarDatePicker SelectedDate="{Binding To}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_To}" />
+                      </StackPanel>
+                      <!-- Tag -->
+                      <TextBox Text="{Binding Tag}" Watermark="{x:Static res:Strings.RuleEditor_TagWatermark}" IsVisible="{Binding IsTag}"
+                               AutomationProperties.Name="{x:Static res:Strings.RuleCondition_Tag}" />
+                    </Panel>
+                    <Button Grid.Column="4" Padding="4" VerticalAlignment="Top"
+                            Command="{Binding Editor.RemoveConditionCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="{x:Static res:Strings.RuleEditor_Remove}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Remove}">
+                      <controls:Icon Data="{StaticResource Icon.Close}" Width="14" Height="14" />
+                    </Button>
+                  </Grid>
+                  <CheckBox Margin="138,0,0,0" IsChecked="{Binding Normalized}" Content="{x:Static res:Strings.RuleEditor_Normalized}" IsVisible="{Binding IsPayee}" />
+                  <CheckBox Margin="138,0,0,0" IsChecked="{Binding Signed}" Content="{x:Static res:Strings.RuleEditor_Signed}" IsVisible="{Binding IsAmount}" />
+                  <!-- Source -->
+                  <ItemsControl Margin="138,0,0,0" ItemsSource="{Binding Sources}" IsVisible="{Binding IsSource}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="rules:CheckItem">
+                        <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Label}" Margin="0,0,12,0" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Classes="secondary" Classes.error="{Binding ProblemIsError}" Text="{Binding Problem}" IsVisible="{Binding HasProblem}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button x:Name="AddConditionButton" Command="{Binding AddConditionCommand}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_AddCondition}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Plus}" Width="14" Height="14" />
+            <TextBlock Text="{x:Static res:Strings.RuleEditor_AddCondition}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <!-- Actions -->
+        <TextBlock Classes="section" Text="{x:Static res:Strings.RuleEditor_Then}" />
+        <ItemsControl x:Name="ActionRows" ItemsSource="{Binding Actions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="rules:ActionEditorViewModel">
+              <Border Classes="part" Classes.problem="{Binding ProblemIsError}">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="170,8,*,8,Auto">
+                    <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Kinds}" SelectedItem="{Binding Kind}"
+                              AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Then}" />
+                    <Panel Grid.Column="2">
+                      <TextBox Text="{Binding Text}" Watermark="{Binding TextWatermark}" IsVisible="{Binding IsText}"
+                               AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Value}" />
+                      <AutoCompleteBox Text="{Binding CategoryText}" SelectedItem="{Binding Category}" ItemsSource="{Binding Categories}"
+                                       FilterMode="ContainsOrdinal" MinimumPrefixLength="0" IsVisible="{Binding IsCategory}"
+                                       Watermark="{x:Static res:Strings.RuleEditor_Category}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Category}" />
+                      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Accounts}" SelectedItem="{Binding Account}" IsVisible="{Binding IsTransfer}"
+                                AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Account}" />
+                    </Panel>
+                    <Button Grid.Column="4" Padding="4" VerticalAlignment="Top"
+                            Command="{Binding Editor.RemoveActionCommand}" CommandParameter="{Binding}"
+                            ToolTip.Tip="{x:Static res:Strings.RuleEditor_Remove}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Remove}">
+                      <controls:Icon Data="{StaticResource Icon.Close}" Width="14" Height="14" />
+                    </Button>
+                  </Grid>
+                  <StackPanel Spacing="4" IsVisible="{Binding IsSplit}">
+                    <ItemsControl ItemsSource="{Binding Lines}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="rules:RuleSplitLineViewModel">
+                          <Grid ColumnDefinitions="*,8,110,8,140,4,Auto" Margin="0,0,0,4">
+                            <AutoCompleteBox Text="{Binding CategoryText}" SelectedItem="{Binding Category}" ItemsSource="{Binding Categories}"
+                                             FilterMode="ContainsOrdinal" MinimumPrefixLength="0"
+                                             Watermark="{x:Static res:Strings.RuleEditor_Category}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Category}" />
+                            <Panel Grid.Column="2">
+                              <Panel IsVisible="{Binding ParentAction.IsAmountSplit}">
+                                <controls:MoneyTextBox Value="{Binding Amount}" IsVisible="{Binding HasAmount}" ShowZeroAsEmpty="False"
+                                                       AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Amount}" />
+                                <TextBlock Classes="secondary" Text="{x:Static res:Strings.RuleEditor_TheRest}" IsVisible="{Binding IsRemainder}" VerticalAlignment="Center" />
+                              </Panel>
+                              <NumericUpDown Value="{Binding Percent}" Minimum="0" Maximum="100" Increment="5" FormatString="0.##" ShowButtonSpinner="False"
+                                             IsVisible="{Binding ParentAction.IsPercentSplit}"
+                                             Watermark="%" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Percent}" />
+                            </Panel>
+                            <TextBox Grid.Column="4" Text="{Binding Memo}" Watermark="{x:Static res:Strings.RuleEditor_Memo}"
+                                     AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Memo}" />
+                            <Button Grid.Column="6" Padding="4"
+                                    Command="{Binding ParentAction.RemoveLineCommand}" CommandParameter="{Binding}"
+                                    ToolTip.Tip="{x:Static res:Strings.RuleEditor_Remove}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_Remove}">
+                              <controls:Icon Data="{StaticResource Icon.Close}" Width="12" Height="12" />
+                            </Button>
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Command="{Binding AddLineCommand}" Content="{x:Static res:Strings.RuleEditor_AddLine}" />
+                  </StackPanel>
+                  <TextBlock Classes="secondary" Classes.error="{Binding ProblemIsError}" Text="{Binding Problem}" IsVisible="{Binding HasProblem}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button x:Name="AddActionButton" Command="{Binding AddActionCommand}" AutomationProperties.Name="{x:Static res:Strings.RuleEditor_AddAction}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Plus}" Width="14" Height="14" />
+            <TextBlock Text="{x:Static res:Strings.RuleEditor_AddAction}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <CheckBox IsChecked="{Binding ContinueAfterMatch}" Content="{x:Static res:Strings.RuleEditor_Continue}" />
+
+        <!-- Test -->
+        <StackPanel Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Name="TestRuleButton" Command="{Binding TestCommand}" Content="{x:Static res:Strings.RuleEditor_Test}" />
+            <ProgressBar IsIndeterminate="True" Width="100" IsVisible="{Binding IsTesting}" VerticalAlignment="Center" />
+            <TextBlock x:Name="TestSummaryText" DataContext="{Binding TestResult}" x:DataType="rules:RuleTestViewModel" Text="{Binding Summary}" VerticalAlignment="Center" />
+          </StackPanel>
+          <StackPanel DataContext="{Binding TestResult}" x:DataType="rules:RuleTestViewModel" Spacing="4">
+          <ItemsControl x:Name="TestRows" ItemsSource="{Binding Rows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="rules:RuleOutcomeRowViewModel">
+                <Grid ColumnDefinitions="90,*,100" Margin="0,2">
+                  <TextBlock Classes="secondary" Text="{Binding DateText}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Payee}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding ChangesText}" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="2" Classes="amount" Text="{Binding AmountText}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding MoreText}" IsVisible="{Binding HasMore}" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

@@ -1,14 +1,282 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:rv="using:Keel.Desktop.ViewModels.Review"
              xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.ReviewView"
-             x:DataType="vm:ReviewViewModel">
+             x:DataType="vm:ReviewViewModel"
+             Focusable="True">
+  <UserControl.Styles>
+    <Style Selector="Border.queueItem">
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+      <Setter Property="BorderThickness" Value="3,0,0,0" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.queueItem.focused">
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.Accent}" />
+      <Setter Property="Background" Value="{DynamicResource Keel.NavSelected}" />
+    </Style>
+    <Style Selector="ListBox#QueueList ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,2" />
+    </Style>
+    <Style Selector="Button.suggestion">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Button.suggestion.primary">
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.Accent}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="8,1" />
+      <Setter Property="Background" Value="{DynamicResource Keel.IconCircle}" />
+    </Style>
+    <Style Selector="Border.chip > TextBlock">
+      <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+      <Setter Property="Foreground" Value="{DynamicResource Keel.IconCircleForeground}" />
+    </Style>
+    <Style Selector="Button.triage">
+      <Setter Property="Padding" Value="10,6" />
+    </Style>
+    <Style Selector="TextBlock.keyHint">
+      <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+      <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
-    <StackPanel DockPanel.Dock="Top">
-      <TextBlock Classes="pageTitle" Text="{Binding Title}" />
-      <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
-    </StackPanel>
-    <controls:EmptyState Icon="{StaticResource Icon.CheckCircle}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}" />
+    <!-- Header -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+      <StackPanel>
+        <TextBlock Classes="pageTitle" Text="{Binding Title}" />
+        <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+        <Button x:Name="ManageRulesButton" Command="{Binding ManageRulesCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_ManageRules}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Filter}" Width="16" Height="16" />
+            <TextBlock Text="{x:Static res:Strings.Review_ManageRules}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <Button x:Name="BatchApproveButton" Classes="accent" Command="{Binding BatchApproveCommand}" IsVisible="{Binding ShowQueue}"
+                AutomationProperties.Name="{Binding BatchText}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.CheckCircle}" Width="16" Height="16" />
+            <TextBlock Text="{Binding BatchText}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Grid>
+
+    <!-- Progress -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" Margin="0,0,0,16" IsVisible="{Binding ShowQueue}">
+      <TextBlock x:Name="ProgressLabel" Text="{Binding ProgressText}" FontWeight="SemiBold" FontFeatures="+tnum" VerticalAlignment="Center" Margin="0,0,12,0" />
+      <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding ProgressValue}" Height="6" MinHeight="6" VerticalAlignment="Center"
+                   AutomationProperties.Name="{Binding ProgressText}" />
+    </Grid>
+
+    <!-- Keyboard map -->
+    <Border DockPanel.Dock="Bottom" Margin="0,16,0,0" Padding="12,8" CornerRadius="{StaticResource Keel.CornerRadius}"
+            Background="{DynamicResource Keel.SurfaceBackground}" BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="1"
+            IsVisible="{Binding ShowQueue}">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <controls:Icon Data="{StaticResource Icon.Keyboard}" Width="16" Height="16" Foreground="{DynamicResource Keel.TextSecondary}" />
+        <TextBlock x:Name="KeyHintsText" Classes="keyHint" Text="{Binding KeyHints}" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+
+    <Panel>
+      <!-- Queue and focused transaction -->
+      <Grid ColumnDefinitions="300,16,*" IsVisible="{Binding ShowQueue}">
+        <Border Classes="card" Padding="6">
+          <ListBox x:Name="QueueList" ItemsSource="{Binding Items}" Background="Transparent" Focusable="False"
+                   AutomationProperties.Name="{Binding Title}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="rv:ReviewItemViewModel">
+                <Border Classes="queueItem" Classes.focused="{Binding IsFocused}">
+                  <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Text="{Binding Payee}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Classes="amount" Text="{Binding AmountText}" Margin="8,0,0,0" />
+                    <TextBlock Grid.Row="1" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextTrimming="CharacterEllipsis">
+                      <Run Text="{Binding DateText}" /><Run Text=" · " /><Run Text="{Binding Account}" />
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="secondary" Classes.muted="{Binding IsUncategorized}" FontSize="{StaticResource Keel.FontSize.Small}"
+                               Text="{Binding CategoryText}" Margin="8,0,0,0" MaxWidth="120" TextTrimming="CharacterEllipsis" HorizontalAlignment="Right" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Border>
+
+        <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="16">
+            <!-- Details -->
+            <Border Classes="card" x:Name="FocusCard">
+              <StackPanel Spacing="12">
+                <StackPanel Spacing="12" DataContext="{Binding Focused}" x:DataType="rv:ReviewItemViewModel">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel>
+                    <TextBlock x:Name="FocusPayee" Text="{Binding Payee}" FontSize="{StaticResource Keel.FontSize.PageTitle}" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="secondary" Text="{Binding LongDateText}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                    <TextBlock x:Name="FocusAmount" Text="{Binding AmountText}" FontSize="{StaticResource Keel.FontSize.PageTitle}"
+                               FontWeight="SemiBold" FontFeatures="+tnum" HorizontalAlignment="Right" />
+                    <TextBlock Classes="secondary" Text="{Binding DirectionText}" HorizontalAlignment="Right" />
+                  </StackPanel>
+                </Grid>
+                <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Review_Account}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Account}" />
+                  <TextBlock Grid.Row="1" Classes="secondary" Text="{x:Static res:Strings.Review_Category}" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" x:Name="FocusCategory" Classes.muted="{Binding IsUncategorized}"
+                             Text="{Binding CategoryText}" />
+                  <TextBlock Grid.Row="2" Classes="secondary" Text="{x:Static res:Strings.Review_Memo}" IsVisible="{Binding HasMemo}" />
+                  <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Memo}" TextWrapping="Wrap" IsVisible="{Binding HasMemo}" />
+                </Grid>
+                </StackPanel>
+                <Grid ColumnDefinitions="140,*" IsVisible="{Binding HasDescriptor}">
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Review_Descriptor}" />
+                  <TextBlock Grid.Column="1" x:Name="FocusDescriptor" Classes="secondary" Text="{Binding Descriptor}" TextWrapping="Wrap" />
+                </Grid>
+                <WrapPanel Orientation="Horizontal">
+                  <Button x:Name="ApproveButton" Classes="triage accent" Margin="0,0,8,8" Command="{Binding ApproveCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_Approve}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Check}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Review_Approve}" VerticalAlignment="Center" />
+                      <Border Classes="keycap" Padding="4,0"><TextBlock Text="A" FontSize="{StaticResource Keel.FontSize.Small}" Foreground="{DynamicResource Keel.TextPrimary}" /></Border>
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="triage" Margin="0,0,8,8" Command="{Binding ChangeCategoryCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_ChangeCategory}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Budget}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Review_ChangeCategory}" VerticalAlignment="Center" />
+                      <Border Classes="keycap" Padding="4,0"><TextBlock Text="C" FontSize="{StaticResource Keel.FontSize.Small}" /></Border>
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="triage" Margin="0,0,8,8" Command="{Binding SplitCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_Split}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Split}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Review_Split}" VerticalAlignment="Center" />
+                      <Border Classes="keycap" Padding="4,0"><TextBlock Text="S" FontSize="{StaticResource Keel.FontSize.Small}" /></Border>
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="triage" Margin="0,0,8,8" Command="{Binding MarkTransferCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_Transfer}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Transfer}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Review_Transfer}" VerticalAlignment="Center" />
+                      <Border Classes="keycap" Padding="4,0"><TextBlock Text="T" FontSize="{StaticResource Keel.FontSize.Small}" /></Border>
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="triage" Margin="0,0,8,8" Command="{Binding CreateRuleCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_CreateRule}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Filter}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Review_CreateRule}" VerticalAlignment="Center" />
+                      <Border Classes="keycap" Padding="4,0"><TextBlock Text="R" FontSize="{StaticResource Keel.FontSize.Small}" /></Border>
+                    </StackPanel>
+                  </Button>
+                  <Button Classes="triage" Margin="0,0,8,8" Command="{Binding DeleteCommand}" AutomationProperties.Name="{x:Static res:Strings.Review_Delete}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Trash}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Review_Delete}" VerticalAlignment="Center" />
+                      <Border Classes="keycap" Padding="4,0"><TextBlock Text="D" FontSize="{StaticResource Keel.FontSize.Small}" /></Border>
+                    </StackPanel>
+                  </Button>
+                </WrapPanel>
+              </StackPanel>
+            </Border>
+
+            <!-- Suggestions -->
+            <Border Classes="card">
+              <StackPanel Spacing="10">
+                <TextBlock Text="{x:Static res:Strings.Review_Suggestions}" FontWeight="SemiBold" FontSize="16" />
+                <StackPanel x:Name="PreparingState" Spacing="6" IsVisible="{Binding IsPreparingSuggestions}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ProgressBar IsIndeterminate="True" Width="120" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static res:Strings.Review_Preparing}" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Review_PreparingHint}" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoadingSuggestions}">
+                  <ProgressBar IsIndeterminate="True" Width="120" VerticalAlignment="Center" />
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Review_Scoring}" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Classes="secondary" Text="{x:Static res:Strings.Review_NoSuggestions}" TextWrapping="Wrap" IsVisible="{Binding ShowNoSuggestions}" />
+                <TextBlock Classes="error" Text="{Binding TraceSummary}" TextWrapping="Wrap" IsVisible="{Binding HasSuggestionError}" />
+                <ItemsControl x:Name="SuggestionList" ItemsSource="{Binding Suggestions}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Spacing="8" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="rv:SuggestionViewModel">
+                      <Button Classes="suggestion" Classes.primary="{Binding IsPrimary}" AutomationProperties.Name="{Binding AutomationName}"
+                              Command="{Binding Choose}" CommandParameter="{Binding}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                          <Border Grid.RowSpan="2" Classes="keycap" VerticalAlignment="Top" Margin="0,0,12,0" MinWidth="24">
+                            <TextBlock Text="{Binding Key}" HorizontalAlignment="Center" FontWeight="SemiBold" />
+                          </Border>
+                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding CategoryName}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Border Classes="chip" VerticalAlignment="Center"><TextBlock Text="{Binding SourceText}" /></Border>
+                          </StackPanel>
+                          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding ConfidencePercent}" Width="80" MinWidth="80" Height="4" MinHeight="4" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding ConfidenceText}" FontFeatures="+tnum" MinWidth="36" TextAlignment="Right" />
+                          </StackPanel>
+                          <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Classes="secondary" Margin="0,4,0,0" Text="{Binding Explanation}" TextWrapping="Wrap" />
+                        </Grid>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <DockPanel IsVisible="{Binding TraceSummary, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <ToggleButton DockPanel.Dock="Right" x:Name="WhyButton" IsChecked="{Binding ShowTrace}" Content="{x:Static res:Strings.Review_Why}"
+                                AutomationProperties.Name="{x:Static res:Strings.Review_Why}" VerticalAlignment="Top" />
+                  <TextBlock Classes="secondary" Text="{Binding TraceSummary}" TextWrapping="Wrap" Margin="0,0,12,0" VerticalAlignment="Center" />
+                </DockPanel>
+                <ItemsControl ItemsSource="{Binding TraceSteps}" IsVisible="{Binding ShowTrace}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="rv:TraceStepViewModel">
+                      <Grid ColumnDefinitions="120,*" Margin="0,2">
+                        <TextBlock Classes="secondary" Text="{Binding Stage}" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1" Classes="secondary" Text="{Binding Detail}" TextWrapping="Wrap" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+
+      <controls:EmptyState Icon="{StaticResource Icon.CheckCircle}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
+                           IsVisible="{Binding ShowEmptyState}">
+        <Button Command="{Binding ManageRulesCommand}" Content="{x:Static res:Strings.Review_ManageRules}" />
+      </controls:EmptyState>
+
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding IsLoading}">
+        <ProgressBar IsIndeterminate="True" Width="200" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Review_Loading}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="{Binding HasError}" MaxWidth="460">
+        <TextBlock Classes="error" TextAlignment="Center" TextWrapping="Wrap" Text="{Binding ErrorMessage}" />
+        <Button HorizontalAlignment="Center" Command="{Binding RetryCommand}" Content="{x:Static res:Strings.Review_Retry}" />
+      </StackPanel>
+    </Panel>
   </DockPanel>
 </UserControl>

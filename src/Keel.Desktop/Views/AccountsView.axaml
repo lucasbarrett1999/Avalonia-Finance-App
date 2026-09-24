@@ -444,6 +444,12 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
         </DataGrid.Columns>
+        <DataGrid.ContextMenu>
+          <ContextMenu>
+            <MenuItem x:Name="CreateRuleMenuItem" Header="{x:Static res:Strings.Rules_CreateFromTransaction}"
+                      Command="{Binding CreateRuleFromTransactionCommand}" />
+          </ContextMenu>
+        </DataGrid.ContextMenu>
         <DataGrid.RowDetailsTemplate>
           <DataTemplate x:DataType="reg:RegisterRowViewModel">
             <ItemsControl ItemsSource="{Binding Splits}" Margin="0,0,0,6">

@@ -14,6 +14,7 @@ using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
 using Keel.Desktop.ViewModels.Import;
 using Keel.Desktop.ViewModels.Register;
+using Keel.Desktop.ViewModels.Rules;
 using Keel.Domain;
 using Keel.Domain.Ledger;
 
@@ -60,11 +61,13 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         StatusService status,
         IMessenger messenger,
         ImportWorkflow import,
+        RuleEditorFlow ruleEditor,
         Bills.ScheduledGhostsViewModel? scheduled = null)
     {
         Scheduled = scheduled;
         ArgumentNullException.ThrowIfNull(messenger);
         _import = import;
+        _ruleEditor = ruleEditor;
         _register = register;
         _transactions = transactions;
         _accounts = accounts;

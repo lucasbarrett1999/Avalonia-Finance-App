@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Rules.RenamePayeeDialogView"
+             x:DataType="rules:RenamePayeeDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="420">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+    <TextBlock Classes="secondary" Text="{Binding Message}" TextWrapping="Wrap" />
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Payees_NewName}" />
+      <TextBox x:Name="PayeeNameBox" Text="{Binding Name}" AutomationProperties.Name="{x:Static res:Strings.Payees_NewName}">
+        <TextBox.KeyBindings>
+          <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+        </TextBox.KeyBindings>
+      </TextBox>
+    </StackPanel>
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Payees_Rename}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

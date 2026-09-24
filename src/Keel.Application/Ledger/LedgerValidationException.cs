@@ -68,6 +68,15 @@ public enum LedgerError
 
     /// <summary>The replacement category is the deleted one, is being deleted too, or is a system category.</summary>
     InvalidReplacementCategory,
+
+    /// <summary>The rule does not exist.</summary>
+    RuleNotFound,
+
+    /// <summary>The payee does not exist.</summary>
+    PayeeNotFound,
+
+    /// <summary>A payee needs a name.</summary>
+    PayeeNameRequired,
 }
 
 /// <summary>A ledger rule was violated; nothing was written.</summary>
