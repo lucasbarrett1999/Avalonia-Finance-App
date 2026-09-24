@@ -1,0 +1,188 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rep="using:Keel.Desktop.ViewModels.Reports"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Keel.Desktop.Views.Reports.ForecastReportView"
+             x:DataType="rep:ForecastReportViewModel">
+  <Panel>
+    <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,48,0,0" MaxWidth="440" Spacing="8">
+      <TextBlock Text="{x:Static res:Strings.Forecast_EmptyHeading}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextAlignment="Center" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Forecast_EmptyMessage}" TextWrapping="Wrap" TextAlignment="Center" />
+    </StackPanel>
+
+    <ScrollViewer x:Name="ForecastScroll" IsVisible="{Binding HasData}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Bottom">
+            <Border Classes="tile" Margin="8,0,0,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Forecast_Today}" />
+                <TextBlock Classes="tileValue" Text="{Binding StartText}" />
+              </StackPanel>
+            </Border>
+            <Border Classes="tile" Margin="8,0,0,8">
+              <StackPanel>
+                <TextBlock Classes="tileLabel" Text="{x:Static res:Strings.Forecast_End}" />
+                <TextBlock Classes="tileValue" Text="{Binding EndText}" />
+              </StackPanel>
+            </Border>
+          </WrapPanel>
+          <StackPanel>
+            <TextBlock Classes="secondary" Text="{x:Static res:Strings.Forecast_Lowest}" />
+            <TextBlock x:Name="ForecastLowest" Classes="heroNumber" Classes.negative="{Binding IsLowestNegative}" Text="{Binding LowestText}" />
+            <TextBlock Classes="secondary" Text="{Binding LowestDetailText}" TextWrapping="Wrap" />
+          </StackPanel>
+        </DockPanel>
+
+        <!-- Floor and discretionary toggle -->
+        <Border Classes="bar" Padding="12,8">
+          <WrapPanel>
+            <CheckBox x:Name="UseFloorBox" IsChecked="{Binding UseFloor}" Content="{x:Static res:Strings.Forecast_UseFloor}" Margin="0,0,8,4" VerticalAlignment="Center" />
+            <controls:MoneyTextBox x:Name="FloorBox" Width="130" Margin="0,0,20,4" Value="{Binding FloorAmount}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                                   IsEnabled="{Binding UseFloor}" AutomationProperties.Name="{x:Static res:Strings.Forecast_Floor}" />
+            <CheckBox x:Name="DiscretionaryBox" IsChecked="{Binding IncludeDiscretionary}" Content="{x:Static res:Strings.Forecast_IncludeDiscretionary}"
+                      ToolTip.Tip="{x:Static res:Strings.Forecast_IncludeDiscretionaryTip}" Margin="0,0,8,4" VerticalAlignment="Center" />
+          </WrapPanel>
+        </Border>
+
+        <Border Classes="card" Padding="16">
+          <StackPanel Spacing="8">
+            <ItemsControl ItemsSource="{Binding Series}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="rep:ForecastSeriesItem">
+                  <Button Classes="chartRow" Padding="6,2" Margin="0,0,12,4" HorizontalAlignment="Left"
+                          Command="{Binding $parent[ItemsControl].((rep:ForecastReportViewModel)DataContext).ExplainLowestCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Forecast_ExplainLowestTip}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:ChartSwatch Slot="{Binding Slot}" Kind="Line" Width="18" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Classes="secondary" Classes.negative="{Binding IsLowestNegative}" Text="{Binding LowestText}" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <lvc:CartesianChart x:Name="ForecastChart" Height="300" AutomationProperties.Name="{x:Static res:Strings.Forecast_ChartName}" />
+            <StackPanel Orientation="Horizontal" Spacing="16">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Border Width="14" Height="10" Background="{DynamicResource Keel.WarningBackground}" BorderBrush="{DynamicResource Keel.Warning}" BorderThickness="1" VerticalAlignment="Center" />
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Forecast_LowestLegend}" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding UseFloor}">
+                <Border Width="18" Height="2" Background="{DynamicResource Keel.Negative}" VerticalAlignment="Center" />
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Forecast_FloorLegend}" />
+              </StackPanel>
+            </StackPanel>
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Forecast_Hint}" />
+          </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,16,*">
+          <Border Classes="card" Padding="12" VerticalAlignment="Top">
+            <StackPanel Spacing="6">
+              <TextBlock Classes="cardTitle" Margin="8,0" Text="{x:Static res:Strings.Forecast_BelowFloor}" />
+              <TextBlock x:Name="FloorSummaryText" Margin="8,0" Text="{Binding FloorSummary}" TextWrapping="Wrap" />
+              <ItemsControl x:Name="FloorRowsList" ItemsSource="{Binding FloorRows}" IsVisible="{Binding HasFloorRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="rep:ForecastFloorRow">
+                    <Button Classes="chartRow" Command="{Binding $parent[ItemsControl].((rep:ForecastReportViewModel)DataContext).ExplainRowCommand}" CommandParameter="{Binding}"
+                            AutomationProperties.Name="{Binding AutomationName}">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel>
+                          <TextBlock Text="{Binding DateText}" TextWrapping="Wrap" />
+                          <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding AccountName}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                          <TextBlock Classes="amount negative" Text="{Binding BalanceText}" />
+                          <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" HorizontalAlignment="Right" Text="{Binding LowestText}" />
+                        </StackPanel>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <StackPanel Grid.Column="2" Spacing="12">
+            <Border Classes="card" Padding="12">
+              <Panel>
+                <StackPanel IsVisible="{Binding !HasExplanation}" Spacing="4" Margin="8,0">
+                  <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Forecast_ShowMath}" />
+                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Forecast_ShowMathHint}" TextWrapping="Wrap" />
+                </StackPanel>
+                <Button Theme="{StaticResource IconButtonTheme}" MinWidth="24" MinHeight="24" Padding="4" HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="1"
+                        IsVisible="{Binding HasExplanation}" Command="{Binding CloseExplanationCommand}"
+                        AutomationProperties.Name="{x:Static res:Strings.Forecast_CloseExplanation}">
+                  <controls:Icon Data="{StaticResource Icon.Close}" Width="12" Height="12" />
+                </Button>
+                <ContentControl x:Name="ExplanationHost" Content="{Binding Explanation}" IsVisible="{Binding HasExplanation}">
+                  <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="rep:ForecastExplanation">
+                <StackPanel x:Name="ExplanationPanel" Spacing="6" Margin="8,0">
+                  <TextBlock x:Name="ExplanationTitle" Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,28,0" />
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Classes="amount" Text="{Binding OpeningText}" />
+                    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Forecast_Opening}" />
+                  </DockPanel>
+                  <TextBlock Classes="secondary" FontStyle="Italic" Text="{x:Static res:Strings.Forecast_NothingLands}" IsVisible="{Binding !HasEntries}" />
+                  <ItemsControl ItemsSource="{Binding Entries}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="rep:ForecastExplainEntry">
+                        <DockPanel Margin="0,2">
+                          <TextBlock DockPanel.Dock="Right" Classes="amount" Text="{Binding AmountText}" />
+                          <StackPanel>
+                            <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Classes="secondary" FontSize="11" Text="{Binding KindText}" />
+                            <TextBlock Classes="secondary" FontSize="11" Text="{Binding Note}" IsVisible="{Binding HasNote}" />
+                          </StackPanel>
+                        </DockPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <Border Height="1" Background="{DynamicResource Keel.BorderBrush}" />
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Classes="amount" FontWeight="SemiBold" Text="{Binding ClosingText}" />
+                    <TextBlock Text="{x:Static res:Strings.Forecast_Closing}" FontWeight="SemiBold" />
+                  </DockPanel>
+                </StackPanel>
+                    </DataTemplate>
+                  </ContentControl.ContentTemplate>
+                </ContentControl>
+              </Panel>
+            </Border>
+
+            <Border Classes="card" Padding="12">
+              <StackPanel Spacing="4" Margin="8,0">
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Forecast_Inputs}" />
+                <TextBlock Classes="secondary" Text="{x:Static res:Strings.Forecast_InputsText}" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding DiscretionaryLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Classes="cardTitle" Margin="0,6,0,0" Text="{x:Static res:Strings.Forecast_LeftOut}" IsVisible="{Binding HasSkipped}" />
+                <ItemsControl ItemsSource="{Binding SkippedLines}" IsVisible="{Binding HasSkipped}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Classes="secondary" Text="{Binding}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" Margin="0,1" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
+</UserControl>

@@ -46,7 +46,9 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         StatusService status,
         IMessenger messenger,
         ImportWorkflow import,
-        IRegisterQuery register)
+        IRegisterQuery register,
+        Alerts.NotificationCenterViewModel? notifications = null,
+        RecurringJobs? jobs = null)
     {
         ArgumentNullException.ThrowIfNull(navigation);
         _import = import;
@@ -88,7 +90,16 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         _navigation.NavigateTo<HomeViewModel>();
         AccountsLoading = session.BudgetFile is null ? Task.CompletedTask : RefreshAccountsAsync();
         StartReviewBadge(register, session.BudgetFile is not null);
+        Notifications = notifications;
+        Jobs = jobs;
+        jobs?.Start();
     }
+
+    /// <summary>The notification center behind the top-bar bell (M5).</summary>
+    public Alerts.NotificationCenterViewModel? Notifications { get; }
+
+    /// <summary>Scheduled entry and recurring detection jobs (M5; tests await <see cref="RecurringJobs.Running"/>).</summary>
+    public RecurringJobs? Jobs { get; }
 
     /// <summary>In-window dialogs.</summary>
     public DialogService Dialogs { get; }

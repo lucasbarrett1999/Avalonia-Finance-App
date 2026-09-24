@@ -23,6 +23,7 @@ public partial class ShellView : UserControl
                 ApplySidebarWidth();
             }
         };
+        NotificationDismissArea.PointerPressed += (_, _) => _shell?.Notifications?.Close();
     }
 
     /// <summary>Moves keyboard focus to the global search box.</summary>

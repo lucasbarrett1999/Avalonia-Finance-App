@@ -5,10 +5,13 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Keel.Application.Accounts;
 using Keel.Application.Budget;
+using Keel.Application.Forecast;
 using Keel.Application.Ledger;
 using Keel.Application.Messaging;
 using Keel.Application.Navigation;
+using Keel.Application.Recurring;
 using Keel.Application.Reports;
+using Keel.Application.Scheduling;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
@@ -26,7 +29,7 @@ namespace Keel.Desktop.ViewModels;
 /// and the forecast low point arrive with recurring detection (M5) and show that state until then.
 /// Every card refreshes on <see cref="LedgerChanged"/> and <see cref="BudgetChanged"/>.
 /// </summary>
-public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IRecipient<LedgerChanged>, IRecipient<BudgetChanged>
+public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IRecipient<LedgerChanged>, IRecipient<BudgetChanged>, IRecipient<RecurringChanged>
 {
     /// <summary>Number of budget alerts shown.</summary>
     public const int AlertCount = 5;
@@ -52,8 +55,14 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
         StatusService status,
         AppSession session,
         TimeProvider time,
-        IMessenger messenger)
+        IMessenger messenger,
+        IRecurringService? recurring = null,
+        IScheduledTransactionService? scheduled = null,
+        IForecastService? forecast = null)
     {
+        _recurring = recurring;
+        _scheduled = scheduled;
+        _forecast = forecast;
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(messenger);
         _budget = budget;
@@ -68,6 +77,7 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
         FilePath = session.BudgetFile?.Path ?? string.Empty;
         messenger.Register<LedgerChanged>(this);
         messenger.Register<BudgetChanged>(this);
+        messenger.Register<RecurringChanged>(this);
     }
 
     /// <inheritdoc />
@@ -284,6 +294,8 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
                     ReportFormat.Money(Math.Abs(change), netWorth.Currency),
                     netWorth.Points[0].Date.ToString("MMM d, yyyy", System.Globalization.CultureInfo.CurrentCulture));
             }
+
+            await LoadRecurringCardsAsync(today, version);
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbException)
         {

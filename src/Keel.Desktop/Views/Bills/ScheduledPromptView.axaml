@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:bills="using:Keel.Desktop.ViewModels.Bills"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Bills.ScheduledPromptView"
+             x:DataType="bills:ScheduledPromptViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" Width="500">
+    <StackPanel Orientation="Horizontal" Spacing="10">
+      <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Keel.IconCircle}">
+        <controls:Icon Data="{StaticResource Icon.Bills}" Width="18" Height="18" Foreground="{DynamicResource Keel.IconCircleForeground}" />
+      </Border>
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+        <TextBlock Classes="secondary" Text="{Binding Message}" />
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl x:Name="PromptRows" ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="bills:ScheduledInstanceRowViewModel">
+            <Border BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="0,0,0,1" Padding="4,8">
+              <Grid ColumnDefinitions="110,*,100,Auto">
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Text="{Binding DayText}" />
+                  <TextBlock Classes="secondary" FontSize="11" Text="{Binding StateText}" Classes.negative="{Binding IsOverdue}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0">
+                  <TextBlock Text="{Binding Payee}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="secondary" FontSize="11" Text="{Binding Category}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Classes="amount" Text="{Binding AmountText}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" IsEnabled="{Binding IsNext}">
+                  <Button Classes="mini accent" Command="{Binding $parent[ItemsControl].((bills:ScheduledPromptViewModel)DataContext).EnterCommand}"
+                          CommandParameter="{Binding}" Content="{x:Static res:Strings.Schedule_Enter}" AutomationProperties.Name="{Binding AutomationName}" />
+                  <Button Classes="mini" Command="{Binding $parent[ItemsControl].((bills:ScheduledPromptViewModel)DataContext).SkipCommand}"
+                          CommandParameter="{Binding}" Content="{x:Static res:Strings.Schedule_Skip}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Schedule_PromptHint}" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Schedule_Later}" />
+      <Button x:Name="EnterAllButton" Classes="accent" Command="{Binding ConfirmCommand}" IsDefault="True" Content="{x:Static res:Strings.Schedule_EnterAll}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

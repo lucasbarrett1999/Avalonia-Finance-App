@@ -40,6 +40,9 @@ public interface IScheduledTransactionService
 
     /// <summary>Validates a rule for the editor: description and the next few dates, or the parse error.</summary>
     RecurrenceRuleCheck CheckRule(string rule, DateOnly start, int previewCount);
+
+    /// <summary>One scheduled transaction, or null.</summary>
+    Task<ScheduledTransactionDto?> GetByIdAsync(Guid id, CancellationToken ct);
 }
 
 /// <summary>A scheduled transaction.</summary>
@@ -56,6 +59,10 @@ public interface IScheduledTransactionService
 /// <param name="NextDate">Next instance.</param>
 /// <param name="EndDate">Last possible instance.</param>
 /// <param name="AutoEnter">Entered automatically on its date.</param>
+/// <param name="AccountName">Account display name.</param>
+/// <param name="CategoryName">Category display name.</param>
+/// <param name="TransferAccountName">Transfer target display name.</param>
+/// <param name="IsFinished">Past its end date: no more instances.</param>
 public sealed record ScheduledTransactionDto(
     Guid Id,
     Guid AccountId,
@@ -69,7 +76,11 @@ public sealed record ScheduledTransactionDto(
     string Schedule,
     DateOnly NextDate,
     DateOnly? EndDate,
-    bool AutoEnter);
+    bool AutoEnter,
+    string? AccountName = null,
+    string? CategoryName = null,
+    string? TransferAccountName = null,
+    bool IsFinished = false);
 
 /// <summary>Input for creating or editing a scheduled transaction.</summary>
 /// <param name="AccountId">Account.</param>
@@ -82,6 +93,7 @@ public sealed record ScheduledTransactionDto(
 /// <param name="StartDate">First instance on or after this date.</param>
 /// <param name="EndDate">Last possible instance.</param>
 /// <param name="AutoEnter">Enter automatically.</param>
+/// <param name="RecurringItemId">The recurring item this schedule is created from (linked on create).</param>
 public sealed record ScheduledTransactionEdit(
     Guid AccountId,
     Guid PayeeId,
@@ -92,7 +104,8 @@ public sealed record ScheduledTransactionEdit(
     string Rule,
     DateOnly StartDate,
     DateOnly? EndDate,
-    bool AutoEnter);
+    bool AutoEnter,
+    Guid? RecurringItemId = null);
 
 /// <summary>One upcoming instance (a ghost row).</summary>
 /// <param name="ScheduledId">Scheduled transaction.</param>
@@ -101,7 +114,23 @@ public sealed record ScheduledTransactionEdit(
 /// <param name="Amount">Amount.</param>
 /// <param name="PayeeName">Payee display name.</param>
 /// <param name="IsOverdue">Due before today and not entered.</param>
-public sealed record ScheduledInstanceDto(Guid ScheduledId, Guid AccountId, DateOnly Date, Money Amount, string PayeeName, bool IsOverdue);
+/// <param name="IsNext">The schedule's next instance: the only one that can be entered or skipped.</param>
+/// <param name="TransferAccountName">The other account of a transfer (for the "Transfer: account" payee text).</param>
+/// <param name="CategoryName">Category.</param>
+/// <param name="Memo">Memo.</param>
+/// <param name="AutoEnter">Entered automatically on its date.</param>
+public sealed record ScheduledInstanceDto(
+    Guid ScheduledId,
+    Guid AccountId,
+    DateOnly Date,
+    Money Amount,
+    string PayeeName,
+    bool IsOverdue,
+    bool IsNext = false,
+    string? TransferAccountName = null,
+    string? CategoryName = null,
+    string? Memo = null,
+    bool AutoEnter = false);
 
 /// <summary>Result of <see cref="IScheduledTransactionService.EnterDueAsync"/>.</summary>
 /// <param name="EnteredTransactionIds">Transactions created.</param>

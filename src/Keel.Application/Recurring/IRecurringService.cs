@@ -53,6 +53,37 @@ public interface IRecurringService
     /// monthly set-aside (<see cref="RecurringMath.MonthlySetAside"/>).
     /// </summary>
     Task CreateTargetAsync(Guid id, CancellationToken ct);
+
+    /// <summary>
+    /// Runs detection after an import (F-REC-1 "on import") and evaluates alerts for the imported
+    /// transactions (F-REC-3).
+    /// </summary>
+    Task<RecurringDetectionSummary> DetectAfterImportAsync(DateOnly asOf, IReadOnlyCollection<Guid> newTransactionIds, CancellationToken ct);
+
+    /// <summary>
+    /// The once-per-app-day run (F-REC-1 "nightly"): detection and alerts when detection has not run on
+    /// <paramref name="today"/> yet; null when it already ran today.
+    /// </summary>
+    Task<RecurringDetectionSummary?> RunDailyAsync(DateOnly today, CancellationToken ct);
+
+    /// <summary>The date of the last detection run, or null before the first (the Bills empty state).</summary>
+    Task<DateOnly?> GetLastDetectionDateAsync(CancellationToken ct);
+
+    /// <summary>The user's subscription designations (F-REC-2): category groups and tags.</summary>
+    Task<SubscriptionDesignations> GetSubscriptionDesignationsAsync(CancellationToken ct);
+
+    /// <summary>Saves the subscription designations and reclassifies every item with them.</summary>
+    Task SetSubscriptionDesignationsAsync(SubscriptionDesignations designations, CancellationToken ct);
+
+    /// <summary>
+    /// Finds transactions imported (file or provider) since the last call, from the audit log, and runs
+    /// <see cref="DetectAfterImportAsync"/> for them; null when there were none. The first call only
+    /// sets the starting point. The desktop coordinator calls this after every <c>LedgerChanged</c>.
+    /// </summary>
+    Task<RecurringDetectionSummary?> DetectNewImportsAsync(DateOnly today, CancellationToken ct);
+
+    /// <summary>Links (or unlinks, with null) a scheduled transaction created from an item.</summary>
+    Task LinkScheduledAsync(Guid id, Guid? scheduledTransactionId, CancellationToken ct);
 }
 
 /// <summary>Which items to list.</summary>
@@ -184,3 +215,12 @@ public sealed record RecurringDetectionSummary(int Created, int Updated, int End
 /// <summary>Recurring items changed; the Bills screen and forecast refresh.</summary>
 /// <param name="ItemIds">Affected items.</param>
 public sealed record RecurringChanged(IReadOnlyCollection<Guid> ItemIds);
+
+/// <summary>Which category groups and tags mark an item as a subscription (F-REC-2); a data-file setting.</summary>
+/// <param name="GroupIds">Designated category groups.</param>
+/// <param name="TagIds">Designated tags.</param>
+public sealed record SubscriptionDesignations(IReadOnlyCollection<Guid> GroupIds, IReadOnlyCollection<Guid> TagIds)
+{
+    /// <summary>No designations.</summary>
+    public static SubscriptionDesignations None { get; } = new([], []);
+}

@@ -44,6 +44,10 @@ public static class DependencyInjection
         services.AddSingleton<RuleEditorFlow>();
         services.AddSingleton<RulesViewModel>();
         services.AddSingleton<PayeesViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Bills.ScheduleEditorLauncher>();
+        services.AddTransient<Keel.Desktop.ViewModels.Bills.ScheduledGhostsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Alerts.NotificationCenterViewModel>();
+        services.AddSingleton<RecurringJobs>();
         return services;
     }
 }
