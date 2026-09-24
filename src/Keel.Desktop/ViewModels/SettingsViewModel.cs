@@ -3,18 +3,21 @@ using Keel.Application.Files;
 using Keel.Application.Settings;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
+using Keel.Desktop.ViewModels.Rules;
 using Keel.Desktop.ViewModels.Sync;
 
 namespace Keel.Desktop.ViewModels;
 
-/// <summary>Settings (PRD 9.9): appearance, data locations, bank connections, and the shortcut reference.</summary>
+/// <summary>Settings (PRD 9.9): appearance, data locations, bank connections, the shortcut reference, rules and payees.</summary>
 public sealed class SettingsViewModel : PageViewModel
 {
     private readonly ThemeService _themes;
 
     /// <summary>Creates the view model.</summary>
-    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts, ConnectionsSettingsViewModel connections)
+    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts, RulesViewModel rules, PayeesViewModel payees, ConnectionsSettingsViewModel connections)
     {
+        Rules = rules;
+        Payees = payees;
         Connections = connections;
         ArgumentNullException.ThrowIfNull(dataDirectory);
         ArgumentNullException.ThrowIfNull(shortcuts);
@@ -45,6 +48,14 @@ public sealed class SettingsViewModel : PageViewModel
             new ShortcutViewModel(Strings.Shortcut_BudgetFundTargets, shortcuts.Format(shortcuts.FundTargets)),
             new ShortcutViewModel(Strings.Shortcut_BudgetInspector, shortcuts.Format(shortcuts.ToggleInspector)),
             new ShortcutViewModel(Strings.Shortcut_BudgetQuickAssign, shortcuts.Format(shortcuts.QuickAssign)),
+            new ShortcutViewModel(Strings.Shortcut_ReviewApprove, "A"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewPick, "1–9"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewCategory, "C"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewSplit, "S"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewTransfer, "T"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewRule, "R"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewDelete, "D"),
+            new ShortcutViewModel(Strings.Shortcut_ReviewMove, "J / K"),
         ];
     }
 
@@ -129,6 +140,12 @@ public sealed class SettingsViewModel : PageViewModel
 
     /// <summary>Shortcut reference for this platform.</summary>
     public IReadOnlyList<ShortcutViewModel> Shortcuts { get; }
+
+    /// <summary>Settings → Rules (F-TXN-4).</summary>
+    public RulesViewModel Rules { get; }
+
+    /// <summary>Settings → Payees (F-TXN-9).</summary>
+    public PayeesViewModel Payees { get; }
 
     /// <summary>The Connections section (F-SET-3).</summary>
     public ConnectionsSettingsViewModel Connections { get; }

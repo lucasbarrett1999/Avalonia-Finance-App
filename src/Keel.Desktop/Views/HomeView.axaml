@@ -103,19 +103,34 @@
             </StackPanel>
           </Border>
 
-          <!-- Upcoming bills: arrives with recurring detection (M5) -->
-          <Border x:Name="UpcomingBillsCard" Grid.Row="1" Grid.Column="2" Classes="pendingCard" Margin="0,0,0,16">
+          <!-- Upcoming bills, next 7 days (M5) -->
+          <Border x:Name="UpcomingBillsCard" Grid.Row="1" Grid.Column="2" Classes="card" Margin="0,0,0,16">
             <StackPanel Spacing="8">
-              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_UpcomingBills}" />
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Keel.IconCircle}" VerticalAlignment="Top">
-                  <controls:Icon Data="{StaticResource Icon.Bills}" Width="18" Height="18" Foreground="{DynamicResource Keel.IconCircleForeground}" />
-                </Border>
-                <StackPanel Spacing="4" MaxWidth="360">
-                  <TextBlock Text="{x:Static res:Strings.Home_PendingRecurringHeading}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_UpcomingBillsPending}" TextWrapping="Wrap" />
-                </StackPanel>
-              </StackPanel>
+              <DockPanel>
+                <Button DockPanel.Dock="Right" x:Name="OpenBillsButton" Classes="link" Command="{Binding OpenBillsCommand}" Content="{x:Static res:Strings.Home_OpenBills}" />
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_UpcomingBills}" />
+              </DockPanel>
+              <TextBlock x:Name="UpcomingSummaryText" Classes="secondary" Text="{Binding UpcomingSummary}" TextWrapping="Wrap" />
+              <ItemsControl x:Name="UpcomingBillRows" ItemsSource="{Binding UpcomingBills}" IsVisible="{Binding HasUpcoming}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="home:HomeBillRow">
+                    <Button Classes="chartRow" Padding="8,4" Command="{Binding Open}" CommandParameter="{Binding}" AutomationProperties.Name="{Binding AutomationName}">
+                      <Grid ColumnDefinitions="96,*,Auto">
+                        <TextBlock Classes="secondary" Classes.negative="{Binding IsOverdue}" Text="{Binding DueText}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                          <TextBlock Text="{Binding Payee}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                          <Border Classes="pill detected" IsVisible="{Binding IsUnconfirmed}">
+                            <TextBlock Text="{x:Static res:Strings.Home_Unconfirmed}" />
+                          </Border>
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Classes="amount" Text="{Binding AmountText}" VerticalAlignment="Center" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Button Classes="accent" HorizontalAlignment="Left" IsVisible="{Binding UpcomingNeedsDetection}" Command="{Binding OpenBillsCommand}"
+                      Content="{x:Static res:Strings.Home_OpenBills}" />
             </StackPanel>
           </Border>
 
@@ -153,17 +168,26 @@
             </StackPanel>
           </Border>
 
-          <!-- Forecast: arrives with the forecast engine (M5) -->
-          <Border x:Name="ForecastCard" Grid.Row="2" Grid.Column="2" Classes="pendingCard" Margin="0,0,0,16">
-            <StackPanel Spacing="8">
-              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_Forecast}" />
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Keel.IconCircle}" VerticalAlignment="Top">
-                  <controls:Icon Data="{StaticResource Icon.Report.Trend}" Width="18" Height="18" Foreground="{DynamicResource Keel.IconCircleForeground}" />
-                </Border>
-                <StackPanel Spacing="4" MaxWidth="360">
-                  <TextBlock Text="{x:Static res:Strings.Home_PendingRecurringHeading}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                  <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_ForecastPending}" TextWrapping="Wrap" />
+          <!-- Forecast low point (M5, F-REP-4) -->
+          <Border x:Name="ForecastCard" Grid.Row="2" Grid.Column="2" Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="6">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" x:Name="ForecastReportButton" Classes="link" Command="{Binding OpenForecastCommand}"
+                        Content="{x:Static res:Strings.Home_OpenForecast}" />
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Home_Forecast}" />
+              </DockPanel>
+              <TextBlock Classes="secondary" Text="{Binding ForecastEmptyText}" TextWrapping="Wrap" IsVisible="{Binding !HasForecast}" />
+              <StackPanel Spacing="4" IsVisible="{Binding HasForecast}">
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Home_ForecastLowLabel}" />
+                <TextBlock x:Name="ForecastLowValue" Text="{Binding ForecastLowText}" FontSize="22" FontWeight="SemiBold" FontFeatures="+tnum"
+                           Classes.negative="{Binding IsForecastLowNegative}" />
+                <TextBlock Classes="secondary" Text="{Binding ForecastLowDetail}" TextWrapping="Wrap" />
+                <controls:ChartSparkline Height="64" Margin="0,6,0,0" Values="{Binding ForecastValues}" Slot="2"
+                                         AutomationProperties.Name="{x:Static res:Strings.Home_ForecastTrend}" />
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" IsVisible="{Binding IsBelowFloor}" Foreground="{DynamicResource Keel.Negative}" />
+                  <controls:Icon Data="{StaticResource Icon.CheckCircle}" Width="14" Height="14" IsVisible="{Binding !IsBelowFloor}" Foreground="{DynamicResource Keel.Positive}" />
+                  <TextBlock x:Name="ForecastFloorLine" Text="{Binding ForecastFloorText}" TextWrapping="Wrap" />
                 </StackPanel>
               </StackPanel>
             </StackPanel>

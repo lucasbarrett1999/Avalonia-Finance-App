@@ -15,6 +15,24 @@ public interface IForecastService
 
     /// <summary>What lands on a day (for the chart tooltip and "show the math").</summary>
     Task<ForecastDayExplanationDto> ExplainDayAsync(ForecastRequest request, DateOnly date, Guid? accountId, CancellationToken ct);
+
+    /// <summary>The saved floor and discretionary-spend toggle (a data-file setting).</summary>
+    Task<ForecastSettings> GetSettingsAsync(CancellationToken ct);
+
+    /// <summary>Saves the floor and discretionary-spend toggle.</summary>
+    Task SaveSettingsAsync(ForecastSettings settings, CancellationToken ct);
+
+    /// <summary>Drops cached forecasts (called on <c>LedgerChanged</c> and <c>RecurringChanged</c>).</summary>
+    void Invalidate();
+}
+
+/// <summary>The user's forecast settings (F-REP-4 floor and toggle).</summary>
+/// <param name="Floor">Floor in minor units, or null for none.</param>
+/// <param name="IncludeDiscretionarySpend">The average-discretionary-spend toggle.</param>
+public sealed record ForecastSettings(long? Floor, bool IncludeDiscretionarySpend)
+{
+    /// <summary>No floor, toggle off.</summary>
+    public static ForecastSettings Default { get; } = new(null, false);
 }
 
 /// <summary>Forecast settings from the Reports toolbar.</summary>
@@ -31,13 +49,15 @@ public sealed record ForecastRequest(int Days = 90, bool IncludeDiscretionarySpe
 /// <param name="Combined">All accounts combined.</param>
 /// <param name="Skipped">Sources left out, with the reason.</param>
 /// <param name="Discretionary">Discretionary-spend computation per account.</param>
+/// <param name="Currency">The budget currency.</param>
 public sealed record ForecastDto(
     DateOnly Start,
     DateOnly End,
     IReadOnlyList<ForecastSeriesDto> Accounts,
     ForecastSeriesDto Combined,
     IReadOnlyList<ForecastSkip> Skipped,
-    IReadOnlyList<DiscretionarySpend> Discretionary);
+    IReadOnlyList<DiscretionarySpend> Discretionary,
+    string Currency = Keel.Domain.Currency.Default);
 
 /// <summary>One series.</summary>
 /// <param name="AccountId">Account, or null for combined.</param>

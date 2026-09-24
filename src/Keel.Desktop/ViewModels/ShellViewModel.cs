@@ -47,7 +47,10 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         StatusService status,
         IMessenger messenger,
         ImportWorkflow import,
-        SyncCoordinator sync)
+        IRegisterQuery register,
+        SyncCoordinator sync,
+        Alerts.NotificationCenterViewModel? notifications = null,
+        RecurringJobs? jobs = null)
     {
         ArgumentNullException.ThrowIfNull(sync);
         Sync = sync;
@@ -92,8 +95,18 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         _navigation.Navigated += OnNavigated;
         _navigation.NavigateTo<HomeViewModel>();
         AccountsLoading = session.BudgetFile is null ? Task.CompletedTask : RefreshAccountsAsync();
+        StartReviewBadge(register, session.BudgetFile is not null);
+        Notifications = notifications;
+        Jobs = jobs;
+        jobs?.Start();
         SyncStarting = session.BudgetFile is null ? Task.CompletedTask : Sync.StartAsync();
     }
+
+    /// <summary>The notification center behind the top-bar bell (M5).</summary>
+    public Alerts.NotificationCenterViewModel? Notifications { get; }
+
+    /// <summary>Scheduled entry and recurring detection jobs (M5; tests await <see cref="RecurringJobs.Running"/>).</summary>
+    public RecurringJobs? Jobs { get; }
 
     /// <summary>Bank sync: "Sync all", schedule, and the connection flows (M7).</summary>
     public SyncCoordinator Sync { get; }
@@ -144,7 +157,11 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
 
     /// <inheritdoc />
     public void Receive(LedgerChanged message) =>
-        Dispatcher.UIThread.Post(() => AccountsLoading = RefreshAccountsAsync());
+        Dispatcher.UIThread.Post(() =>
+        {
+            AccountsLoading = RefreshAccountsAsync();
+            ReviewBadgeLoading = RefreshReviewBadgeAsync();
+        });
 
     /// <summary>Reloads the Accounts section of the sidebar.</summary>
     public async Task RefreshAccountsAsync()

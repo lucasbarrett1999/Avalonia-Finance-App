@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:bills="using:Keel.Desktop.ViewModels.Bills"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Bills.RecurringItemEditorView"
+             x:DataType="bills:RecurringItemEditorViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="460">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Payee}" />
+      <TextBox x:Name="ItemPayeeBox" Text="{Binding Payee}" AutomationProperties.Name="{x:Static res:Strings.Bills_Payee}" />
+    </StackPanel>
+
+    <Grid ColumnDefinitions="*,12,*">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Account}" />
+        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Accounts}" SelectedItem="{Binding Account}"
+                  AutomationProperties.Name="{x:Static res:Strings.Bills_Account}" />
+      </StackPanel>
+      <StackPanel Grid.Column="2">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Cadence}" />
+        <ComboBox x:Name="ItemCadenceBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Cadences}" SelectedItem="{Binding Cadence}"
+                  AutomationProperties.Name="{x:Static res:Strings.Bills_Cadence}" />
+      </StackPanel>
+    </Grid>
+
+    <Grid ColumnDefinitions="*,12,*">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Amount}" />
+        <controls:MoneyTextBox x:Name="ItemAmountBox" Value="{Binding Amount}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                               AutomationProperties.Name="{x:Static res:Strings.Bills_Amount}" />
+        <CheckBox Margin="0,6,0,0" IsChecked="{Binding IsInflow}" Content="{x:Static res:Strings.Bills_IsInflow}" />
+      </StackPanel>
+      <StackPanel Grid.Column="2">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_NextDate}" />
+        <CalendarDatePicker HorizontalAlignment="Stretch" SelectedDate="{Binding NextDate}"
+                            AutomationProperties.Name="{x:Static res:Strings.Bills_NextDate}" />
+      </StackPanel>
+    </Grid>
+
+    <StackPanel>
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Category}" />
+      <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}"
+                AutomationProperties.Name="{x:Static res:Strings.Bills_Category}" />
+    </StackPanel>
+
+    <CheckBox IsChecked="{Binding IsSubscription}" Content="{x:Static res:Strings.Bills_IsSubscription}" />
+    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Bills_EditHint}" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="ItemSaveButton" Classes="accent" Command="{Binding ConfirmCommand}" IsDefault="True" Content="{x:Static res:Strings.Bills_Save}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

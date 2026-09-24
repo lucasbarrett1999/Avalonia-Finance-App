@@ -1,0 +1,170 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:bills="using:Keel.Desktop.ViewModels.Bills"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Bills.ScheduledTransactionEditorView"
+             x:DataType="bills:ScheduledTransactionEditorViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <DockPanel Width="560">
+    <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" Margin="0,0,0,12" />
+    <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <Button DockPanel.Dock="Left" x:Name="DeleteScheduleButton" Command="{Binding DeleteCommand}" IsVisible="{Binding IsExisting}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <controls:Icon Data="{StaticResource Icon.Trash}" Width="14" Height="14" />
+          <TextBlock Text="{x:Static res:Strings.Schedule_Delete}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+        <Button x:Name="ScheduleSaveButton" Classes="accent" Command="{Binding ConfirmCommand}" IsDefault="True" Content="{x:Static res:Strings.Schedule_Save}" />
+      </StackPanel>
+    </DockPanel>
+    <TextBlock DockPanel.Dock="Bottom" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" Margin="0,8,0,0" />
+
+    <ScrollViewer MaxHeight="600" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,8,0">
+        <Grid ColumnDefinitions="*,12,*">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Account}" />
+            <ComboBox x:Name="ScheduleAccountBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Accounts}" SelectedItem="{Binding Account}"
+                      AutomationProperties.Name="{x:Static res:Strings.Bills_Account}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Payee}" />
+            <TextBox x:Name="SchedulePayeeBox" Text="{Binding Payee}" AutomationProperties.Name="{x:Static res:Strings.Bills_Payee}" />
+          </StackPanel>
+        </Grid>
+        <Grid ColumnDefinitions="*,12,*">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Amount}" />
+            <controls:MoneyTextBox x:Name="ScheduleAmountBox" Value="{Binding Amount}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                                   AutomationProperties.Name="{x:Static res:Strings.Bills_Amount}" />
+            <CheckBox Margin="0,6,0,0" IsChecked="{Binding IsInflow}" Content="{x:Static res:Strings.Bills_IsInflow}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bills_Category}" />
+            <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}"
+                      AutomationProperties.Name="{x:Static res:Strings.Bills_Category}" />
+          </StackPanel>
+        </Grid>
+        <Grid ColumnDefinitions="*,12,*">
+          <StackPanel>
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Schedule_TransferTo}" />
+            <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding TransferAccounts}" SelectedItem="{Binding TransferAccount}"
+                      AutomationProperties.Name="{x:Static res:Strings.Schedule_TransferTo}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+            <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Editor_Memo}" />
+            <TextBox Text="{Binding Memo}" AutomationProperties.Name="{x:Static res:Strings.Editor_Memo}" />
+          </StackPanel>
+        </Grid>
+
+        <!-- Recurrence builder -->
+        <Border Classes="bar" Padding="12">
+          <StackPanel Spacing="10">
+            <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.Schedule_Repeats}" />
+            <WrapPanel>
+              <ComboBox x:Name="FrequencyBox" MinWidth="150" Margin="0,0,12,4" ItemsSource="{Binding Frequencies}" SelectedItem="{Binding Frequency}"
+                        AutomationProperties.Name="{x:Static res:Strings.Schedule_Frequency}" />
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4" IsVisible="{Binding HasInterval}">
+                <TextBlock Text="{x:Static res:Strings.Schedule_Every}" VerticalAlignment="Center" />
+                <NumericUpDown x:Name="IntervalBox" Value="{Binding Interval}" Minimum="1" Maximum="999" Increment="1" FormatString="0" Width="110"
+                               AutomationProperties.Name="{x:Static res:Strings.Schedule_Interval}" />
+                <TextBlock Text="{Binding IntervalUnit}" VerticalAlignment="Center" />
+              </StackPanel>
+            </WrapPanel>
+
+            <ItemsControl ItemsSource="{Binding WeekdayToggles}" IsVisible="{Binding IsWeekly}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="bills:WeekdayToggle">
+                  <ToggleButton Classes="weekday" IsChecked="{Binding IsChecked}" Content="{Binding Label}" AutomationProperties.Name="{Binding Name}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Spacing="6" IsVisible="{Binding IsMonthly}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <RadioButton GroupName="MonthlyMode" IsChecked="{Binding IsMonthlyOnDay}" Content="{x:Static res:Strings.Schedule_OnDay}" />
+                <ComboBox MinWidth="110" ItemsSource="{Binding MonthDays}" SelectedItem="{Binding MonthDay}" IsEnabled="{Binding IsMonthlyOnDay}"
+                          AutomationProperties.Name="{x:Static res:Strings.Schedule_DayOfMonth}" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <RadioButton x:Name="ByWeekdayRadio" GroupName="MonthlyMode" IsChecked="{Binding MonthlyByWeekday}" Content="{x:Static res:Strings.Schedule_OnThe}" />
+                <ComboBox MinWidth="100" ItemsSource="{Binding Ordinals}" SelectedItem="{Binding Ordinal}" IsEnabled="{Binding MonthlyByWeekday}"
+                          AutomationProperties.Name="{x:Static res:Strings.Schedule_Which}" />
+                <ComboBox MinWidth="130" ItemsSource="{Binding Weekdays}" SelectedItem="{Binding Weekday}" IsEnabled="{Binding MonthlyByWeekday}"
+                          AutomationProperties.Name="{x:Static res:Strings.Schedule_Weekday}" />
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsTwiceMonthly}">
+              <TextBlock Text="{x:Static res:Strings.Schedule_OnThe}" VerticalAlignment="Center" />
+              <ComboBox MinWidth="110" ItemsSource="{Binding MonthDays}" SelectedItem="{Binding MonthDay}" AutomationProperties.Name="{x:Static res:Strings.Schedule_FirstDay}" />
+              <TextBlock Text="{x:Static res:Strings.Schedule_And}" VerticalAlignment="Center" />
+              <ComboBox MinWidth="110" ItemsSource="{Binding MonthDays}" SelectedItem="{Binding SecondMonthDay}" AutomationProperties.Name="{x:Static res:Strings.Schedule_SecondDay}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsYearly}">
+              <TextBlock Text="{x:Static res:Strings.Schedule_On}" VerticalAlignment="Center" />
+              <ComboBox MinWidth="140" ItemsSource="{Binding Months}" SelectedItem="{Binding Month}" AutomationProperties.Name="{x:Static res:Strings.Schedule_Month}" />
+              <ComboBox MinWidth="110" ItemsSource="{Binding MonthDays}" SelectedItem="{Binding MonthDay}" AutomationProperties.Name="{x:Static res:Strings.Schedule_DayOfMonth}" />
+            </StackPanel>
+
+            <Grid ColumnDefinitions="*,12,*">
+              <StackPanel>
+                <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Schedule_Starts}" />
+                <CalendarDatePicker x:Name="ScheduleStartBox" HorizontalAlignment="Stretch" SelectedDate="{Binding StartDate}"
+                                    AutomationProperties.Name="{x:Static res:Strings.Schedule_Starts}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Schedule_Ends}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <ComboBox MinWidth="120" ItemsSource="{Binding Ends}" SelectedItem="{Binding End}" AutomationProperties.Name="{x:Static res:Strings.Schedule_Ends}" />
+                  <CalendarDatePicker Width="130" SelectedDate="{Binding EndDate}" IsVisible="{Binding EndsOnDate}" AutomationProperties.Name="{x:Static res:Strings.Schedule_EndDate}" />
+                  <NumericUpDown Width="110" Value="{Binding Count}" Minimum="1" Maximum="9999" FormatString="0" IsVisible="{Binding EndsAfterCount}"
+                                 AutomationProperties.Name="{x:Static res:Strings.Schedule_Times}" />
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+
+            <Border Classes="preview">
+              <StackPanel Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding !HasRuleError}">
+                  <controls:Icon Data="{StaticResource Icon.Report.Calendar}" Width="14" Height="14" Foreground="{DynamicResource Keel.Accent}" />
+                  <TextBlock x:Name="RuleDescription" Text="{Binding Description}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                </StackPanel>
+                <TextBlock Classes="error" Text="{Binding RuleError}" IsVisible="{Binding HasRuleError}" TextWrapping="Wrap" />
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Schedule_NextDates}" IsVisible="{Binding !HasRuleError}" />
+                <ItemsControl x:Name="NextDatesList" ItemsSource="{Binding NextDates}" IsVisible="{Binding !HasRuleError}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Classes="pill" Margin="0,2,6,2">
+                        <TextBlock Text="{Binding}" FontFeatures="+tnum" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <CheckBox x:Name="AutoEnterBox" IsChecked="{Binding AutoEnter}" Content="{x:Static res:Strings.Schedule_AutoEnter}" />
+        <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Schedule_AutoEnterHint}" />
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

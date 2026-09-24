@@ -1,0 +1,170 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Bills, scheduled transactions, the notification center and the forecast (M5). -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="Keel.Bills.DayBackground" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="Keel.Bills.OtherMonthBackground" Color="#F3F5F8" />
+          <SolidColorBrush x:Key="Keel.Bills.TodayBorder" Color="#0B6477" />
+          <SolidColorBrush x:Key="Keel.Bills.ChipBackground" Color="#EEF3F7" />
+          <SolidColorBrush x:Key="Keel.Bills.ChipPaidBackground" Color="#E6F4EC" />
+          <SolidColorBrush x:Key="Keel.Bills.ChipIncomeBackground" Color="#E3F0FA" />
+          <SolidColorBrush x:Key="Keel.Bills.PillBackground" Color="#EEF1F5" />
+          <SolidColorBrush x:Key="Keel.Bills.DetectedBackground" Color="#FFF4D6" />
+          <SolidColorBrush x:Key="Keel.Bills.GhostBackground" Color="#F7F9FB" />
+          <SolidColorBrush x:Key="Keel.Bills.UnreadDot" Color="#0B6477" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="Keel.Bills.DayBackground" Color="#20242B" />
+          <SolidColorBrush x:Key="Keel.Bills.OtherMonthBackground" Color="#1A1D23" />
+          <SolidColorBrush x:Key="Keel.Bills.TodayBorder" Color="#3FB5CC" />
+          <SolidColorBrush x:Key="Keel.Bills.ChipBackground" Color="#2A3039" />
+          <SolidColorBrush x:Key="Keel.Bills.ChipPaidBackground" Color="#1F3329" />
+          <SolidColorBrush x:Key="Keel.Bills.ChipIncomeBackground" Color="#1E2F3D" />
+          <SolidColorBrush x:Key="Keel.Bills.PillBackground" Color="#2A3039" />
+          <SolidColorBrush x:Key="Keel.Bills.DetectedBackground" Color="#3A3020" />
+          <SolidColorBrush x:Key="Keel.Bills.GhostBackground" Color="#1D2127" />
+          <SolidColorBrush x:Key="Keel.Bills.UnreadDot" Color="#7CD4E6" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- Notification panel under the bell -->
+  <Style Selector="Border.notificationPanel">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CardCornerRadius}" />
+    <Setter Property="BoxShadow" Value="0 8 28 0 #33000000" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Ellipse.unreadDot">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+    <Setter Property="Fill" Value="{DynamicResource Keel.Bills.UnreadDot}" />
+  </Style>
+
+  <!-- Status and kind pills (text, never colour alone) -->
+  <Style Selector="Border.pill">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.PillBackground}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="8,1" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.pill > TextBlock">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+  </Style>
+  <Style Selector="Border.pill.detected">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.DetectedBackground}" />
+  </Style>
+  <Style Selector="Border.pill.detected > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+  </Style>
+
+  <!-- Calendar -->
+  <Style Selector="Border.calendarDay">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.DayBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,1,1" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="MinHeight" Value="80" />
+  </Style>
+  <Style Selector="Border.calendarDay.otherMonth">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.OtherMonthBackground}" />
+  </Style>
+  <Style Selector="Border.calendarDay.otherMonth TextBlock.dayNumber">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="Border.todayMarker">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Bills.TodayBorder}" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="5,0" />
+  </Style>
+  <Style Selector="TextBlock.dayNumber">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.chip">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.ChipBackground}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="4,1" />
+    <Setter Property="Margin" Value="0,2,0,0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+  <Style Selector="Button.chip.paid">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.ChipPaidBackground}" />
+  </Style>
+  <Style Selector="Button.chip.income">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.ChipIncomeBackground}" />
+  </Style>
+
+  <!-- Bills tabs: section-sized headers -->
+  <Style Selector="TabControl.bills TabItem">
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="Padding" Value="4,0,16,0" />
+  </Style>
+
+  <!-- Bills list -->
+  <Style Selector="DataGrid.bills">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="RowHeight" Value="36" />
+  </Style>
+  <Style Selector="DataGrid.bills DataGridColumnHeader">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="TextBlock.inactive">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+
+  <!-- Register ghost rows (scheduled instances): italic, muted, on a light wash -->
+  <Style Selector="Border.ghostBar">
+    <Setter Property="Background" Value="{DynamicResource Keel.Bills.GhostBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="0,4" />
+  </Style>
+  <Style Selector="Grid.ghostRow TextBlock">
+    <Setter Property="FontStyle" Value="Italic" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="Grid.ghostRow TextBlock.overdue">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+  </Style>
+  <Style Selector="Button.mini">
+    <Setter Property="Padding" Value="6,1" />
+    <Setter Property="MinHeight" Value="22" />
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- Recurrence builder preview -->
+  <Style Selector="Border.preview">
+    <Setter Property="Background" Value="{DynamicResource Keel.WindowBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="12,8" />
+  </Style>
+  <Style Selector="ToggleButton.weekday">
+    <Setter Property="MinWidth" Value="44" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="Margin" Value="0,0,4,0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+</Styles>

@@ -3,6 +3,7 @@ using Keel.Application.Messaging;
 using Keel.Application.Navigation;
 using Keel.Desktop.ViewModels;
 using Keel.Desktop.ViewModels.Import;
+using Keel.Desktop.ViewModels.Rules;
 using Keel.Desktop.ViewModels.Sync;
 using Keel.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,6 +45,13 @@ public static class DependencyInjection
         services.AddSingleton<IBrowserLauncher, AvaloniaBrowserLauncher>();
         services.AddSingleton<SyncCoordinator>();
         services.AddSingleton<ConnectionsSettingsViewModel>();
+        services.AddSingleton<RuleEditorFlow>();
+        services.AddSingleton<RulesViewModel>();
+        services.AddSingleton<PayeesViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Bills.ScheduleEditorLauncher>();
+        services.AddTransient<Keel.Desktop.ViewModels.Bills.ScheduledGhostsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Alerts.NotificationCenterViewModel>();
+        services.AddSingleton<RecurringJobs>();
         return services;
     }
 }

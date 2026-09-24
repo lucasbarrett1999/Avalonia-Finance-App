@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Keel.Desktop.ViewModels"
              xmlns:reg="using:Keel.Desktop.ViewModels.Register"
+             xmlns:bills="using:Keel.Desktop.ViewModels.Bills"
              xmlns:controls="using:Keel.Desktop.Controls"
              xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.AccountsView"
@@ -32,6 +33,14 @@
           <StackPanel Orientation="Horizontal" Spacing="6">
             <controls:Icon Data="{StaticResource Icon.Sync}" Classes.spin="{Binding IsSyncing}" />
             <TextBlock Text="{x:Static res:Strings.Register_Sync}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <Button x:Name="ScheduleTransactionButton" Classes="tool" Command="{Binding Scheduled.NewScheduleCommand, FallbackValue={x:Null}}"
+                IsVisible="{Binding CanAddTransaction}" ToolTip.Tip="{x:Static res:Strings.Schedule_AddTitle}"
+                AutomationProperties.Name="{x:Static res:Strings.Schedule_AddTitle}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Report.Calendar}" />
+            <TextBlock Text="{x:Static res:Strings.Register_Schedule}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         <Button x:Name="ReconcileButton" Classes="tool" Command="{Binding StartReconcileCommand}" IsVisible="{Binding CanReconcile}"
@@ -304,6 +313,51 @@
       </ContentControl>
     </Border>
 
+    <!-- Scheduled ghost rows (M5, F-ACC-6): upcoming instances, italic, with Enter now / Skip / Edit -->
+    <Border DockPanel.Dock="Top" x:Name="GhostBar" Classes="ghostBar" Margin="0,0,0,8" IsVisible="{Binding Scheduled.HasRows, FallbackValue=False}">
+      <StackPanel>
+        <Button Classes="chartRow" Padding="8,2" Command="{Binding Scheduled.ToggleExpandedCommand, FallbackValue={x:Null}}"
+                AutomationProperties.Name="{Binding Scheduled.HeaderText, FallbackValue=''}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Panel>
+              <controls:Icon Data="{StaticResource Icon.ChevronDown}" Width="14" Height="14" IsVisible="{Binding Scheduled.IsExpanded, FallbackValue=False}" />
+              <controls:Icon Data="{StaticResource Icon.ChevronRight}" Width="14" Height="14" IsVisible="{Binding !Scheduled.IsExpanded, FallbackValue=False}" />
+            </Panel>
+            <TextBlock Classes="sectionHeader" Text="{Binding Scheduled.HeaderText, FallbackValue=''}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <ItemsControl x:Name="GhostRows" ItemsSource="{Binding Scheduled.Rows, FallbackValue={x:Null}}" IsVisible="{Binding Scheduled.IsExpanded, FallbackValue=False}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="bills:ScheduledInstanceRowViewModel">
+              <Grid Classes="ghostRow" ColumnDefinitions="28,114,1.4*,1.2*,*,104,104,180" Height="30" AutomationProperties.Name="{Binding AutomationName}">
+                <controls:Icon Data="{StaticResource Icon.Report.Calendar}" Width="13" Height="13" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource Keel.TextSecondary}" ToolTip.Tip="{Binding StateText}" />
+                <TextBlock Grid.Column="1" Classes="cell" Classes.overdue="{Binding IsOverdue}" Text="{Binding DateText}" FontFeatures="+tnum" ToolTip.Tip="{Binding StateText}" />
+                <TextBlock Grid.Column="2" Classes="cell" Text="{Binding Payee}" />
+                <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Category}" />
+                <TextBlock Grid.Column="4" Classes="cell" Text="{Binding Memo}" />
+                <TextBlock Grid.Column="5" Classes="cell amount" Text="{Binding Outflow}" />
+                <TextBlock Grid.Column="6" Classes="cell amount" Text="{Binding Inflow}" />
+                <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="4" Margin="8,0,6,0" HorizontalAlignment="Right">
+                  <Button Classes="mini" IsVisible="{Binding IsNext}"
+                          Command="{Binding $parent[ItemsControl].((vm:AccountsViewModel)DataContext).Scheduled.EnterCommand, FallbackValue={x:Null}}" CommandParameter="{Binding}"
+                          Content="{x:Static res:Strings.Schedule_Enter}" />
+                  <Button Classes="mini" IsVisible="{Binding IsNext}"
+                          Command="{Binding $parent[ItemsControl].((vm:AccountsViewModel)DataContext).Scheduled.SkipCommand, FallbackValue={x:Null}}" CommandParameter="{Binding}"
+                          Content="{x:Static res:Strings.Schedule_Skip}" />
+                  <Button Theme="{StaticResource IconButtonTheme}" MinWidth="24" MinHeight="22" Padding="4"
+                          Command="{Binding $parent[ItemsControl].((vm:AccountsViewModel)DataContext).Scheduled.EditCommand, FallbackValue={x:Null}}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Schedule_EditTitle}" AutomationProperties.Name="{x:Static res:Strings.Schedule_EditTitle}">
+                    <controls:Icon Data="{StaticResource Icon.Edit}" Width="12" Height="12" />
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
     <!-- Footer: count and keyboard map -->
     <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0" IsVisible="{Binding !HasNoAccounts}">
       <TextBlock DockPanel.Dock="Left" x:Name="RowCountLabel" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding RowCountText}" />
@@ -416,6 +470,12 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
         </DataGrid.Columns>
+        <DataGrid.ContextMenu>
+          <ContextMenu>
+            <MenuItem x:Name="CreateRuleMenuItem" Header="{x:Static res:Strings.Rules_CreateFromTransaction}"
+                      Command="{Binding CreateRuleFromTransactionCommand}" />
+          </ContextMenu>
+        </DataGrid.ContextMenu>
         <DataGrid.RowDetailsTemplate>
           <DataTemplate x:DataType="reg:RegisterRowViewModel">
             <ItemsControl ItemsSource="{Binding Splits}" Margin="0,0,0,6">

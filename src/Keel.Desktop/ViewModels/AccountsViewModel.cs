@@ -14,6 +14,7 @@ using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
 using Keel.Desktop.ViewModels.Import;
 using Keel.Desktop.ViewModels.Register;
+using Keel.Desktop.ViewModels.Rules;
 using Keel.Desktop.ViewModels.Sync;
 using Keel.Domain;
 using Keel.Domain.Ledger;
@@ -61,11 +62,15 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         StatusService status,
         IMessenger messenger,
         ImportWorkflow import,
-        SyncCoordinator sync)
+        RuleEditorFlow ruleEditor,
+        SyncCoordinator sync,
+        Bills.ScheduledGhostsViewModel? scheduled = null)
     {
+        Scheduled = scheduled;
         ArgumentNullException.ThrowIfNull(messenger);
         AttachSync(sync);
         _import = import;
+        _ruleEditor = ruleEditor;
         _register = register;
         _transactions = transactions;
         _accounts = accounts;
@@ -105,6 +110,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Title), nameof(Subtitle), nameof(IsTracking), nameof(CanReconcile), nameof(IsAccountClosed), nameof(CanImportFile))]
     public partial AccountDto? Account { get; private set; }
+
+    /// <summary>Upcoming scheduled instances shown as ghost rows above the grid (M5, F-ACC-6).</summary>
+    public Bills.ScheduledGhostsViewModel? Scheduled { get; }
 
     /// <summary>The virtual row list bound to the grid.</summary>
     public RegisterSource Rows { get; }
@@ -348,6 +356,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
         _suppressFilterReload = false;
         OnPropertyChanged(nameof(IsAllAccounts));
+        _ = Scheduled?.LoadAsync(accountId);
         Loading = LoadAsync(showSpinner: true);
     }
 
@@ -357,6 +366,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         ArgumentNullException.ThrowIfNull(message);
         Dispatcher.UIThread.Post(() =>
         {
+            _ = Scheduled?.ReloadAsync();
             if (AccountId is { } id && message.AccountIds.Count > 0 && !message.AccountIds.Contains(id))
             {
                 return;

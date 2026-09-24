@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:reg="using:Keel.Desktop.ViewModels.Register"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Rules.PayeesPanel"
+             x:DataType="rules:PayeesViewModel">
+  <StackPanel Spacing="10">
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Payees_Description}" TextWrapping="Wrap" />
+    <TextBox x:Name="PayeeSearchBox" Text="{Binding SearchText}" Watermark="{x:Static res:Strings.Payees_SearchWatermark}"
+             AutomationProperties.Name="{x:Static res:Strings.Payees_SearchWatermark}" />
+    <Panel>
+      <ScrollViewer MaxHeight="360" HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl x:Name="PayeeRows" ItemsSource="{Binding Payees}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="rules:PayeeRowViewModel">
+              <Grid ColumnDefinitions="*,Auto,220,Auto" Margin="0,2">
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding CountText}"
+                           VerticalAlignment="Center" Margin="8,0" />
+                <ComboBox Grid.Column="2" HorizontalAlignment="Stretch" ItemsSource="{Binding Choices}" SelectedItem="{Binding DefaultCategory}"
+                          AutomationProperties.Name="{x:Static res:Strings.Payees_DefaultFor}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="reg:CategoryOption">
+                      <TextBlock Text="{Binding FullName}" TextTrimming="CharacterEllipsis" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Grid.Column="3" Margin="6,0,0,0" Padding="6"
+                        Command="{Binding Owner.RenameCommand}" CommandParameter="{Binding}"
+                        ToolTip.Tip="{x:Static res:Strings.Payees_Rename}" AutomationProperties.Name="{x:Static res:Strings.Payees_Rename}">
+                  <controls:Icon Data="{StaticResource Icon.Edit}" Width="14" Height="14" />
+                </Button>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Payees_Empty}" IsVisible="{Binding IsEmpty}" />
+      <ProgressBar IsIndeterminate="True" Width="120" HorizontalAlignment="Left" IsVisible="{Binding IsLoading}" />
+      <TextBlock Classes="error" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    </Panel>
+    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Payees_LimitHint}" />
+  </StackPanel>
+</UserControl>

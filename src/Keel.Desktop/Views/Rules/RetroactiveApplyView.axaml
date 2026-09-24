@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Rules.RetroactiveApplyView"
+             x:DataType="rules:RetroactiveApplyViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <DockPanel Width="680">
+    <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,12">
+      <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+      <TextBlock Classes="secondary" Text="{Binding RulesLabel}" />
+      <CheckBox x:Name="UnapprovedOnlyBox" IsChecked="{Binding UnapprovedOnly}" Content="{x:Static res:Strings.Retroactive_UnapprovedOnly}" />
+    </StackPanel>
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+      <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Retroactive_Hint}" TextWrapping="Wrap" />
+      <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+        <Button x:Name="ApplyChangesButton" Classes="accent" Command="{Binding ConfirmCommand}" IsEnabled="{Binding CanApply}"
+                Content="{x:Static res:Strings.Retroactive_Apply}" />
+      </StackPanel>
+    </StackPanel>
+    <Panel MinHeight="120">
+      <DockPanel IsVisible="{Binding CanApply}">
+        <TextBlock DockPanel.Dock="Top" x:Name="PreviewSummary" Text="{Binding Summary}" FontWeight="SemiBold" Margin="0,0,0,8" />
+        <ListBox x:Name="PreviewRows" ItemsSource="{Binding Changes}" MaxHeight="380">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="rules:RuleOutcomeRowViewModel">
+              <Grid ColumnDefinitions="90,*,110">
+                <TextBlock Classes="secondary" Text="{Binding DateText}" />
+                <StackPanel Grid.Column="1">
+                  <TextBlock TextTrimming="CharacterEllipsis">
+                    <Run Text="{Binding Payee}" FontWeight="SemiBold" /><Run Text=" · " /><Run Text="{Binding Account}" />
+                  </TextBlock>
+                  <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding ChangesText}" TextWrapping="Wrap" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Classes="amount" Text="{Binding AmountText}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoading}" VerticalAlignment="Center">
+        <ProgressBar IsIndeterminate="True" Width="120" VerticalAlignment="Center" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Retroactive_Loading}" VerticalAlignment="Center" />
+      </StackPanel>
+      <StackPanel Spacing="4" IsVisible="{Binding HasNoChanges}" VerticalAlignment="Center">
+        <TextBlock Text="{x:Static res:Strings.Retroactive_NoChanges}" FontWeight="SemiBold" />
+        <TextBlock Classes="secondary" Text="{Binding Summary}" />
+      </StackPanel>
+    </Panel>
+  </DockPanel>
+</UserControl>

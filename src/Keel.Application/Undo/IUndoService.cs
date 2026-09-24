@@ -146,4 +146,55 @@ public enum LedgerAction
     EditMonthNote,
     /// <summary>Import transactions (one file or sync batch).</summary>
     ImportTransactions,
+
+    /// <summary>Create or edit a rule.</summary>
+    SaveRule,
+
+    /// <summary>Delete a rule.</summary>
+    DeleteRule,
+
+    /// <summary>Reorder, enable or disable rules.</summary>
+    ReorderRules,
+
+    /// <summary>Apply rules to transactions.</summary>
+    ApplyRules,
+
+    /// <summary>Rename a payee or change its default category.</summary>
+    UpdatePayee,
+
+    /// <summary>Recurring detection run (not on the undo stack; audited).</summary>
+    DetectRecurring,
+
+    /// <summary>Confirm a recurring item.</summary>
+    ConfirmRecurring,
+
+    /// <summary>Pause a recurring item.</summary>
+    PauseRecurring,
+
+    /// <summary>Resume a recurring item.</summary>
+    ResumeRecurring,
+
+    /// <summary>Dismiss a recurring item.</summary>
+    DismissRecurring,
+
+    /// <summary>Add a recurring item.</summary>
+    CreateRecurring,
+
+    /// <summary>Edit a recurring item.</summary>
+    EditRecurring,
+
+    /// <summary>Add a scheduled transaction.</summary>
+    CreateScheduled,
+
+    /// <summary>Edit a scheduled transaction.</summary>
+    EditScheduled,
+
+    /// <summary>Delete a scheduled transaction.</summary>
+    DeleteScheduled,
+
+    /// <summary>Enter scheduled transactions.</summary>
+    EnterScheduled,
+
+    /// <summary>Skip a scheduled instance.</summary>
+    SkipScheduled,
 }

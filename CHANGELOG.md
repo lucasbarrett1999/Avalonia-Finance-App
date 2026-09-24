@@ -85,6 +85,76 @@ Settings → Connections (F-SET-3), health states in the shell and register, and
 - The Home dashboard's Accounts card does not show health dots yet (Home cards belong to another
   work stream); the register and sidebar do.
 
+## M5 — Bills, alerts, scheduling and forecast UI
+
+Second half of Milestone 5: the services behind the M5 contracts and every M5 screen (F-ACC-6,
+F-REC-1..4, F-REP-4, PRD 9.1 bell, 9.2 cards, 9.4 ghost rows, 9.6 Bills). Decisions in ADR 0035.
+
+### Added
+
+- `RecurringService`: detection on demand, once per app day and after every import (audit-log
+  watermark), decisions applied through `LedgerWriter` (audited; automatic runs not on the undo
+  stack), confirm / pause / resume / dismiss / re-enable / create / edit as undoable actions,
+  subscription designations by category group or tag (Setting table), F-REC-2 totals, occurrences
+  for the calendar and Home, F-REC-4 "create target" through `IBudgetService`.
+- `ScheduledTransactionService`: CRUD with explicit stored rules (COUNT/UNTIL become the end date),
+  next-date maintenance, due entry (auto-enter or prompt) creating `Source = Scheduled` rows with
+  `ScheduledFromId` through the ledger save path (transfers included), enter / skip one instance,
+  undo, rule check with description and next dates.
+- `AlertService`: `AlertEvaluator` proposals stored idempotently by key, read / dismiss, unread
+  count and `AlertsChanged`. `ForecastService`: engine inputs from cleared balances, schedules,
+  recurring items and (toggle) 90 days of outflows; explain per day; floor/toggle settings; cache per
+  day invalidated on `LedgerChanged`/`RecurringChanged` and by the audit-log position.
+- Bills screen: totals, Calendar (month grid, paid / expected / scheduled amounts, prev / next /
+  today), List (sortable DataGrid, status filter), Subscriptions (monthly and yearly totals, group
+  designation, price-change history), detail panel (amount history chart and table, detection
+  explanation, confirm / edit / pause / resume / dismiss / detect again, create scheduled transaction,
+  create target, item alerts, show transactions), "Run detection now", add item dialog, designed
+  empty, loading and error states.
+- Scheduled transactions: editor dialog with a recurrence builder (daily, weekly with weekdays,
+  monthly on a day or Nth weekday, twice monthly, yearly; every N; start; never / on a date / after
+  N times) showing the rule in words and the next five dates; register "Schedule" button and ghost
+  rows (italic, Enter now / Skip / Edit); startup and day-change prompt for due instances.
+- Notification center: top-bar bell with unread badge ("9+" above nine) and an in-window panel,
+  newest first, kind icons, dismiss, mark all read, open the item in Bills or the payee in the
+  register.
+- Reports: "Cash-flow forecast" (per-account and combined 90-day lines, shaded low point marker,
+  dashed floor line, floor and discretionary-spend settings, days below the floor as runs, per-day
+  "show the math", what was left out and why, CSV export). The toolbar hides the date range and
+  tracking toggle for it.
+- Home: Upcoming bills (7 days) and Forecast (sparkline of the lowest-balance account, low point,
+  days below the floor) replace the placeholders and link to Bills and the forecast report.
+- `RecurringJobs` (desktop): scheduled entry, prompt, daily and post-import detection, forecast
+  invalidation. Styles/Bills.axaml (light and dark tokens for calendar, pills, ghost rows, panel).
+- Tests: 17 Infrastructure tests on real SQLite (`Infrastructure.Tests.Recurring`), 6 headless
+  flows (`BillsScheduleAlertsTests`), 2 rendering tests (`M5RenderingTests`, 24 PNGs in light and
+  dark, reviewed).
+
+### Commands and results
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,503 passed, 0 failed: Domain 1,032, Infrastructure 387, Desktop 84 (after merging main with M4 Review) |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `KEEL_SCREENSHOT_DIR=… dotnet test tests/Keel.Desktop.Tests --filter M5RenderingTests` | 2 passed; Bills (calendar, list with detail, subscriptions, empty), schedule dialog, prompt, bell panel, forecast (upper and lower), Home (upper and lower), register ghost rows, each light and dark |
+
+No packages were added. No migration: the M0 schema already had every table.
+
+### Exit criteria
+
+M5 (PRD 12): detector tests on synthetic and fixture series and the forecast golden test were met in
+the first half (see "M5 — Recurring, scheduling and forecast"); with this half the M5 scope (F-REC-1..3,
+F-ACC-6, F-REP-4 engine and report, notification center) is implemented and tested. The M6 exit
+"dashboard cards live" now holds for every card.
+
+### Not done here
+
+- No UI to designate subscription tags (the service supports them; tags are P1) and no PNG export
+  of reports (PRD 9.8, also open in M6).
+- A user edit of a detected item's amount or dates is overwritten by the next detection run (ADR 0031).
+- Windows and macOS were not run locally (GitHub-hosted runners were unavailable).
+
 ## M2 — Budget screen
 
 UI half of Milestone 2: the Budget screen (PRD 9.3, F-BUD-1..5, F-BUD-7 category notes, F-BUD-8
@@ -760,3 +830,91 @@ No packages were added.
 - The "≥ 85% after 200 approvals" exit is met as accuracy of the suggestions made; counting empty
   suggestions as wrong it is 53.6% at 200 and ≥ 85% from 600 approvals (ADR 0021).
 - Windows and macOS runs happen in CI only.
+
+## M4 — Review and rules UI
+
+Second half of Milestone 4: the database-backed rule, learner and categorization services, the
+Review screen, the rules UI, payee defaults, and the import hook. With the domain half above, the
+M4 exit criteria are met: learner accuracy ≥ 85% after 200 approvals (`LearnerAccuracyTests`, ADR
+0021) and the review keyboard flow headless-tested (`ReviewTests`).
+
+### Added
+
+- **Rules service** (`IRuleService`, `Keel.Infrastructure/Rules`): CRUD over `Rule` storing
+  `RuleJson`, validation with `RuleValidator` before save (`RuleValidationException`), move up/down
+  and drag order, enable/disable, unreadable (newer-format) rules listed and skipped, match count and
+  "Test rule" on demand, `PreviewRetroactiveAsync`/`ApplyRetroactivelyAsync(ruleIds, scope)` sharing
+  one `MutationPlanner` plan, `SuggestFromTransactionAsync` (`RuleSuggester`). Every mutation is one
+  audited, undoable `LedgerWriter` action and publishes `RulesChanged`. The rule "flag" is stored as
+  the tag `Flagged`; rule-made transfers create their counterpart row.
+- **Learner service** (`ILearnerService`, `LearnerService`): trains from approved history on first
+  use, caches the model in the `Setting` table under a version key (`PayeeNormalizer.Version`,
+  model format, cache format), stays current by replaying audit events with
+  `WithExample`/`WithoutExample` (approvals, recategorization, edits, splits, deletes, undo, payee
+  renames), rebuilds on a version change or a stale cache, runs off the UI thread, reports
+  `Preparing`/`Ready`, and never writes from `PeekModelAsync`.
+- **Categorization service** (`ICategorizationService`): `SuggestAsync`/`SuggestManyAsync` (rule
+  first, payee default 0.95, learner with confidence and explanation, full trace), `ApplyRulesAsync`
+  (rules write; the learner only suggests), `CategorizeAsync` (full pipeline, never below 60%),
+  `ApproveAsync(decisions)`, `PlanBatchApprovalAsync(0.9)`.
+- **Import hook**: `RulesImportCategorizationHook` (registered after the no-op default) renames
+  payees by rule in step 3 and sets rule categories, payee defaults or learner categories, memos and
+  approvals on the drafts in step 4, without writing.
+- **Payees** (F-TXN-9 part): `IPayeeService.ListAsync`, `SetDefaultCategoryAsync`, `RenameAsync`
+  (retroactive; merges into an existing payee of that name), all undoable.
+- **Review screen** (PRD 9.5, F-TXN-6): unapproved transactions across accounts, oldest first,
+  50-row pages from `IRegisterQuery`; focused transaction with details, bank descriptor, up to five
+  suggestions (source, confidence meter, explanation) and a "Why?" trace; progress "x of y"; "Approve
+  N with confidence ≥ 90%"; keys A, 1–9, C (search-as-you-type picker), S (split editor), T (account
+  picker), R (prefilled rule editor), D (undo toast), J/K and arrows; loading, "Preparing
+  suggestions", error and "Nothing to review" states; keyboard map footer; live sidebar badge.
+- **Rules UI**: Settings → Rules and the "Manage rules" page (shared `RulesPanel`): order, drag
+  handle, enabled toggle, name, summary, problems, match count, edit, delete with confirmation,
+  apply to existing (one rule or all enabled). Rule editor dialog with every condition and action
+  kind, live validation per row (errors block saving, warnings do not), "Test rule", and "preview
+  applying it after saving". Retroactive preview dialog (scope: all or waiting in Review) with one
+  undoable apply. Register context menu "Create rule from this transaction…".
+- **Settings → Payees**: search, default category per payee, rename. Review shortcuts listed in
+  Settings → Keyboard shortcuts.
+- **Tests**: Infrastructure (real SQLite): rule CRUD/order/validation/undo, unreadable rules, match
+  count and test, retroactive preview equals apply and one undo reverts it, scoped transfers, learner
+  cache build/version key/incremental equals retrain after approvals, edits, splits, deletes, undo
+  and payee renames, version and stale-cache rebuilds, categorization order (rule beats payee
+  default beats learner), apply-rules vs full pipeline, approvals feed the learner, batch threshold,
+  unapproved paging, import through `IImportService` with the hook, payee list/default/rename/merge.
+  Desktop headless: review keyboard triage (A, 1, J, K, C, R, D + undo, S, T), badge, batch
+  approve, preparing state, rules editor validation, test rule, retroactive preview/apply/undo,
+  reorder/toggle/delete, register context menu, payees. `ReviewRulesRenderingTests` renders Review
+  (with suggestions and trace), Rules, rule editor, retroactive preview and Settings in both themes.
+
+### Decisions and deviations
+
+- [ADR 0025](docs/decisions/0025-import-categorization-hook-follow-up.md): rules and the learner as
+  an `IImportCategorizationHook`; tags, flags, splits and transfers are not expressible on drafts.
+- [ADR 0026](docs/decisions/0026-rule-persistence-and-retroactive-apply.md): rule persistence,
+  one plan for preview and apply, what the ledger accepts from rules, flag as a tag, payee rename
+  merges into an existing name.
+- [ADR 0027](docs/decisions/0027-learner-cache-and-incremental-updates.md): learner cache and
+  incremental updates by audit-log replay.
+- [ADR 0028](docs/decisions/0028-review-queue-triage-semantics.md): what each review key writes,
+  batch rules, progress counting.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build -m:1` | 1,478 passed, 0 failed: Domain 1,032, Infrastructure 370, Desktop 76 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (no packages added) |
+| `dotnet test tests/Keel.Domain.Tests --filter LearnerAccuracyTests` | 6 passed (M4 exit: ≥ 85% after 200 approvals) |
+| `dotnet test tests/Keel.Desktop.Tests --filter "ReviewTests\|RulesUiTests\|ReviewRulesRenderingTests"` | 10 passed (M4 exit: review keyboard flow) |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter ReviewRulesRenderingTests` | 10 PNGs reviewed by eye |
+
+### Not done here
+
+- Windows and macOS run only in CI (hosted runners were refusing jobs); the windowed app was not launched.
+- Rule tags, flags, splits and transfers apply to imported rows only when rules are applied later
+  (review approval with the rule, or retroactive apply), not at import (ADR 0025).
+- No `IsApproved` index: the unapproved count and first page scan the register index (fine at
+  100k rows, not benchmarked separately).
