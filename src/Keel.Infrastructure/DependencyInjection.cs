@@ -2,14 +2,18 @@ using Keel.Application.Accounts;
 using Keel.Application.Budget;
 using Keel.Application.Categories;
 using Keel.Application.Files;
+using Keel.Application.Goals;
 using Keel.Application.Ledger;
 using Keel.Application.Payees;
+using Keel.Application.Reports;
 using Keel.Application.Settings;
 using Keel.Application.Undo;
 using Keel.Infrastructure.Budgeting;
 using Keel.Infrastructure.Files;
+using Keel.Infrastructure.Goals;
 using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
+using Keel.Infrastructure.Reports;
 using Keel.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +51,8 @@ public static class DependencyInjection
         services.AddSingleton<IBalanceSnapshotService, BalanceSnapshotService>();
         services.AddSingleton<IRegisterQuery, RegisterQuery>();
         services.AddSingleton<IBudgetService, BudgetService>();
+        services.AddSingleton<IReportService, ReportService>();
+        services.AddSingleton<IGoalService, GoalService>();
         return services;
     }
 }
