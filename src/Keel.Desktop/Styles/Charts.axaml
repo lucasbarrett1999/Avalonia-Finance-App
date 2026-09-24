@@ -1,0 +1,142 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Keel.Desktop.Controls">
+  <!--
+    Chart styling (PRD 9.8, 9.11). One categorical palette for every chart, in a fixed slot order,
+    with its own light and dark steps (validated for colour-vision deficiency: worst adjacent
+    CVD delta E 9.1 light / 8.4 dark; every dark slot >= 3:1 on the dark surface). Colour is never
+    the only signal: every chart has a legend or table with names and values beside it, and
+    lines carry markers. Series that do not fit the eight slots fold into "Other" (neutral grey).
+  -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <Color x:Key="Keel.Chart.Series1">#2A78D6</Color>
+          <Color x:Key="Keel.Chart.Series2">#EB6834</Color>
+          <Color x:Key="Keel.Chart.Series3">#1BAF7A</Color>
+          <Color x:Key="Keel.Chart.Series4">#EDA100</Color>
+          <Color x:Key="Keel.Chart.Series5">#E87BA4</Color>
+          <Color x:Key="Keel.Chart.Series6">#008300</Color>
+          <Color x:Key="Keel.Chart.Series7">#4A3AA7</Color>
+          <Color x:Key="Keel.Chart.Series8">#E34948</Color>
+          <Color x:Key="Keel.Chart.Other">#9A9892</Color>
+          <Color x:Key="Keel.Chart.Ink">#1B1F27</Color>
+          <Color x:Key="Keel.Chart.Muted">#545D6B</Color>
+          <Color x:Key="Keel.Chart.Grid">#E6E8EC</Color>
+          <Color x:Key="Keel.Chart.Baseline">#C3C7CF</Color>
+          <Color x:Key="Keel.Chart.Surface">#FFFFFF</Color>
+          <Color x:Key="Keel.Chart.TooltipBackground">#1B1F27</Color>
+          <Color x:Key="Keel.Chart.TooltipText">#FFFFFF</Color>
+          <SolidColorBrush x:Key="Keel.Chart.RingTrack" Color="#E6E8EC" />
+          <SolidColorBrush x:Key="Keel.Chart.RingFill" Color="#0B6477" />
+          <SolidColorBrush x:Key="Keel.Chart.RingDone" Color="#0B7A4B" />
+          <SolidColorBrush x:Key="Keel.Chart.RowHover" Color="#F1F4F7" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <Color x:Key="Keel.Chart.Series1">#3987E5</Color>
+          <Color x:Key="Keel.Chart.Series2">#D95926</Color>
+          <Color x:Key="Keel.Chart.Series3">#199E70</Color>
+          <Color x:Key="Keel.Chart.Series4">#C98500</Color>
+          <Color x:Key="Keel.Chart.Series5">#D55181</Color>
+          <Color x:Key="Keel.Chart.Series6">#008300</Color>
+          <Color x:Key="Keel.Chart.Series7">#9085E9</Color>
+          <Color x:Key="Keel.Chart.Series8">#E66767</Color>
+          <Color x:Key="Keel.Chart.Other">#7D7B75</Color>
+          <Color x:Key="Keel.Chart.Ink">#E8EBF0</Color>
+          <Color x:Key="Keel.Chart.Muted">#A4ACB8</Color>
+          <Color x:Key="Keel.Chart.Grid">#2C3038</Color>
+          <Color x:Key="Keel.Chart.Baseline">#454B55</Color>
+          <Color x:Key="Keel.Chart.Surface">#20242B</Color>
+          <Color x:Key="Keel.Chart.TooltipBackground">#E8EBF0</Color>
+          <Color x:Key="Keel.Chart.TooltipText">#15171C</Color>
+          <SolidColorBrush x:Key="Keel.Chart.RingTrack" Color="#2F343D" />
+          <SolidColorBrush x:Key="Keel.Chart.RingFill" Color="#3FB5CC" />
+          <SolidColorBrush x:Key="Keel.Chart.RingDone" Color="#6FD6A4" />
+          <SolidColorBrush x:Key="Keel.Chart.RowHover" Color="#262B33" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+
+      <!-- Extra icons for reports, goals and the dashboard (24x24 line geometry, ADR 0004). -->
+      <StreamGeometry x:Key="Icon.Report.Export">M21 15 V19 A2 2 0 0 1 19 21 H5 A2 2 0 0 1 3 19 V15 M7 10 L12 15 L17 10 M12 15 V3</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Back">M15 18 L9 12 L15 6</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Alert">M10.29 3.86 L1.82 18 A2 2 0 0 0 3.53 21 H20.47 A2 2 0 0 0 22.18 18 L13.71 3.86 A2 2 0 0 0 10.29 3.86 Z M12 9 V13 M12 17 H12.01</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Trend">M23 6 L13.5 15.5 L8.5 10.5 L1 18 M17 6 H23 V12</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Pie">M21.21 15.89 A10 10 0 1 1 8 2.83 M22 12 A10 10 0 0 0 12 2 V12 Z</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Calendar">M3 6 A2 2 0 0 1 5 4 H19 A2 2 0 0 1 21 6 V20 A2 2 0 0 1 19 22 H5 A2 2 0 0 1 3 20 Z M16 2 V6 M8 2 V6 M3 10 H21</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Link">M5 12 H19 M12 5 L19 12 L12 19</StreamGeometry>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- Report and dashboard cards share the Border.card look; these add headers and rows. -->
+  <Style Selector="TextBlock.cardTitle">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="TextBlock.heroNumber">
+    <Setter Property="FontSize" Value="32" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
+  </Style>
+  <Style Selector="TextBlock.heroNumber.negative">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Negative}" />
+  </Style>
+  <Style Selector="TextBlock.tableHeader">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="TextBlock.positive">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Positive}" />
+  </Style>
+
+  <!-- A clickable table or legend row (drill-down): flat, full width, hover wash. -->
+  <Style Selector="Button.chartRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+  </Style>
+  <Style Selector="Button.chartRow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.Chart.RowHover}" />
+  </Style>
+  <Style Selector="Button.link">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Accent}" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Accent}" />
+  </Style>
+
+  <!-- The report list on the left of the Reports screen. -->
+  <Style Selector="ListBox.reportList">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.reportList ListBoxItem">
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="10,8" />
+    <Setter Property="Margin" Value="0,0,0,2" />
+  </Style>
+  <Style Selector="ListBox.reportList ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.NavSelected}" />
+  </Style>
+  <Style Selector="ListBox.reportList ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.NavSelectedForeground}" />
+  </Style>
+
+  <!-- Placeholder cards for features that arrive later (dashboard: bills, forecast). -->
+  <Style Selector="Border.pendingCard">
+    <Setter Property="Background" Value="{DynamicResource Keel.WindowBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CardCornerRadius}" />
+    <Setter Property="Padding" Value="24" />
+  </Style>
+</Styles>

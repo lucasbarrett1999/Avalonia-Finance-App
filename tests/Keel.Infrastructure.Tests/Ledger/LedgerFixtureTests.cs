@@ -7,6 +7,7 @@ using Xunit.Abstractions;
 
 namespace Keel.Infrastructure.Tests.Ledger;
 
+[Collection(nameof(TimingCollection))]
 public sealed class LedgerFixtureTests(ITestOutputHelper output)
 {
     private static CancellationToken Ct => CancellationToken.None;

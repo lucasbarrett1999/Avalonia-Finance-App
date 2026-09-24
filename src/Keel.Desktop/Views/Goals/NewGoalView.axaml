@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:goals="using:Keel.Desktop.ViewModels.Goals"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Goals.NewGoalView"
+             x:DataType="goals:NewGoalViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="420">
+    <DockPanel>
+      <TextBlock DockPanel.Dock="Right" Classes="secondary" Text="{Binding StepText}" VerticalAlignment="Center" />
+      <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+    </DockPanel>
+
+    <!-- Step 1: what and when -->
+    <StackPanel Spacing="12" IsVisible="{Binding IsFirstStep}">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Goals_Name}" />
+        <TextBox x:Name="GoalNameBox" Text="{Binding Name}" Watermark="{x:Static res:Strings.Goals_NameWatermark}"
+                 AutomationProperties.Name="{x:Static res:Strings.Goals_Name}">
+          <TextBox.KeyBindings>
+            <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+          </TextBox.KeyBindings>
+        </TextBox>
+      </StackPanel>
+      <Grid ColumnDefinitions="*,12,*">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Goals_Amount}" />
+          <controls:MoneyTextBox x:Name="GoalAmountBox" Value="{Binding Amount}" Currency="{Binding Currency}"
+                                 AutomationProperties.Name="{x:Static res:Strings.Goals_Amount}">
+            <controls:MoneyTextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+            </controls:MoneyTextBox.KeyBindings>
+          </controls:MoneyTextBox>
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Goals_Date}" />
+          <CalendarDatePicker x:Name="GoalDatePicker" HorizontalAlignment="Stretch" SelectedDate="{Binding TargetDate}"
+                              AutomationProperties.Name="{x:Static res:Strings.Goals_Date}" />
+        </StackPanel>
+      </Grid>
+      <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Goals_Step1Hint}" />
+    </StackPanel>
+
+    <!-- Step 2: where the money is kept, and a summary -->
+    <StackPanel Spacing="12" IsVisible="{Binding IsSecondStep}">
+      <StackPanel>
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Goals_LinkedAccountLabel}" />
+        <ComboBox x:Name="GoalAccountBox" HorizontalAlignment="Stretch" ItemsSource="{Binding AccountOptions}" SelectedItem="{Binding SelectedAccount}"
+                  IsEnabled="{Binding HasTrackingAccounts}" AutomationProperties.Name="{x:Static res:Strings.Goals_LinkedAccountLabel}" />
+        <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Margin="0,4,0,0" TextWrapping="Wrap"
+                   Text="{x:Static res:Strings.Goals_LinkedAccountHint}" />
+      </StackPanel>
+      <Border Classes="bar" Padding="12">
+        <TextBlock x:Name="GoalSummary" Text="{Binding SummaryText}" TextWrapping="Wrap" />
+      </Border>
+    </StackPanel>
+
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" />
+    <DockPanel>
+      <Button DockPanel.Dock="Left" Command="{Binding BackCommand}" IsVisible="{Binding IsSecondStep}" Content="{x:Static res:Strings.Goals_Back}" />
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+        <Button x:Name="GoalConfirmButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{Binding ConfirmText}" />
+      </StackPanel>
+    </DockPanel>
+  </StackPanel>
+</UserControl>

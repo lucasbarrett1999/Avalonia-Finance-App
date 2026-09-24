@@ -17,6 +17,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Avalonia.Controls.DataGrid" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
   </ItemGroup>
 
   <ItemGroup>

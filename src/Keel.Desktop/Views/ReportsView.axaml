@@ -1,14 +1,111 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:rep="using:Keel.Desktop.ViewModels.Reports"
+             xmlns:reg="using:Keel.Desktop.ViewModels.Register"
              xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.ReportsView"
              x:DataType="vm:ReportsViewModel">
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
-    <StackPanel DockPanel.Dock="Top">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
       <TextBlock Classes="pageTitle" Text="{Binding Title}" />
       <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
     </StackPanel>
-    <controls:EmptyState Icon="{StaticResource Icon.Reports}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}" />
+
+    <Panel>
+      <controls:EmptyState Icon="{StaticResource Icon.Reports}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
+                           IsVisible="{Binding ShowEmptyState}" />
+
+      <Grid ColumnDefinitions="190,20,*" IsVisible="{Binding ShowReports}">
+        <!-- Report list -->
+        <ListBox x:Name="ReportList" Classes="reportList" ItemsSource="{Binding Reports}" SelectedItem="{Binding SelectedReport}"
+                 VerticalAlignment="Top" AutomationProperties.Name="{x:Static res:Strings.Reports_ListName}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="rep:ReportViewModel">
+              <StackPanel Spacing="2">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <controls:Icon Data="{Binding IconKey, Converter={x:Static controls:ReportIconConverter.Instance}}" Width="16" Height="16" />
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Text="{Binding Description}" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Margin="24,0,0,0" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <DockPanel Grid.Column="2">
+          <!-- Shared toolbar (PRD 9.8) -->
+          <Border DockPanel.Dock="Top" Classes="bar" Margin="0,0,0,8">
+            <DockPanel>
+              <Button DockPanel.Dock="Right" x:Name="ExportCsvButton" Classes="tool" Command="{Binding ExportCsvCommand}" VerticalAlignment="Top"
+                      ToolTip.Tip="{x:Static res:Strings.Reports_ExportTip}" AutomationProperties.Name="{x:Static res:Strings.Reports_ExportCsv}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:Icon Data="{StaticResource Icon.Report.Export}" />
+                  <TextBlock Text="{x:Static res:Strings.Reports_ExportCsv}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <WrapPanel>
+                <ComboBox x:Name="RangeBox" MinWidth="150" Margin="0,0,8,4" ItemsSource="{Binding Ranges}" SelectedItem="{Binding SelectedRange}"
+                          AutomationProperties.Name="{x:Static res:Strings.Reports_RangeName}" />
+                <CalendarDatePicker Width="130" Margin="0,0,4,4" IsVisible="{Binding IsCustomRange}" SelectedDate="{Binding CustomFrom}"
+                                    AutomationProperties.Name="{x:Static res:Strings.Reports_CustomFrom}" />
+                <CalendarDatePicker Width="130" Margin="0,0,8,4" IsVisible="{Binding IsCustomRange}" SelectedDate="{Binding CustomTo}"
+                                    AutomationProperties.Name="{x:Static res:Strings.Reports_CustomTo}" />
+                <DropDownButton x:Name="AccountsFilterButton" Margin="0,0,8,4" MinWidth="140"
+                                AutomationProperties.Name="{x:Static res:Strings.Reports_AccountsFilterName}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:Icon Data="{StaticResource Icon.Accounts}" Width="16" Height="16" />
+                    <TextBlock Text="{Binding AccountsLabel}" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <DropDownButton.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                      <StackPanel Spacing="4" MinWidth="220">
+                        <Button Classes="link" Command="{Binding SelectAllAccountsCommand}" Content="{x:Static res:Strings.Reports_AllAccounts}" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding AccountOptions}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ReportAccountOption">
+                              <CheckBox IsChecked="{Binding IsChecked}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                  <TextBlock Text="{Binding Name}" />
+                                  <TextBlock Classes="secondary" Text="{Binding Group}" FontSize="{StaticResource Keel.FontSize.Small}" VerticalAlignment="Center" />
+                                </StackPanel>
+                              </CheckBox>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </Flyout>
+                  </DropDownButton.Flyout>
+                </DropDownButton>
+                <CheckBox x:Name="IncludeTransfersBox" Margin="0,0,12,4" IsChecked="{Binding SelectedReport.IncludeTransfers}"
+                          IsVisible="{Binding SelectedReport.SupportsTransfers}" Content="{x:Static res:Strings.Reports_IncludeTransfers}"
+                          ToolTip.Tip="{x:Static res:Strings.Reports_IncludeTransfersTip}" />
+                <CheckBox x:Name="IncludeTrackingBox" Margin="0,0,12,4" IsChecked="{Binding SelectedReport.IncludeTracking}"
+                          Content="{x:Static res:Strings.Reports_IncludeTracking}" ToolTip.Tip="{x:Static res:Strings.Reports_IncludeTrackingTip}" />
+              </WrapPanel>
+            </DockPanel>
+          </Border>
+
+          <DockPanel DockPanel.Dock="Top" Margin="2,0,0,12">
+            <ProgressBar DockPanel.Dock="Right" IsIndeterminate="True" Width="80" IsVisible="{Binding IsLoading}"
+                         AutomationProperties.Name="{x:Static res:Strings.Reports_Loading}" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <controls:Icon Data="{StaticResource Icon.Report.Calendar}" Width="14" Height="14" Foreground="{DynamicResource Keel.TextSecondary}" />
+              <TextBlock x:Name="RangeText" Classes="secondary" Text="{Binding RangeText}" VerticalAlignment="Center" />
+            </StackPanel>
+          </DockPanel>
+
+          <Border DockPanel.Dock="Top" Classes="warning" Margin="0,0,0,8" IsVisible="{Binding HasError}">
+            <DockPanel>
+              <Button DockPanel.Dock="Right" Command="{Binding ReloadCommand}" Content="{x:Static res:Strings.Reports_Retry}" />
+              <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </DockPanel>
+          </Border>
+
+          <ContentControl x:Name="ReportHost" Content="{Binding SelectedReport}" />
+        </DockPanel>
+      </Grid>
+    </Panel>
   </DockPanel>
 </UserControl>
