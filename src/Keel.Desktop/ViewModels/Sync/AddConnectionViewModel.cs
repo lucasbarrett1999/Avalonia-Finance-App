@@ -92,14 +92,20 @@ public sealed partial class AddConnectionViewModel : DialogViewModel
 
     /// <summary>The Hosted Link URL while waiting.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLinkUrl), nameof(WaitingMessage))]
     public partial string? LinkUrl { get; private set; }
+
+    /// <summary>Whether the link runs in the browser (SimpleFIN setup tokens do not).</summary>
+    public bool HasLinkUrl => LinkUrl is not null;
 
     /// <summary>Whether the browser could not be opened (the user copies the link instead).</summary>
     [ObservableProperty]
     public partial bool BrowserFailed { get; private set; }
 
     /// <summary>What the user is waiting for.</summary>
-    public string WaitingMessage => IsReconnect ? Strings.AddConnection_WaitingReconnect : Strings.AddConnection_Waiting;
+    public string WaitingMessage => IsReconnect ? Strings.AddConnection_WaitingReconnect
+        : HasLinkUrl ? Strings.AddConnection_Waiting
+        : Strings.AddConnection_WaitingNoBrowser;
 
     /// <summary>The finished link (new connections).</summary>
     public PendingConnection? Pending { get; private set; }

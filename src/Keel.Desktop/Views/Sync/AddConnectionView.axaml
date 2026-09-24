@@ -41,12 +41,13 @@
     <StackPanel x:Name="WaitingPanel" Spacing="10" IsVisible="{Binding IsWaiting}">
       <ProgressBar IsIndeterminate="True" />
       <TextBlock Text="{Binding WaitingMessage}" TextWrapping="Wrap" />
-      <TextBlock Classes="secondary" Text="{x:Static res:Strings.AddConnection_LinkHint}" TextWrapping="Wrap" />
-      <SelectableTextBlock Classes="path" Text="{Binding LinkUrl}" FontSize="{StaticResource Keel.FontSize.Small}" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.AddConnection_LinkHint}" TextWrapping="Wrap" IsVisible="{Binding HasLinkUrl}" />
+      <SelectableTextBlock Classes="path" Text="{Binding LinkUrl}" FontSize="{StaticResource Keel.FontSize.Small}" IsVisible="{Binding HasLinkUrl}" />
       <Border Classes="warning" IsVisible="{Binding BrowserFailed}">
         <TextBlock Text="{x:Static res:Strings.AddConnection_BrowserFailed}" TextWrapping="Wrap" />
       </Border>
-      <Button HorizontalAlignment="Left" Command="{Binding OpenBrowserAgainCommand}" Content="{x:Static res:Strings.AddConnection_OpenAgain}" />
+      <Button HorizontalAlignment="Left" Command="{Binding OpenBrowserAgainCommand}" Content="{x:Static res:Strings.AddConnection_OpenAgain}"
+              IsVisible="{Binding HasLinkUrl}" />
     </StackPanel>
 
     <TextBlock x:Name="AddConnectionError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />

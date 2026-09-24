@@ -2,6 +2,7 @@ using Keel.Application.Security;
 using Keel.Application.Sync;
 using Keel.Infrastructure.Platform;
 using Keel.Infrastructure.Sync.Plaid;
+using Keel.Infrastructure.Sync.SimpleFin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -35,6 +36,19 @@ public static class SyncServiceCollectionExtensions
         services.TryAddSingleton<IPlaidApi, GoingPlaidApi>();
         services.TryAddSingleton(new PlaidProviderOptions());
         services.AddSingleton<IBankDataProvider, PlaidProvider>();
+
+        // SimpleFIN (P1): the access URL carries credentials, so its client logs no requests.
+        services.AddHttpClient(SimpleFinProvider.HttpClientName)
+            .RemoveAllLoggers()
+            .AddStandardResilienceHandler(options =>
+            {
+                options.Retry.MaxRetryAttempts = 3;
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(60);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(2);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(4);
+            });
+        services.TryAddSingleton(new SimpleFinProviderOptions());
+        services.AddSingleton<IBankDataProvider, SimpleFinProvider>();
 
         services.AddSingleton<IBankCredentialsService, BankCredentialsService>();
         services.AddSingleton<ISyncService, SyncService>();

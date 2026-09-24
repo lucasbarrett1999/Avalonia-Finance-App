@@ -2622,4 +2622,19 @@
   <data name="SyncError_KEEL_SECRET_STORE" xml:space="preserve">
     <value>the OS secret store could not be read (is the keyring unlocked?)</value>
   </data>
+  <data name="AddConnection_WaitingNoBrowser" xml:space="preserve">
+    <value>Connecting to SimpleFIN Bridge and reading your accounts…</value>
+  </data>
+  <data name="SyncError_SIMPLEFIN_ACCESS_REVOKED" xml:space="preserve">
+    <value>SimpleFIN no longer accepts this connection; create a new setup token and link again</value>
+  </data>
+  <data name="SyncError_SIMPLEFIN_PAYMENT_REQUIRED" xml:space="preserve">
+    <value>your SimpleFIN Bridge subscription needs attention</value>
+  </data>
+  <data name="SyncError_SIMPLEFIN_BRIDGE_ERROR" xml:space="preserve">
+    <value>SimpleFIN Bridge reported a problem with the bank; fix it at the bridge, then sync again</value>
+  </data>
+  <data name="SyncError_SIMPLEFIN_BAD_RESPONSE" xml:space="preserve">
+    <value>SimpleFIN returned an unreadable response; try again later</value>
+  </data>
 </root>
