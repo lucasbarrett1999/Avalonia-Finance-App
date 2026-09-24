@@ -316,6 +316,65 @@ import preview come in a later task, so the M3 exit criteria are not yet claimed
 | `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages |
 | 10k-row CSV parse + dedup classification (ad-hoc, Release) | 233 ms parse, 310 ms classify (NFR: 10k rows < 5 s) |
 
+## M5 — Recurring, scheduling and forecast
+
+Domain half of Milestone 5 (the Bills screen, notification center UI and database-backed
+services are a later task).
+
+### Added
+
+- **`RecurrenceRule`** (`Keel.Domain/Scheduling`): RFC 5545 subset for F-ACC-6 (DAILY, WEEKLY with
+  INTERVAL, MONTHLY on day D / last day / Nth weekday / twice monthly, YEARLY, COUNT, UNTIL, WKST);
+  parser with messages naming the offending part, canonical string form and equality, English
+  `Describe` ("Every 2 weeks on Friday", "Every month on the 2nd Tuesday"), lazy
+  `Occurrences(start, from, to)`, `NextAfter`, `First`; the 31st and February 29 clamp to short
+  months; pure `DateOnly` math.
+- **`RecurringDetector`** (`Keel.Domain/Recurring`): PRD 6.6 over (normalized payee, account)
+  groups in a 15-month window: gap windows per cadence, ≥ 0.7 fraction, ≥ 3 occurrences (2 for
+  yearly), median of the last 6, max($2, 10%) tolerance, `IsVariableAmount`, confidence, anchored
+  next expected date and projection rule, lapsed patterns, per-cadence scores for explanations.
+  `RecurringSchedule` (anchors, next date, `InferRule` for stored items), `RecurringReconciler`
+  (create/update/no-op decisions: one item per group, dismissed items untouched unless re-enabled,
+  lapsed patterns end items), `RecurringMath` (monthly/yearly equivalents, F-REC-2 totals, F-REC-4
+  set-aside target), `SubscriptionClassifier` (subscription groups or tags).
+- **`RecurringStatus.Detected`** appended: new detections await confirmation; only Active items
+  are forecast. Stored by name, no migration.
+- **`AlertEvaluator`** (`Keel.Domain/Alerts`): price increase (> 5% and > $1 vs the previous
+  charge), expected item missing 3+ days, new recurring item, first charge after a $0/trial
+  charge; idempotent through `(kind, item, occurrence)` keys stored in `Alert.PayloadJson`.
+- **`ForecastEngine`** (`Keel.Domain/Forecast`): F-REP-4 daily balances per on-budget cash account
+  and combined for N days (default 90) from the cleared balance, scheduled occurrences (transfers
+  on both sides), confirmed recurring items (skipped when a schedule covers the same payee and
+  account), optional average daily discretionary spend; overdue occurrences on day 0; lowest
+  balance, days below a floor, per-day explain, skipped sources with reasons.
+- **Application contracts** (`Keel.Application/{Recurring,Scheduling,Forecast,Alerts}`):
+  `IRecurringService`, `IScheduledTransactionService`, `IForecastService`, `IAlertService` with
+  DTOs and `RecurringChanged`/`AlertsChanged` messages (implementations come later).
+- **Tests** (345 new, all in `Keel.Domain.Tests`): rule parse/description/error tables, occurrence
+  tables with short-month, leap-day and RFC 5545 examples, CsCheck properties (strictly increasing,
+  within bounds, window slicing, `NextAfter`, round trip); detector for every cadence exact and with
+  jitter plus amount noise (150 seeded cases), thresholds, window, grouping via `PayeeNormalizer`,
+  refunds and $0 rows, next-date anchoring (early rent, 31st, 30th after February, holiday shift,
+  leap day), lapsed; a realistic ledger (biweekly paycheck, rent on the 1st, Netflix with a price
+  increase, quarterly insurance, annual domain, variable utility, cancelled gym, irregular coffee
+  and groceries not detected) with a Verify golden; labeled generated ledgers; reconciler, math,
+  alert rules and idempotence; forecast unit tests and three Verify goldens (with and without
+  discretionary spend, double-count guard on and off, floor detection).
+- **Performance**: `RecurringFixtureGenerator` (deterministic, 2k payees, ~123k transactions),
+  a timing test (< 500 ms; runs in a non-parallel collection) and `RecurringDetectorBenchmarks`.
+
+### Decisions and deviations
+
+- [ADR 0030](docs/decisions/0030-recurrence-rule-subset.md): the supported RFC 5545 subset, start
+  date as DTSTART, clamping instead of skipping short months, rejected parts.
+- [ADR 0031](docs/decisions/0031-recurring-detection-interpretations.md): $0 rows and minority-sign
+  rows are not occurrences, 2-occurrence groups judged for yearly only, semimonthly window 13–18,
+  biweekly vs semimonthly decided by schedule residual, anchored next date ("same day of month"),
+  lapsed patterns, the `Detected` status, merge and status rules, rounding of totals and targets.
+- [ADR 0032](docs/decisions/0032-recurring-alert-rules.md): alert keys, outflow-only price increases,
+  variable items skipped, missing for Active items only, $1 trial charges, 90-day trial window.
+- [ADR 0033](docs/decisions/0033-cash-flow-forecast-definitions.md): horizon (today + N days), overdue
+  occurrences, the double-count guard, the discretionary-spend definition, floor semantics.
 ## M4 — Rules and learner
 
 Domain half of Milestone 4: the rules engine, the categorization learner and the categorization
@@ -374,6 +433,24 @@ headless-tested) are not yet claimed.
 
 | Command | Result |
 |---|---|
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 1,046 passed, 0 failed, 0 skipped: Domain 784, Infrastructure 248, Desktop 14 |
+| `dotnet test Keel.sln` (Debug) | Same counts, all passed |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Domain.Tests --filter RecurringPerformance` | Detect over 123,466 transactions / 2,000 payees: median about 80–90 ms (Release and Debug, shared 4-core machine) |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RecurringDetector*' --job short` | `Detect` 19.2 ms mean, 10.3 MB allocated; `ReconcileAgainstEmpty` 0.58 ms |
+| `dotnet test tests/Keel.Domain.Tests --filter Accuracy` | 400 of 400 labeled groups correct for each of 3 seeds, 0 false positives |
+
+No packages were added.
+
+### Not done here
+
+- `IRecurringService`, `IScheduledTransactionService`, `IForecastService` and `IAlertService`
+  implementations, persistence, nightly scheduling, the Bills screen, the forecast chart and the
+  notification center (later M5 task).
+- Timing tests are sensitive to other processes on a shared machine: the existing
+  `BudgetPerformanceTests` failed once during this work while the sandbox load average was about
+  27 on 4 cores; the detector test asserts on the fastest of five runs for that reason.
 | `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
 | `dotnet test Keel.sln -c Release --no-build` | 768 passed, 0 failed: Domain 506, Infrastructure 248, Desktop 14 |
 | `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
