@@ -52,3 +52,8 @@ This application follows a clean architecture approach:
 - **src/MyApp.Core/**: Domain models and interfaces
 - **src/MyApp.Infrastructure/**: Implementations and data access
 - **docs/**: Documentation for specific features
+
+## Planning documents
+
+- `docs/PRD.md` — product requirements for the next version of this app (full rebuild on Avalonia; read this first)
+- `docs/competitive-analysis.md` — analysis of YNAB, Monarch, Rocket Money, and Copilot Money that the PRD is based on
