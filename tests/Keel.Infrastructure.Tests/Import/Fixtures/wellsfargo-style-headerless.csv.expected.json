@@ -1,0 +1,87 @@
+{
+  "format": "Csv",
+  "encoding": "utf-8",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ",",
+      "skipRows": 0,
+      "hasHeader": false,
+      "dateColumn": 0,
+      "dateFormat": "MM/dd/yyyy",
+      "payeeColumn": 4,
+      "amountLayout": "SignedAmount",
+      "amountColumn": 1,
+      "signConvention": "InflowPositive",
+      "decimalSeparator": "."
+    },
+    "headers": [
+      "Column 1",
+      "Column 2",
+      "Column 3",
+      "Column 4",
+      "Column 5"
+    ],
+    "dateFormatCandidates": [
+      "MM/dd/yyyy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "transactions": [
+    {
+      "date": "2026-01-30",
+      "amount": -4567,
+      "payeeRaw": "PURCHASE AUTHORIZED ON 01/28 SHELL OIL 57444212500 AUSTIN TX S466028123456789 CARD 1234",
+      "currency": "USD",
+      "extras": {
+        "Column 3": "*"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 1
+    },
+    {
+      "date": "2026-01-29",
+      "amount": 275000,
+      "payeeRaw": "ACME CORP PAYROLL 260129 000012345 DOE JANE",
+      "currency": "USD",
+      "extras": {
+        "Column 3": "*"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-27",
+      "amount": -145000,
+      "payeeRaw": "CHECK # 1045",
+      "currency": "USD",
+      "extras": {
+        "Column 3": "*",
+        "Column 4": "1045"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-22",
+      "amount": -1549,
+      "payeeRaw": "RECURRING PAYMENT AUTHORIZED ON 01/21 NETFLIX.COM LOS GATOS CA S386021987654321 CARD 1234",
+      "currency": "USD",
+      "extras": {
+        "Column 3": "*"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-16",
+      "amount": -20000,
+      "payeeRaw": "ONLINE TRANSFER TO DOE J SAVINGS XXXXXX5678 REF #IB0ABCDEF1 ON 01/16/26",
+      "currency": "USD",
+      "extras": {
+        "Column 3": "*"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 5
+    }
+  ]
+}

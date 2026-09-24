@@ -9,6 +9,7 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Verify.Xunit" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
@@ -16,5 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Keel.Infrastructure\Keel.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Import/Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

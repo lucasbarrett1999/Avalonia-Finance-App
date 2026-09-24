@@ -49,6 +49,8 @@ KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filte
 dotnet test tests/Keel.Desktop.Tests --filter RegisterTests
 dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger "console;verbosity=detailed"
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
+# Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
+KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -64,12 +66,19 @@ src/
                         table (Entities/), enums, AccountTypeInfo (PRD 6.3), SystemIds (seeded rows).
                         Ledger/ (M1): TransferRules, SplitRules, ReconciliationMath, RunningBalance (ledger
                         order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
+                        Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
+                        with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
+                        Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
+                        JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
                         IImportService, Sync/IBankDataProvider (PRD 7.5), Security/ISecretStore (6.7),
                         IBackupService, INavigationService, IDataDirectory, IBudgetFileService,
                         IAppSettingsStore/AppSettings, Messaging (IMessageBus, LedgerChanged, BudgetChanged).
                         M1: Ledger/ (ITransactionService, IRegisterQuery + DTOs, LedgerValidationException),
                         Payees/, Categories/, Accounts/IBalanceSnapshotService, Undo/IUndoService + LedgerAction.
+                        Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
+                        Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
+                        ImportWarning, CsvColumnMapping, DetectedCsvLayout.
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
@@ -78,6 +87,12 @@ src/
                         EntityChange, UndoHistory/UndoService, AccountService, TransactionService, PayeeService,
                         CategoryService, BalanceSnapshotService, RegisterQuery (raw SQL, paged).
                         Fixtures/LedgerFixtureGenerator (deterministic 100k-transaction ledger).
+                        Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0008),
+                        BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
+                        Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
+                        DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
+                        OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
+                        AddKeelFileImportParsers (not yet wired into AddKeelInfrastructure).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -94,12 +109,18 @@ tests/
                               indexes, soft delete, split-sum constraint, data dir, settings, logging.
                               M1: Ledger/ service tests (LedgerTestHost = real DI over a temp file),
                               register paging/running balance/search, undo, fixture + 100k timing.
+                              Import/: parser unit tests and Fixtures/ (bank files + .expected.json).
   Keel.Desktop.Tests/         Avalonia.Headless.XUnit with Skia: shell smoke tests, navigation,
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
                               M1: RegisterBenchmarks over the 100k fixture.
+  Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
+                              reference cross-check, invariants, 36x60x8 performance test, BudgetInputGenerator
+                              (deterministic; also compiled into Keel.Benchmarks for BudgetCalculatorBenchmarks).
+  Keel.Infrastructure.Tests/Budgeting/  Aggregation against hand-built SQLite ledgers, BudgetService, 3-month
+                              end-to-end golden, 100k-transaction month-switch timing.
 docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
 .github/workflows/ci.yml  Build+test on windows/macos/ubuntu, format check, vulnerable-package scan.
 ```
@@ -165,6 +186,10 @@ From PRD 15, plus decisions made while building M0.
   (ADR 0010). Guids are compared in raw SQL as upper-case text (`RunningBalance.SortKey`).
 - Refused operations throw `LedgerValidationException(LedgerError)`; the UI maps codes to
   `LedgerError_*` strings through `LedgerText`.
+- Budget math lives only in `BudgetCalculator` (PRD 6.4 literal; open points in ADR 0007). Services feed
+  it from `BudgetAggregationQuery` and never compute budget numbers themselves. A changed golden file
+  (`*.received.txt` next to the test) is reviewed by hand and then renamed to `*.verified.txt`; add a
+  golden case for every budget-math bug fixed (PRD 13).
 
 **UI**
 - MVVM with CommunityToolkit.Mvvm (`[ObservableProperty]` partial properties, `[RelayCommand]`);
@@ -184,3 +209,12 @@ From PRD 15, plus decisions made while building M0.
 - Dialogs are in-window (`DialogService.ShowAsync(DialogViewModel)` rendered by the shell's dialog
   layer through the view locator); the status strip (`StatusService`) carries the undo toast.
 - Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
+
+**Import**
+- Parsers are pure (bytes + `ImportOptions` in, `ParseResult` out) and never throw on bad rows:
+  they add an `ImportWarning` with a code and line, never payee or amount text.
+- Every importer change needs a fixture: add the anonymized file to
+  `tests/Keel.Infrastructure.Tests/Import/Fixtures/` (bytes are kept exactly by the folder's
+  `.gitattributes`) and its reviewed `.expected.json`.
+- `PayeeNoiseTable` feeds stored fingerprints: bump `PayeeNormalizer.Version` when it changes
+  (ADR 0005). Every table entry has a test.

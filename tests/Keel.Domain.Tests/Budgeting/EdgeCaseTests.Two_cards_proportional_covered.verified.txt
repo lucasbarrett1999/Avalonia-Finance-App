@@ -1,0 +1,39 @@
+﻿== 2026-08 ==
+Ready to Assign -100.00 = inflow 0.00 - assigned 100.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 100.00, activity -20.01, available 79.99; inflow this month 0.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00     100.00                100.00
+  Pay_Visa                         0.00      58.33       0.00      58.33       0.00       0.00      58.33       0.00  None
+  Pay_Amex                         0.00      41.67       0.00      41.67       0.00       0.00      41.67       0.00  None
+[Everyday]                       100.00    -120.01                -20.01
+  Dining                         100.00    -120.01       0.00     -20.01       0.00     -20.01     100.00             Credit
+
+-- Explain Ready to Assign 2026-08 = -100.00 --
+  + Inflow                         0.00
+  + AssignedThroughMonth        -100.00
+  + AssignedInFuture               0.00
+
+-- Explain Dining 2026-08 = -20.01 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                     100.00
+  + ActivityOnAccount            -70.01  account Visa
+  + ActivityOnAccount            -50.00  account Amex
+    CardSpend                     70.01  account Visa
+    CoveredOnCard                 58.33  account Visa
+    CardSpend                     50.00  account Amex
+    CoveredOnCard                 41.67  account Amex
+    CreditOverspent              -20.01
+
+-- Explain Pay_Visa 2026-08 = 58.33 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                       0.00
+  + CoveredFromCategory           58.33  account Visa, category Dining
+
+-- Explain Pay_Amex 2026-08 = 41.67 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                       0.00
+  + CoveredFromCategory           41.67  account Amex, category Dining
+

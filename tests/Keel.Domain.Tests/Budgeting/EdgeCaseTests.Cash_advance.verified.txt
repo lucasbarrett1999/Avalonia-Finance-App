@@ -1,0 +1,29 @@
+﻿== 2026-08 ==
+Ready to Assign 1,050.00 = inflow 1,200.00 - assigned 150.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 150.00, activity -50.00, available 100.00; inflow this month 1,200.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00     150.00                150.00
+  Pay_Visa                         0.00     150.00       0.00     150.00       0.00       0.00     150.00       0.00  None
+[Everyday]                       150.00    -200.00                -50.00
+  Cash Advance                   150.00    -200.00       0.00     -50.00       0.00     -50.00     150.00             Credit
+
+-- Explain Ready to Assign 2026-08 = 1,050.00 --
+  + Inflow                     1,200.00
+  + AssignedThroughMonth        -150.00
+  + AssignedInFuture               0.00
+
+-- Explain Cash Advance 2026-08 = -50.00 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                     150.00
+  + ActivityOnAccount           -200.00  account Visa
+    CardSpend                    200.00  account Visa
+    CoveredOnCard                150.00  account Visa
+    CreditOverspent              -50.00
+
+-- Explain Pay_Visa 2026-08 = 150.00 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                       0.00
+  + CoveredFromCategory          150.00  account Visa, category Cash Advance
+

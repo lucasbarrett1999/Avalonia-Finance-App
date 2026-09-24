@@ -8,6 +8,8 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="Shouldly" />
+    <PackageReference Include="Verify.Xunit" />
+    <PackageReference Include="CsCheck" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

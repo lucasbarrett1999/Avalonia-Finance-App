@@ -13,4 +13,8 @@
     <ProjectReference Include="..\..\src\Keel.Domain\Keel.Domain.csproj" />
     <ProjectReference Include="..\..\src\Keel.Infrastructure\Keel.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The deterministic budget input generator is shared with Keel.Domain.Tests. -->
+    <Compile Include="..\Keel.Domain.Tests\Budgeting\BudgetInputGenerator.cs" Link="Budgeting\BudgetInputGenerator.cs" />
+  </ItemGroup>
 </Project>

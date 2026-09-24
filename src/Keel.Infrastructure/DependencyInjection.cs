@@ -1,10 +1,12 @@
 using Keel.Application.Accounts;
+using Keel.Application.Budget;
 using Keel.Application.Categories;
 using Keel.Application.Files;
 using Keel.Application.Ledger;
 using Keel.Application.Payees;
 using Keel.Application.Settings;
 using Keel.Application.Undo;
+using Keel.Infrastructure.Budgeting;
 using Keel.Infrastructure.Files;
 using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
@@ -44,6 +46,7 @@ public static class DependencyInjection
         services.AddSingleton<ICategoryService, CategoryService>();
         services.AddSingleton<IBalanceSnapshotService, BalanceSnapshotService>();
         services.AddSingleton<IRegisterQuery, RegisterQuery>();
+        services.AddSingleton<IBudgetService, BudgetService>();
         return services;
     }
 }
