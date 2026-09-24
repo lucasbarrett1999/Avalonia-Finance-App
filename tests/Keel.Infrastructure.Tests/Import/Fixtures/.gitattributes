@@ -1,0 +1,2 @@
+# Fixture bytes (CRLF, Windows-1252, UTF-16) are part of the test; never normalize them.
+* -text

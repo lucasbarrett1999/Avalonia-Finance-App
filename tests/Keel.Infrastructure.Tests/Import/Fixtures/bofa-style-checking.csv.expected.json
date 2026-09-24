@@ -1,0 +1,102 @@
+{
+  "format": "Csv",
+  "encoding": "utf-8",
+  "csvLayout": {
+    "mapping": {
+      "delimiter": ",",
+      "skipRows": 5,
+      "hasHeader": true,
+      "dateColumn": 0,
+      "dateFormat": "MM/dd/yyyy",
+      "payeeColumn": 1,
+      "amountLayout": "SignedAmount",
+      "amountColumn": 2,
+      "signConvention": "InflowPositive",
+      "decimalSeparator": "."
+    },
+    "headers": [
+      "Date",
+      "Description",
+      "Amount",
+      "Running Bal."
+    ],
+    "dateFormatCandidates": [
+      "MM/dd/yyyy"
+    ],
+    "isDateFormatAmbiguous": false
+  },
+  "warnings": [
+    {
+      "code": "SkippedRow",
+      "line": 8
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-01-02",
+      "amount": 321500,
+      "payeeRaw": "ACME CORP DES:PAYROLL ID:XXXXX12345 INDN:DOE,JANE CO ID:XXXXX45678 PPD",
+      "currency": "USD",
+      "extras": {
+        "Running Bal.": "5,665.12"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 9
+    },
+    {
+      "date": "2026-01-05",
+      "amount": -8643,
+      "payeeRaw": "CHECKCARD 0103 WHOLEFDS MKT 10234 AUSTIN TX 24431066003100012345678",
+      "currency": "USD",
+      "extras": {
+        "Running Bal.": "5,578.69"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 10
+    },
+    {
+      "date": "2026-01-09",
+      "amount": -120000,
+      "payeeRaw": "Online Banking payment to CRD 1234 Confirmation# 1234567890",
+      "currency": "USD",
+      "extras": {
+        "Running Bal.": "4,378.69"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 11
+    },
+    {
+      "date": "2026-01-14",
+      "amount": -10000,
+      "payeeRaw": "BKOFAMERICA ATM 01/14 #000001234 WITHDRWL AUSTIN MAIN ST",
+      "currency": "USD",
+      "extras": {
+        "Running Bal.": "4,278.69"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 12
+    },
+    {
+      "date": "2026-01-20",
+      "amount": -14222,
+      "payeeRaw": "CITY OF AUSTIN DES:UTILITY ID:998877 INDN:JANE DOE CO ID:1234567890 WEB",
+      "currency": "USD",
+      "extras": {
+        "Running Bal.": "4,136.47"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 13
+    },
+    {
+      "date": "2026-01-31",
+      "amount": -45900,
+      "payeeRaw": "Check 1042",
+      "currency": "USD",
+      "extras": {
+        "Running Bal.": "3,677.47"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 14
+    }
+  ]
+}
