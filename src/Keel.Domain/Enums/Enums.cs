@@ -157,6 +157,9 @@ public enum RecurringStatus
 
     /// <summary>Dismissed by the user; detection will not recreate it.</summary>
     Dismissed,
+
+    /// <summary>Found by recurring detection and not yet confirmed by the user (F-REC-1, ADR 0031).</summary>
+    Detected,
 }
 
 /// <summary>Notification-center alert kinds (F-REC-3).</summary>
