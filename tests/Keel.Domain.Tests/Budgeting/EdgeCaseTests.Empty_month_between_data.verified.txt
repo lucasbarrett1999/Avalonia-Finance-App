@@ -1,0 +1,42 @@
+﻿== 2026-08 ==
+Ready to Assign 700.00 = inflow 1,000.00 - assigned 300.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 300.00, activity 0.00, available 300.00; inflow this month 1,000.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00      50.00                 50.00
+  Pay_Visa                         0.00      50.00       0.00      50.00       0.00       0.00      50.00       0.00  None
+[Everyday]                       300.00     -50.00                250.00
+  Vacation                       300.00     -50.00       0.00     250.00       0.00       0.00      50.00             None
+
+== 2026-09 ==
+Ready to Assign 700.00 = inflow 1,000.00 - assigned 300.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 0.00, activity 0.00, available 300.00; inflow this month 0.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                 50.00
+  Pay_Visa                         0.00       0.00      50.00      50.00       0.00       0.00       0.00       0.00  None
+[Everyday]                         0.00       0.00                250.00
+  Vacation                         0.00       0.00     250.00     250.00       0.00       0.00       0.00             None
+
+== 2026-10 ==
+Ready to Assign 700.00 = inflow 1,000.00 - assigned 300.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 0.00, activity -150.00, available 150.00; inflow this month 0.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00     -50.00                  0.00
+  Pay_Visa                         0.00     -50.00      50.00       0.00       0.00       0.00       0.00      50.00  None
+[Everyday]                         0.00    -100.00                150.00
+  Vacation                         0.00    -100.00     250.00     150.00       0.00       0.00       0.00             None
+
+-- Explain Ready to Assign 2026-08 = 700.00 --
+  + Inflow                     1,000.00
+  + AssignedThroughMonth        -300.00
+  + AssignedInFuture               0.00
+
+-- Explain Ready to Assign 2026-09 = 700.00 --
+  + Inflow                     1,000.00
+  + AssignedThroughMonth        -300.00
+  + AssignedInFuture               0.00
+
+-- Explain Ready to Assign 2026-10 = 700.00 --
+  + Inflow                     1,000.00
+  + AssignedThroughMonth        -300.00
+  + AssignedInFuture               0.00
+

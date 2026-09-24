@@ -1,0 +1,35 @@
+﻿== 2028-02 ==
+Ready to Assign -120.00 = inflow 0.00 - assigned 0.00 - assigned in future 0.00 + earlier cash overspending -120.00
+Totals: assigned 0.00, activity -3.00, available -3.00; inflow this month 0.00; cash overspent this month -3.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+[Everyday]                         0.00      -3.00                 -3.00
+  Dining                           0.00      -3.00       0.00      -3.00      -3.00       0.00       0.00             Cash
+
+== 2028-03 ==
+Ready to Assign -123.00 = inflow 0.00 - assigned 0.00 - assigned in future 0.00 + earlier cash overspending -123.00
+Totals: assigned 0.00, activity -4.00, available -4.00; inflow this month 0.00; cash overspent this month -4.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+[Everyday]                         0.00      -4.00                 -4.00
+  Dining                           0.00      -4.00       0.00      -4.00      -4.00       0.00       0.00             Cash
+
+-- Explain Ready to Assign 2028-02 = -120.00 --
+  + Inflow                         0.00
+  + AssignedThroughMonth           0.00
+  + AssignedInFuture               0.00
+  + CashOverspentInMonth         -10.00  2026-08
+  + CashOverspentInMonth         -20.00  2026-09
+  + CashOverspentInMonth         -40.00  2026-12
+  + CashOverspentInMonth         -50.00  2027-01
+
+-- Explain Ready to Assign 2028-03 = -123.00 --
+  + Inflow                         0.00
+  + AssignedThroughMonth           0.00
+  + AssignedInFuture               0.00
+  + CashOverspentInMonth         -10.00  2026-08
+  + CashOverspentInMonth         -20.00  2026-09
+  + CashOverspentInMonth         -40.00  2026-12
+  + CashOverspentInMonth         -50.00  2027-01
+  + CashOverspentInMonth          -3.00  2028-02
+

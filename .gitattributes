@@ -8,3 +8,6 @@
 *.otf binary
 *.zip binary
 *.keel binary
+
+# Verify golden files (budget calculator): byte-exact, LF, UTF-8 with BOM as Verify writes them.
+*.verified.txt text eol=lf working-tree-encoding=UTF-8

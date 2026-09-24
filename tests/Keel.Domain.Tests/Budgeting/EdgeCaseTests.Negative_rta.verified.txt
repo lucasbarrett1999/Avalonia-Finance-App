@@ -1,0 +1,26 @@
+﻿== 2026-08 ==
+Ready to Assign -300.00 = inflow 500.00 - assigned 800.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 800.00, activity 0.00, available 800.00; inflow this month 500.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+[Everyday]                       800.00       0.00                800.00
+  Rent                           800.00       0.00       0.00     800.00       0.00       0.00       0.00             None
+
+== 2026-09 ==
+Ready to Assign -300.00 = inflow 500.00 - assigned 800.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 0.00, activity 0.00, available 800.00; inflow this month 0.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+[Everyday]                         0.00       0.00                800.00
+  Rent                             0.00       0.00     800.00     800.00       0.00       0.00       0.00             None
+
+-- Explain Ready to Assign 2026-08 = -300.00 --
+  + Inflow                       500.00
+  + AssignedThroughMonth        -800.00
+  + AssignedInFuture               0.00
+
+-- Explain Ready to Assign 2026-09 = -300.00 --
+  + Inflow                       500.00
+  + AssignedThroughMonth        -800.00
+  + AssignedInFuture               0.00
+

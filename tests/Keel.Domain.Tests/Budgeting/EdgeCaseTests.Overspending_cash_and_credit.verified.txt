@@ -1,0 +1,40 @@
+﻿== 2026-08 ==
+Ready to Assign 900.00 = inflow 1,000.00 - assigned 100.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 100.00, activity -150.00, available -50.00; inflow this month 1,000.00; cash overspent this month -20.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+  Pay_Visa                         0.00       0.00       0.00       0.00       0.00       0.00       0.00       0.00  None
+[Everyday]                       100.00    -150.00                -50.00
+  Dining                         100.00    -150.00       0.00     -50.00     -20.00     -30.00       0.00             Cash
+
+== 2026-09 ==
+Ready to Assign 880.00 = inflow 1,000.00 - assigned 100.00 - assigned in future 0.00 + earlier cash overspending -20.00
+Totals: assigned 0.00, activity 0.00, available 0.00; inflow this month 0.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+  Pay_Visa                         0.00       0.00       0.00       0.00       0.00       0.00       0.00       0.00  None
+[Everyday]                         0.00       0.00                  0.00
+  Dining                           0.00       0.00       0.00       0.00       0.00       0.00       0.00             None
+
+-- Explain Ready to Assign 2026-08 = 900.00 --
+  + Inflow                     1,000.00
+  + AssignedThroughMonth        -100.00
+  + AssignedInFuture               0.00
+
+-- Explain Ready to Assign 2026-09 = 880.00 --
+  + Inflow                     1,000.00
+  + AssignedThroughMonth        -100.00
+  + AssignedInFuture               0.00
+  + CashOverspentInMonth         -20.00  2026-08
+
+-- Explain Dining 2026-08 = -50.00 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                     100.00
+  + ActivityOnAccount           -120.00  account Checking
+  + ActivityOnAccount            -30.00  account Visa
+    CardSpend                     30.00  account Visa
+    CoveredOnCard                  0.00  account Visa
+    CreditOverspent              -30.00
+    CashOverspent                -20.00
+

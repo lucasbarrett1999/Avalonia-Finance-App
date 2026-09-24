@@ -3,6 +3,70 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M2 — Budget engine
+
+Domain half of Milestone 2 (the Budget screen is a later task).
+
+### Added
+
+- **`BudgetCalculator`** (`Keel.Domain/Budgeting`): PRD 6.4 as a pure function of accounts, groups,
+  categories, activity pre-aggregated by (category, month, account), assignments and transfers into
+  credit accounts. Per month: Ready to Assign (with "assigned in future months" and prior cash
+  overspending), totals, group rows; per category: Assigned, Activity, Carry, RawAvailable,
+  Available, CashOverspent, CreditOverspent; per Credit Card Payment category: Covered (per spending
+  category), Payments (per paying account), Activity, Available. Proportional Covered allocation
+  with the rounding remainder on the largest card, refunds floored at 0, tracking transfers as
+  categorized outflows, on-budget transfers ignored, closed accounts included. Every cell and every
+  Ready to Assign has an explain breakdown whose terms sum to the number (principle 7, 9.3).
+- **`TargetCalculator`** (four target types, underfunded, monthly need) and **`QuickAssign`**
+  (F-BUD-5 values).
+- **`BudgetAggregationQuery`** (`Keel.Infrastructure/Budgeting`): raw SQL `GROUP BY` over
+  non-deleted transactions and splits (a split parent contributes nothing), card payments per
+  (card, source, month), monthly card balances; no transaction row is loaded.
+- **`BudgetService`** implementing the extended `IBudgetService`: `GetMonthAsync`, `GetRangeAsync`,
+  `ExplainAsync`, `AssignAsync`, `MoveMoneyAsync` (Ready to Assign on either side), target CRUD,
+  `FundTargetsAsync`, `GetQuickAssignAsync`. Mutations write `AuditEvent` before/after JSON and
+  publish `BudgetChanged`. Registered in `AddKeelInfrastructure` (plus `TimeProvider.System`).
+  Budget DTOs gained carry, hidden flag, kind, card-payment details (card balance and difference),
+  target need fields, assigned-in-future and uncategorized totals.
+- **Tests**: Verify golden files for 6.4.7 (including the "$50 after the fact" addition) and 6.4.8
+  exactly as written, 14 edge-case goldens (refund larger than spend, two cards with rounding,
+  payment larger than covered, cash advance, activity without assignment, future assignments,
+  negative RTA, cash + credit overspending, empty month, hidden category, opening balances,
+  tracking transfers, month boundaries and leap day, closed accounts); cross-check against a naive
+  reference transcription of 6.4 on generated inputs; invariants; range and order independence;
+  aggregation against hand-built SQLite ledgers; logged SQL uses `GROUP BY`; service equals the
+  calculator on those ledgers; a three-month end-to-end golden through the database.
+- **Performance**: deterministic `BudgetInputGenerator`; test asserting `Compute` over 36 months ×
+  60 categories × 8 accounts < 200 ms after warm-up; `BudgetCalculatorBenchmarks` (BenchmarkDotNet).
+
+### Decisions and deviations
+
+- [ADR 0007](docs/decisions/0007-budget-calculation-interpretations.md): interpretations of PRD 6.4
+  (Covered rounding direction, payment categories overspent = cash, what counts as a payment, cash
+  advances, uncategorized activity, month totals include hidden categories, and more).
+- [ADR 0008](docs/decisions/0008-budget-service-targets-and-quick-assign.md): target formulas, fund
+  targets order and limits, quick-assign definitions, move money, audit format, messages, currency,
+  raw SQL for the aggregation.
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 198 passed, 0 failed, 0 skipped: Domain 135, Infrastructure 49, Desktop 14 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages (Verify.Xunit 31.12.5 added to both test projects) |
+| `dotnet test tests/Keel.Domain.Tests --filter BudgetPerformanceTests` | Compute 36 × 60 × 8 (17,460 activity rows): median about 15 ms (Release), 18 ms (Debug) |
+| `dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*BudgetCalculator*' --job short` | `ComputeRange` 6.6 ms mean, 5.5 MB allocated; `ComputeLastMonth` 2.7 ms |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter Month_switch` | `GetMonthAsync` over 100k transactions: median about 250 ms (aggregation about 170 ms) |
+
+### Not done here
+
+- The Budget screen (PRD 9.3) and its headless tests; month switching < 100 ms at 100k rows needs the
+  screen to load a range and switch in memory (ADR 0008).
+- Windows and macOS runs happen in CI only.
+
 ## [0.1.0-m0] - 2026-09-24 - Milestone 0: reset and skeleton
 
 ### Added
