@@ -38,11 +38,7 @@
       <StackPanel>
         <TextBlock Classes="fieldLabel" Text="{Binding BalanceLabel}" />
         <controls:MoneyTextBox x:Name="BalanceBox" Value="{Binding OpeningBalance}" Currency="{Binding Currency}"
-                               ShowZeroAsEmpty="False" AutomationProperties.Name="{Binding BalanceLabel}">
-          <controls:MoneyTextBox.KeyBindings>
-            <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
-          </controls:MoneyTextBox.KeyBindings>
-        </controls:MoneyTextBox>
+                               ShowZeroAsEmpty="False" AutomationProperties.Name="{Binding BalanceLabel}" />
       </StackPanel>
       <StackPanel Grid.Column="2">
         <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.AccountEditor_OpeningDate}" />

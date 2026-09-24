@@ -419,4 +419,31 @@ public sealed class RegisterTests : IDisposable
         vm.RowCount.ShouldBe(1);
         window.Close();
     }
+
+    [AvaloniaFact]
+    public async Task Account_editor_saves_the_typed_balance_on_enter()
+    {
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        Dispatcher.UIThread.RunJobs();
+
+        shell.AddAccountCommand.Execute(null);
+        Dispatcher.UIThread.RunJobs();
+        var dialog = shell.Dialogs.Current.ShouldBeOfType<AccountEditorViewModel>();
+        dialog.Name = "Wallet";
+        dialog.SelectedType = dialog.Types.Single(t => t.Value == AccountType.Cash);
+        var balance = window.Named<MoneyTextBox>("BalanceBox");
+        balance.Focus();
+        balance.SelectAll();
+        window.Type("1234.56");
+        window.Press(PhysicalKey.Enter);
+        await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is null, "dialog closed");
+
+        var accounts = _host.Get<IAccountService>();
+        var wallet = (await Task.Run(() => accounts.GetAccountsAsync(true, Ct))).Single(a => a.Name == "Wallet");
+        wallet.Balance.Amount.ShouldBe(123_456);
+        window.Close();
+    }
 }
