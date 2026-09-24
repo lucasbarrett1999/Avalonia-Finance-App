@@ -214,7 +214,7 @@
     <value>Approve imported and synced transactions</value>
   </data>
   <data name="Page_Review_EmptyHeading" xml:space="preserve">
-    <value>You're all caught up</value>
+    <value>Nothing to review</value>
   </data>
   <data name="Page_Review_EmptyMessage" xml:space="preserve">
     <value>Transactions from file imports and bank sync wait here until you approve them. There is nothing to review right now.</value>
@@ -2231,5 +2231,614 @@
   </data>
   <data name="Action_UpdatePayee" xml:space="preserve">
     <value>update payee</value>
+  </data>
+  <data name="Payees_ErrorLoading" xml:space="preserve">
+    <value>Payees could not be loaded: {0}</value>
+  </data>
+  <data name="Payees_NoDefault" xml:space="preserve">
+    <value>No default category</value>
+  </data>
+  <data name="Payees_RenameMessage" xml:space="preserve">
+    <value>Every transaction of "{0}" will show the new name. If another payee already has that name, the two are combined.</value>
+  </data>
+  <data name="Payees_RenameTitle" xml:space="preserve">
+    <value>Rename payee</value>
+  </data>
+  <data name="Payees_TransactionCount" xml:space="preserve">
+    <value>Transactions: {0}</value>
+  </data>
+  <data name="Payees_Description" xml:space="preserve">
+    <value>A payee's default category is suggested for its new transactions (95% confidence) and filled in when you import. Renaming applies to all of its transactions.</value>
+  </data>
+  <data name="Payees_SearchWatermark" xml:space="preserve">
+    <value>Search payees</value>
+  </data>
+  <data name="Payees_Empty" xml:space="preserve">
+    <value>No payees match.</value>
+  </data>
+  <data name="Payees_Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Payees_RenameFor" xml:space="preserve">
+    <value>Rename {0}</value>
+  </data>
+  <data name="Payees_DefaultFor" xml:space="preserve">
+    <value>Default category for {0}</value>
+  </data>
+  <data name="Payees_NewName" xml:space="preserve">
+    <value>New name</value>
+  </data>
+  <data name="Payees_LimitHint" xml:space="preserve">
+    <value>Showing up to 200 payees; search to find others.</value>
+  </data>
+  <data name="Retroactive_AllRules" xml:space="preserve">
+    <value>All {0} enabled rules</value>
+  </data>
+  <data name="Retroactive_Error" xml:space="preserve">
+    <value>The preview could not be computed: {0}</value>
+  </data>
+  <data name="Retroactive_OneRule" xml:space="preserve">
+    <value>Rule: {0}</value>
+  </data>
+  <data name="Retroactive_Summary" xml:space="preserve">
+    <value>{0} of {1} transactions will change.</value>
+  </data>
+  <data name="Retroactive_Title" xml:space="preserve">
+    <value>Apply to existing transactions</value>
+  </data>
+  <data name="Retroactive_UnapprovedOnly" xml:space="preserve">
+    <value>Only transactions waiting in Review</value>
+  </data>
+  <data name="Retroactive_Apply" xml:space="preserve">
+    <value>Apply changes</value>
+  </data>
+  <data name="Retroactive_Loading" xml:space="preserve">
+    <value>Finding the transactions these rules would change…</value>
+  </data>
+  <data name="Retroactive_NoChanges" xml:space="preserve">
+    <value>No existing transaction would change.</value>
+  </data>
+  <data name="Retroactive_Hint" xml:space="preserve">
+    <value>Amounts, dates and accounts never change. You can undo the whole change in one step.</value>
+  </data>
+  <data name="ReviewSplit_Prompt" xml:space="preserve">
+    <value>Split {0} from {1}</value>
+  </data>
+  <data name="ReviewSplit_Title" xml:space="preserve">
+    <value>Split transaction</value>
+  </data>
+  <data name="ReviewSplit_SaveApprove" xml:space="preserve">
+    <value>Split and approve</value>
+  </data>
+  <data name="Review_BatchApprove" xml:space="preserve">
+    <value>Approve {0} with confidence ≥ {1}</value>
+  </data>
+  <data name="Review_ChangeCategoryPrompt" xml:space="preserve">
+    <value>Choose a category for {0}; the transaction is approved.</value>
+  </data>
+  <data name="Review_ChangeCategoryTitle" xml:space="preserve">
+    <value>Change category</value>
+  </data>
+  <data name="Review_ErrorLoading" xml:space="preserve">
+    <value>The review queue could not be loaded: {0}</value>
+  </data>
+  <data name="Review_Inflow" xml:space="preserve">
+    <value>Inflow</value>
+  </data>
+  <data name="Review_Outflow" xml:space="preserve">
+    <value>Outflow</value>
+  </data>
+  <data name="Review_KeyHints" xml:space="preserve">
+    <value>A approve · 1–9 pick a suggestion · C category · S split · T transfer · R create rule · D delete · J/K next/previous</value>
+  </data>
+  <data name="Review_NoPayee" xml:space="preserve">
+    <value>(no payee)</value>
+  </data>
+  <data name="Review_Progress" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Review_SplitInto" xml:space="preserve">
+    <value>Split into {0} categories</value>
+  </data>
+  <data name="Review_SuggestionAutomation" xml:space="preserve">
+    <value>Suggestion {0}: {1}, {2}</value>
+  </data>
+  <data name="Review_SuggestionsError" xml:space="preserve">
+    <value>Suggestions are unavailable: {0}</value>
+  </data>
+  <data name="Review_TransferNoCategory" xml:space="preserve">
+    <value>Transfer (no category)</value>
+  </data>
+  <data name="Review_TransferPrompt" xml:space="preserve">
+    <value>Which account did {0} move to or from {1}?</value>
+  </data>
+  <data name="Review_TransferTitle" xml:space="preserve">
+    <value>Mark as transfer</value>
+  </data>
+  <data name="Review_Uncategorized" xml:space="preserve">
+    <value>Uncategorized</value>
+  </data>
+  <data name="Review_Preparing" xml:space="preserve">
+    <value>Preparing suggestions…</value>
+  </data>
+  <data name="Review_PreparingHint" xml:space="preserve">
+    <value>Learning from your approved transactions. Rules and payee defaults still apply.</value>
+  </data>
+  <data name="Review_Scoring" xml:space="preserve">
+    <value>Finding suggestions…</value>
+  </data>
+  <data name="Review_NoSuggestions" xml:space="preserve">
+    <value>No suggestion yet. Choose a category with C; Keel learns from each approval.</value>
+  </data>
+  <data name="Review_Suggestions" xml:space="preserve">
+    <value>Suggested categories</value>
+  </data>
+  <data name="Review_Why" xml:space="preserve">
+    <value>Why?</value>
+  </data>
+  <data name="Review_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Review_Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Review_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="Review_Category" xml:space="preserve">
+    <value>Current category</value>
+  </data>
+  <data name="Review_Descriptor" xml:space="preserve">
+    <value>Bank description</value>
+  </data>
+  <data name="Review_Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Review_ChangeCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Review_Split" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="Review_Transfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="Review_CreateRule" xml:space="preserve">
+    <value>Create rule</value>
+  </data>
+  <data name="Review_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Review_ManageRules" xml:space="preserve">
+    <value>Manage rules</value>
+  </data>
+  <data name="Review_Loading" xml:space="preserve">
+    <value>Loading the review queue…</value>
+  </data>
+  <data name="Review_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Review_Source_Rule" xml:space="preserve">
+    <value>Rule</value>
+  </data>
+  <data name="Review_Source_PayeeDefault" xml:space="preserve">
+    <value>Payee default</value>
+  </data>
+  <data name="Review_Source_Learner" xml:space="preserve">
+    <value>Learned</value>
+  </data>
+  <data name="Review_Source_Existing" xml:space="preserve">
+    <value>Current</value>
+  </data>
+  <data name="Review_Source_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Review_Stage_Input" xml:space="preserve">
+    <value>Transaction</value>
+  </data>
+  <data name="Review_Stage_Rules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Review_Stage_PayeeDefault" xml:space="preserve">
+    <value>Payee default</value>
+  </data>
+  <data name="Review_Stage_Learner" xml:space="preserve">
+    <value>Learner</value>
+  </data>
+  <data name="Review_Next" xml:space="preserve">
+    <value>Next (J)</value>
+  </data>
+  <data name="Review_Previous" xml:space="preserve">
+    <value>Previous (K)</value>
+  </data>
+  <data name="RuleEditor_EditTitle" xml:space="preserve">
+    <value>Edit rule</value>
+  </data>
+  <data name="RuleEditor_NewTitle" xml:space="preserve">
+    <value>New rule</value>
+  </data>
+  <data name="RuleEditor_FixErrors" xml:space="preserve">
+    <value>Fix the problems marked below to save the rule.</value>
+  </data>
+  <data name="RuleEditor_MatchAll" xml:space="preserve">
+    <value>all conditions match</value>
+  </data>
+  <data name="RuleEditor_MatchAny" xml:space="preserve">
+    <value>any condition matches</value>
+  </data>
+  <data name="RuleEditor_MemoWatermark" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="RuleEditor_PayeeWatermark" xml:space="preserve">
+    <value>New payee name</value>
+  </data>
+  <data name="RuleEditor_TagWatermark" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="RuleEditor_TestMore" xml:space="preserve">
+    <value>Showing the newest {0}.</value>
+  </data>
+  <data name="RuleEditor_TestSummary" xml:space="preserve">
+    <value>Matches {0} of {1} transactions.</value>
+  </data>
+  <data name="RuleEditor_WarningPrefix" xml:space="preserve">
+    <value>Warning: </value>
+  </data>
+  <data name="RuleEditor_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RuleEditor_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="RuleEditor_Continue" xml:space="preserve">
+    <value>Keep checking later rules after this one matches</value>
+  </data>
+  <data name="RuleEditor_When" xml:space="preserve">
+    <value>When</value>
+  </data>
+  <data name="RuleEditor_Then" xml:space="preserve">
+    <value>Then</value>
+  </data>
+  <data name="RuleEditor_AddCondition" xml:space="preserve">
+    <value>Add condition</value>
+  </data>
+  <data name="RuleEditor_AddAction" xml:space="preserve">
+    <value>Add action</value>
+  </data>
+  <data name="RuleEditor_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="RuleEditor_Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="RuleEditor_Normalized" xml:space="preserve">
+    <value>Ignore store numbers and card-processor noise</value>
+  </data>
+  <data name="RuleEditor_Signed" xml:space="preserve">
+    <value>Signed (outflows negative)</value>
+  </data>
+  <data name="RuleEditor_And" xml:space="preserve">
+    <value>and</value>
+  </data>
+  <data name="RuleEditor_From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="RuleEditor_To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="RuleEditor_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="RuleEditor_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="RuleEditor_Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="RuleEditor_Percent" xml:space="preserve">
+    <value>Percent</value>
+  </data>
+  <data name="RuleEditor_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="RuleEditor_TheRest" xml:space="preserve">
+    <value>the rest</value>
+  </data>
+  <data name="RuleEditor_AddLine" xml:space="preserve">
+    <value>Add line</value>
+  </data>
+  <data name="RuleEditor_Test" xml:space="preserve">
+    <value>Test rule</value>
+  </data>
+  <data name="RuleEditor_Testing" xml:space="preserve">
+    <value>Testing…</value>
+  </data>
+  <data name="RuleEditor_ApplyToExisting" xml:space="preserve">
+    <value>Preview applying it to existing transactions after saving</value>
+  </data>
+  <data name="RuleEditor_Save" xml:space="preserve">
+    <value>Save rule</value>
+  </data>
+  <data name="RuleEditor_NoParameters" xml:space="preserve">
+    <value>No settings needed.</value>
+  </data>
+  <data name="RuleOutcome_Change" xml:space="preserve">
+    <value>{0}: {1} → {2}</value>
+  </data>
+  <data name="RuleOutcome_NoChange" xml:space="preserve">
+    <value>Matches; nothing to change</value>
+  </data>
+  <data name="RuleOutcome_None" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="RuleField_Payee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="RuleField_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="RuleField_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="RuleField_Tags" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="RuleField_Approved" xml:space="preserve">
+    <value>Approved</value>
+  </data>
+  <data name="RuleField_Flagged" xml:space="preserve">
+    <value>Flagged</value>
+  </data>
+  <data name="RuleField_Splits" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="RuleField_TransferAccount" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="RuleCondition_Payee" xml:space="preserve">
+    <value>Payee</value>
+  </data>
+  <data name="RuleCondition_Memo" xml:space="preserve">
+    <value>Memo</value>
+  </data>
+  <data name="RuleCondition_Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="RuleCondition_Direction" xml:space="preserve">
+    <value>Direction</value>
+  </data>
+  <data name="RuleCondition_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="RuleCondition_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="RuleCondition_DateRange" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="RuleCondition_Tag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="RuleTextOperator_Contains" xml:space="preserve">
+    <value>contains</value>
+  </data>
+  <data name="RuleTextOperator_EqualTo" xml:space="preserve">
+    <value>is</value>
+  </data>
+  <data name="RuleTextOperator_StartsWith" xml:space="preserve">
+    <value>starts with</value>
+  </data>
+  <data name="RuleTextOperator_Regex" xml:space="preserve">
+    <value>matches pattern</value>
+  </data>
+  <data name="RuleAmountOperator_EqualTo" xml:space="preserve">
+    <value>is</value>
+  </data>
+  <data name="RuleAmountOperator_Between" xml:space="preserve">
+    <value>is between</value>
+  </data>
+  <data name="RuleAmountOperator_GreaterThan" xml:space="preserve">
+    <value>is more than</value>
+  </data>
+  <data name="RuleAmountOperator_LessThan" xml:space="preserve">
+    <value>is less than</value>
+  </data>
+  <data name="RuleDirection_Inflow" xml:space="preserve">
+    <value>is an inflow</value>
+  </data>
+  <data name="RuleDirection_Outflow" xml:space="preserve">
+    <value>is an outflow</value>
+  </data>
+  <data name="RuleSource_Manual" xml:space="preserve">
+    <value>Manual entry</value>
+  </data>
+  <data name="RuleSource_File" xml:space="preserve">
+    <value>File import</value>
+  </data>
+  <data name="RuleSource_Provider" xml:space="preserve">
+    <value>Bank sync</value>
+  </data>
+  <data name="RuleSource_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="RuleSource_Scheduled" xml:space="preserve">
+    <value>Scheduled</value>
+  </data>
+  <data name="RuleAction_SetPayee" xml:space="preserve">
+    <value>Rename payee</value>
+  </data>
+  <data name="RuleAction_SetCategory" xml:space="preserve">
+    <value>Set category</value>
+  </data>
+  <data name="RuleAction_SetMemo" xml:space="preserve">
+    <value>Set memo</value>
+  </data>
+  <data name="RuleAction_AppendMemo" xml:space="preserve">
+    <value>Append to memo</value>
+  </data>
+  <data name="RuleAction_AddTag" xml:space="preserve">
+    <value>Add tag</value>
+  </data>
+  <data name="RuleAction_MarkApproved" xml:space="preserve">
+    <value>Mark approved</value>
+  </data>
+  <data name="RuleAction_Flag" xml:space="preserve">
+    <value>Flag</value>
+  </data>
+  <data name="RuleAction_SplitByAmounts" xml:space="preserve">
+    <value>Split by amounts</value>
+  </data>
+  <data name="RuleAction_SplitByPercentages" xml:space="preserve">
+    <value>Split by percentages</value>
+  </data>
+  <data name="RuleAction_SetTransferAccount" xml:space="preserve">
+    <value>Make a transfer</value>
+  </data>
+  <data name="Rules_Count" xml:space="preserve">
+    <value>{0} rules, {1} enabled</value>
+  </data>
+  <data name="Rules_Delete" xml:space="preserve">
+    <value>Delete rule</value>
+  </data>
+  <data name="Rules_DeleteMessage" xml:space="preserve">
+    <value>Delete the rule "{0}"? Transactions it already changed keep their changes. You can undo this.</value>
+  </data>
+  <data name="Rules_DeleteTitle" xml:space="preserve">
+    <value>Delete rule?</value>
+  </data>
+  <data name="Rules_EmptyHeading" xml:space="preserve">
+    <value>No rules yet</value>
+  </data>
+  <data name="Rules_EmptyMessage" xml:space="preserve">
+    <value>Rules rename payees, set categories, split and tag transactions as they arrive. Create one here, or press R on a transaction in Review.</value>
+  </data>
+  <data name="Rules_ErrorLoading" xml:space="preserve">
+    <value>Rules could not be loaded: {0}</value>
+  </data>
+  <data name="Rules_MatchCount" xml:space="preserve">
+    <value>Matches: {0}</value>
+  </data>
+  <data name="Rules_Subtitle" xml:space="preserve">
+    <value>Rules run in this order on every new transaction; the first match wins unless it continues.</value>
+  </data>
+  <data name="Rules_Title" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Rules_Unreadable" xml:space="preserve">
+    <value>This rule was saved by a newer version of Keel and is skipped: {0}</value>
+  </data>
+  <data name="Rules_NewRule" xml:space="preserve">
+    <value>New rule</value>
+  </data>
+  <data name="Rules_ApplyAll" xml:space="preserve">
+    <value>Apply rules to existing transactions</value>
+  </data>
+  <data name="Rules_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Rules_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Rules_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Rules_CountMatches" xml:space="preserve">
+    <value>Count matches</value>
+  </data>
+  <data name="Rules_ApplyToExisting" xml:space="preserve">
+    <value>Apply to existing</value>
+  </data>
+  <data name="Rules_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Rules_Continues" xml:space="preserve">
+    <value>continues</value>
+  </data>
+  <data name="Rules_Invalid" xml:space="preserve">
+    <value>Skipped:</value>
+  </data>
+  <data name="Rules_Loading" xml:space="preserve">
+    <value>Loading rules…</value>
+  </data>
+  <data name="Rules_DragHandle" xml:space="preserve">
+    <value>Drag to reorder</value>
+  </data>
+  <data name="Rules_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Rules_CreateFromTransaction" xml:space="preserve">
+    <value>Create rule from this transaction…</value>
+  </data>
+  <data name="Shortcut_ReviewApprove" xml:space="preserve">
+    <value>Review: approve</value>
+  </data>
+  <data name="Shortcut_ReviewPick" xml:space="preserve">
+    <value>Review: pick a suggestion</value>
+  </data>
+  <data name="Shortcut_ReviewCategory" xml:space="preserve">
+    <value>Review: change category</value>
+  </data>
+  <data name="Shortcut_ReviewSplit" xml:space="preserve">
+    <value>Review: split</value>
+  </data>
+  <data name="Shortcut_ReviewTransfer" xml:space="preserve">
+    <value>Review: mark as transfer</value>
+  </data>
+  <data name="Shortcut_ReviewRule" xml:space="preserve">
+    <value>Review: create rule</value>
+  </data>
+  <data name="Shortcut_ReviewDelete" xml:space="preserve">
+    <value>Review: delete</value>
+  </data>
+  <data name="Shortcut_ReviewMove" xml:space="preserve">
+    <value>Review: next / previous</value>
+  </data>
+  <data name="Status_PayeeDefaultCleared" xml:space="preserve">
+    <value>{0} has no default category now.</value>
+  </data>
+  <data name="Status_PayeeDefaultSet" xml:space="preserve">
+    <value>{0} now defaults to {1}.</value>
+  </data>
+  <data name="Status_PayeeRenamed" xml:space="preserve">
+    <value>Renamed {0} to {1}.</value>
+  </data>
+  <data name="Status_ReviewApproved" xml:space="preserve">
+    <value>Approved.</value>
+  </data>
+  <data name="Status_ReviewBatchApproved" xml:space="preserve">
+    <value>Approved {0} transactions.</value>
+  </data>
+  <data name="Status_ReviewCategorized" xml:space="preserve">
+    <value>Approved as {0}.</value>
+  </data>
+  <data name="Status_ReviewSplit" xml:space="preserve">
+    <value>Split and approved.</value>
+  </data>
+  <data name="Status_ReviewTransfer" xml:space="preserve">
+    <value>Marked as a transfer with {0} and approved.</value>
+  </data>
+  <data name="Status_RuleDeleted" xml:space="preserve">
+    <value>Deleted rule "{0}".</value>
+  </data>
+  <data name="Status_RuleDisabled" xml:space="preserve">
+    <value>Disabled rule "{0}".</value>
+  </data>
+  <data name="Status_RuleEnabled" xml:space="preserve">
+    <value>Enabled rule "{0}".</value>
+  </data>
+  <data name="Status_RuleSaved" xml:space="preserve">
+    <value>Saved rule "{0}".</value>
+  </data>
+  <data name="Status_RulesApplied" xml:space="preserve">
+    <value>Rules changed {0} transactions.</value>
+  </data>
+  <data name="Status_RulesReordered" xml:space="preserve">
+    <value>Rule order saved.</value>
+  </data>
+  <data name="Settings_Rules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Settings_Payees" xml:space="preserve">
+    <value>Payees</value>
   </data>
 </root>

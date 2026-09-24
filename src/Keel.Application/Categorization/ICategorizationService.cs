@@ -41,7 +41,8 @@ public interface ICategorizationService
 
     /// <summary>
     /// "Approve all with confidence ≥ x": a decision for every unapproved transaction whose
-    /// primary suggestion reaches <paramref name="minimumConfidence"/>.
+    /// primary suggestion reaches <paramref name="minimumConfidence"/> and does not contradict a
+    /// category the transaction already has.
     /// </summary>
     Task<IReadOnlyList<ReviewDecision>> PlanBatchApprovalAsync(double minimumConfidence, CancellationToken ct);
 }

@@ -175,7 +175,8 @@ public sealed partial class CategorizationService : ICategorizationService
             ct).ConfigureAwait(false);
         var suggestions = await SuggestManyAsync(ids, ct).ConfigureAwait(false);
         return suggestions
-            .Where(s => s.Primary is { } p && p.Confidence >= minimumConfidence)
+            .Where(s => s.Primary is { } p && p.Confidence >= minimumConfidence
+                && (s.Snapshot.CategoryId is null || s.Snapshot.CategoryId == p.CategoryId))
             .Select(s => new ReviewDecision(s.TransactionId, s.Primary!.CategoryId, s.Primary.Source == CategorizationSource.Rule))
             .ToList();
     }

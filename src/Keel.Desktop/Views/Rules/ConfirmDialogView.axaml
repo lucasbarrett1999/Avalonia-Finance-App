@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rules="using:Keel.Desktop.ViewModels.Rules"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Rules.ConfirmDialogView"
+             x:DataType="rules:ConfirmDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+    <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="400">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="ConfirmButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{Binding ConfirmLabel}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>
