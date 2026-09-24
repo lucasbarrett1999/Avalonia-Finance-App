@@ -23,7 +23,7 @@ public sealed class TempDirectory : IDisposable
         {
             Directory.Delete(Path, recursive: true);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             // Best effort; the OS temp cleaner will get it.
         }

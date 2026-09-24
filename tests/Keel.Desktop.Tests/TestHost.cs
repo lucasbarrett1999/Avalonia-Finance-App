@@ -45,7 +45,7 @@ public sealed class TestHost : IDisposable
         {
             Directory.Delete(Root, recursive: true);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
         }
     }
