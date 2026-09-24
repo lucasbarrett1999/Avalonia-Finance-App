@@ -1,0 +1,19 @@
+﻿== 2026-08 ==
+Ready to Assign 2,700.00 = inflow 3,200.00 - assigned 500.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 500.00, activity -500.00, available 0.00; inflow this month 3,200.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                  0.00
+[Everyday]                       500.00    -500.00                  0.00
+  Retirement                     500.00    -500.00       0.00       0.00       0.00       0.00       0.00             None
+
+-- Explain Ready to Assign 2026-08 = 2,700.00 --
+  + Inflow                     3,200.00
+  + AssignedThroughMonth        -500.00
+  + AssignedInFuture               0.00
+
+-- Explain Retirement 2026-08 = 0.00 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                     500.00
+  + ActivityOnAccount           -500.00  account Checking
+

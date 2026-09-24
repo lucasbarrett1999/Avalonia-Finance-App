@@ -1,0 +1,51 @@
+﻿== 2026-08 ==
+Ready to Assign 1,100.00 = inflow 3,000.00 - assigned 1,900.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 1,900.00, activity -1,650.00, available 250.00; inflow this month 3,000.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00     300.00                300.00
+  Pay_Visa                         0.00     300.00       0.00     300.00       0.00       0.00     400.00     100.00  None
+[Everyday]                     1,900.00  -1,950.00                -50.00
+  Groceries                      400.00    -450.00       0.00     -50.00       0.00     -50.00     400.00             Credit
+  Rent                         1,500.00  -1,500.00       0.00       0.00       0.00       0.00       0.00             None
+
+== 2026-09 ==
+Ready to Assign 1,100.00 = inflow 3,000.00 - assigned 1,900.00 - assigned in future 0.00 + earlier cash overspending 0.00
+Totals: assigned 0.00, activity 0.00, available 300.00; inflow this month 0.00; cash overspent this month 0.00; uncategorized 0.00
+Category                       Assigned   Activity      Carry  Available   CashOver CreditOver    Covered   Payments  State
+[Credit Card Payments]             0.00       0.00                300.00
+  Pay_Visa                         0.00       0.00     300.00     300.00       0.00       0.00       0.00       0.00  None
+[Everyday]                         0.00       0.00                  0.00
+  Groceries                        0.00       0.00       0.00       0.00       0.00       0.00       0.00             None
+  Rent                             0.00       0.00       0.00       0.00       0.00       0.00       0.00             None
+
+-- Explain Ready to Assign 2026-08 = 1,100.00 --
+  + Inflow                     3,000.00
+  + AssignedThroughMonth      -1,900.00
+  + AssignedInFuture               0.00
+
+-- Explain Ready to Assign 2026-09 = 1,100.00 --
+  + Inflow                     3,000.00
+  + AssignedThroughMonth      -1,900.00
+  + AssignedInFuture               0.00
+
+-- Explain Groceries 2026-08 = -50.00 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                     400.00
+  + ActivityOnAccount           -450.00  account Visa
+    CardSpend                    450.00  account Visa
+    CoveredOnCard                400.00  account Visa
+    CreditOverspent              -50.00
+
+-- Explain Pay_Visa 2026-08 = 300.00 --
+    PreviousAvailable              0.00  2026-07
+  + Carry                          0.00
+  + Assigned                       0.00
+  + CoveredFromCategory          400.00  account Visa, category Groceries
+  + Payment                     -100.00  account Checking
+
+-- Explain Pay_Visa 2026-09 = 300.00 --
+    PreviousAvailable            300.00  2026-08
+  + Carry                        300.00
+  + Assigned                       0.00
+
