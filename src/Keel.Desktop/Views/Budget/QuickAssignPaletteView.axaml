@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:b="using:Keel.Desktop.ViewModels.Budget"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Budget.QuickAssignPaletteView"
+             x:DataType="b:QuickAssignPaletteViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+    <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" Width="380">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Quick_Prompt}" TextWrapping="Wrap" />
+    <ListBox x:Name="OptionList" ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="b:QuickAssignChoice">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding Label}" />
+            <TextBlock Grid.Column="1" FontFeatures="+tnum" Margin="12,0,0,0" Text="{Binding ValueText}" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Quick_Apply}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

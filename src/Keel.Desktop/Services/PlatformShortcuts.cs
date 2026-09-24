@@ -18,6 +18,7 @@ public sealed class PlatformShortcuts
         Undo = undo ?? new KeyGesture(Key.Z, commandModifiers);
         Redo = redo ?? new KeyGesture(Key.Z, commandModifiers | KeyModifiers.Shift);
         ToggleSidebar = new KeyGesture(Key.B, commandModifiers);
+        FundTargets = new KeyGesture(Key.F, commandModifiers | KeyModifiers.Shift);
     }
 
     /// <summary>The platform command modifier (Meta on macOS, Control elsewhere).</summary>
@@ -37,6 +38,27 @@ public sealed class PlatformShortcuts
 
     /// <summary>Collapse or expand the sidebar.</summary>
     public KeyGesture ToggleSidebar { get; }
+
+    /// <summary>Budget: previous month (Alt+←, ⌥← on macOS).</summary>
+    public KeyGesture PreviousMonth { get; } = new(Key.Left, KeyModifiers.Alt);
+
+    /// <summary>Budget: next month (Alt+→).</summary>
+    public KeyGesture NextMonth { get; } = new(Key.Right, KeyModifiers.Alt);
+
+    /// <summary>Budget: fund underfunded targets (Ctrl/Cmd+Shift+F).</summary>
+    public KeyGesture FundTargets { get; }
+
+    /// <summary>Budget: move money dialog.</summary>
+    public KeyGesture MoveMoney { get; } = new(Key.M);
+
+    /// <summary>Budget: set the selected category's target.</summary>
+    public KeyGesture SetTarget { get; } = new(Key.T);
+
+    /// <summary>Budget: show or hide the inspector panel.</summary>
+    public KeyGesture ToggleInspector { get; } = new(Key.I);
+
+    /// <summary>Budget: quick-assign palette of the selected category.</summary>
+    public KeyGesture QuickAssign { get; } = new(Key.Q);
 
     /// <summary>Shortcuts for the running platform.</summary>
     public static PlatformShortcuts FromCurrentPlatform()
@@ -110,6 +132,10 @@ public sealed class PlatformShortcuts
         Key.OemPeriod => ".",
         Key.Enter => "Enter",
         Key.Escape => "Esc",
+        Key.Left => "←",
+        Key.Right => "→",
+        Key.Up => "↑",
+        Key.Down => "↓",
         _ => key.ToString(),
     };
 }

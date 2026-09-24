@@ -28,5 +28,6 @@
     <StyleInclude Source="avares://Keel.Desktop/Styles/Shell.axaml" />
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
     <StyleInclude Source="avares://Keel.Desktop/Styles/Register.axaml" />
+    <StyleInclude Source="avares://Keel.Desktop/Styles/Budget.axaml" />
   </Application.Styles>
 </Application>

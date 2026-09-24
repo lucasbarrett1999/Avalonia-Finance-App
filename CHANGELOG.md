@@ -3,6 +3,82 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M2 — Budget screen
+
+UI half of Milestone 2: the Budget screen (PRD 9.3, F-BUD-1..5, F-BUD-7 category notes, F-BUD-8
+starter templates) on top of the M2 engine and the M1 ledger.
+
+### Added
+
+- **Budget screen** (`Views/BudgetView`, `ViewModels/Budget/`): month header with previous/next
+  (`Alt+←/→`), a jump-to-month picker and Today; the Ready to Assign pill (green ≥ 0, red < 0 with
+  the banner "You've assigned more than you have."), month totals and "assigned in later months";
+  Fund targets (`Ctrl/Cmd+Shift+F`), Move money, Undo, Manage categories and the inspector toggle.
+- **Grid**: collapsible group rows with totals and category rows with Name (target badge: "Needs
+  $X" / "Funded"), Assigned (inline `MoneyTextBox`; Enter saves and moves down, Tab/Shift+Tab save
+  and edit the next/previous row, Esc cancels, typing a digit starts editing), Activity (opens All
+  Accounts filtered to the category and month; card payments open the card's register) and the
+  Available pill (green, gray, yellow credit-overspent with a card icon, red cash-overspent with a
+  warning icon). Arrow keys move a cell cursor. Credit Card Payment rows show the card balance and
+  what is not yet covered (6.4.5). Custom hierarchical grid instead of TreeDataGrid (ADR 0040).
+- **Data flow**: one `LoadLedgerAsync` for 12 months back and 3 ahead, all months computed once and
+  switched in memory; `BudgetChanged` recomputes from assignments only, `LedgerChanged` reloads
+  (lazily when the page is hidden); rows update in place (ADR 0041).
+- **Move money** (F-BUD-3): `M` dialog (from/to including Ready to Assign, amount; overspent rows
+  preset to cover the overspending) and dragging an Available pill onto another row or onto Ready
+  to Assign. Undoable.
+- **Inspector** (`I`): "How is Available computed?" (carry, assigned, activity per account, card
+  spend and covered per card, overspending) or "How is Ready to Assign computed?" when no category
+  is selected; target editor for the four F-BUD-4 types with needed-this-month, underfunded and
+  monthly need; quick-assign buttons (F-BUD-5, also a row context menu and the `Q` palette); category
+  note (F-BUD-7); six-month Available sparkline (`Controls/BudgetSparkline`). `T` opens the target editor.
+- **Manage categories** dialog (F-BUD-1): add, rename, reorder, hide/show and delete groups and
+  categories; deleting something with history asks for a replacement; system groups read-only.
+  Empty state offers it plus four starter templates (F-BUD-8: Simple, Detailed, Student, Family).
+- **Undo for budget actions**: assign, move money, fund targets and target changes join the session
+  undo stack; undo publishes `BudgetChanged` (ADR 0041). Category management actions are undoable
+  ledger actions (ADR 0042).
+- **Services** (append-only): `IBudgetService.LoadLedgerAsync` and `GetRangeAsync`/`ExplainAsync`/
+  `GetQuickAssignAsync` overloads over `BudgetLedgerData`; `ICategoryService` management, usage,
+  notes and templates; new `LedgerAction` and `LedgerError` values. `RegisterNavigation` gained an
+  optional category filter. Budget shortcuts are in `PlatformShortcuts` and Settings > Keyboard shortcuts.
+- **Tests**: `BudgetTests` (headless): 6.4.7 numbers and pill colours through the real services
+  (Groceries −50 yellow, Pay_Visa 300 with $50 not yet covered, RTA 1,100); assign in a cell and see
+  Ready to Assign change; Enter/Tab/Shift+Tab/Esc and arrow navigation; move money with the dialog
+  and undo; drop a pill on a row; target → underfunded badge → fund targets; month switching with the
+  keyboard and the picker, negative RTA banner; Activity opens the filtered register; in-place refresh
+  after a ledger change; empty state and templates; manage categories; delete with replacement; quick
+  assign from the context menu and the palette; month switch over the 100k fixture.
+  `BudgetUndoAndLedgerDataTests` and `CategoryManagementTests` (infrastructure). `RenderingTests`
+  renders the budget grid, the Ready to Assign breakdown, the move-money and manage-categories
+  dialogs and the month picker in light and dark.
+
+### Decisions and deviations
+
+- [ADR 0040](docs/decisions/0040-budget-grid-without-treedatagrid.md): TreeDataGrid 11.2+ needs a
+  commercial licence (build error AVLIC0001), so the grid is a purpose-built flattened row list.
+- [ADR 0041](docs/decisions/0041-budget-undo-and-loaded-ledger-data.md): budget undo entries and
+  recomputing over loaded ledger data.
+- [ADR 0042](docs/decisions/0042-category-management-rules.md): protected system rows, what
+  "history" is, and what moves to the replacement category.
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release --no-incremental` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 689 passed, 0 failed, 0 skipped: Domain 350, Infrastructure 295, Desktop 44 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Desktop.Tests -c Release --filter Month_switch --logger "console;verbosity=detailed"` | 100k-transaction fixture: first budget load about 0.9 s; month switch (view model + layout) median about 30–50 ms, max under 105 ms; headless software rendering of the frame afterwards about 50–80 ms |
+| `KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter RenderingTests` | BudgetGrid, BudgetReadyToAssign, BudgetMoveMoney, BudgetManageCategories, BudgetMonthPicker and the empty Budget screen reviewed in light and dark |
+
+### Not done here
+
+- Month notes (the per-month half of F-BUD-7; category notes are done), the three-month view and
+  Flex mode (P1).
+- Rules' JSON is not rewritten when a category is deleted (M4, ADR 0042).
+- Windows and macOS runs happen in CI only.
+
 ## M2 — Budget engine
 
 Domain half of Milestone 2 (the Budget screen is a later task).

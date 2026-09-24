@@ -51,6 +51,9 @@ dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
 # Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
 KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
+# M2 budget screen: headless grid flows (assign, Tab/Enter, move money, drag, targets, fund, months,
+# 6.4.7 numbers) and the month-switch timing over the 100k fixture
+dotnet test tests/Keel.Desktop.Tests --filter BudgetTests --logger "console;verbosity=detailed"
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -89,6 +92,8 @@ src/
                         Fixtures/LedgerFixtureGenerator (deterministic 100k-transaction ledger).
                         Budgeting/: BudgetAggregationQuery (raw-SQL GROUP BY category, month, account; ADR 0008),
                         BudgetService (IBudgetService: grid, explain, assign, move, targets, fund, quick assign).
+                        M2 screen: BudgetService.LoadLedgerAsync + overloads over BudgetLedgerData and budget undo
+                        entries (ADR 0041); CategoryService group/category management, notes, templates (ADR 0042).
                         Import/ (pure parsers): TextDecoder, AmountText, DateText, Csv/ (CsvHelper rows,
                         DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
                         OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
@@ -103,6 +108,10 @@ src/
                         virtual collection view, rows, TransactionEditorViewModel, ReconcileViewModel),
                         ViewModels/Dialogs/ + Views/Dialogs/ (in-window dialogs), SidebarAccountViewModel,
                         Controls/MoneyTextBox, Services/ (DialogService, StatusService, LedgerText), Styles/Register.
+                        M2 budget screen: ViewModels/Budget/ (BudgetViewModel: range load + in-memory month switch,
+                        row view models and cell cursor, BudgetInspectorViewModel, MoveMoney/QuickAssign/ManageCategories
+                        dialogs, BudgetTemplate, BudgetText), Views/BudgetView (custom hierarchical grid, ADR 0040),
+                        Views/Budget/ (inspector and dialogs), Controls/BudgetSparkline, Styles/Budget.
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
@@ -114,6 +123,8 @@ tests/
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
+                              M2: BudgetTests (BudgetTestLedger = PRD 6.4.7 through the real services), budget
+                              rendering with fixture data, dialogs and month picker in both themes.
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
                               M1: RegisterBenchmarks over the 100k fixture.
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
@@ -209,6 +220,16 @@ From PRD 15, plus decisions made while building M0.
 - Dialogs are in-window (`DialogService.ShowAsync(DialogViewModel)` rendered by the shell's dialog
   layer through the view locator); the status strip (`StatusService`) carries the undo toast.
 - Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
+- A form that saves on Enter from a `MoneyTextBox` handles `KeyDown` on the box (bubble) instead of a
+  `KeyBinding`: key bindings run before the box evaluates its text, so they would save the old value.
+- Budget screen keys (PRD 9.3, listed in Settings > Keyboard shortcuts from `PlatformShortcuts`):
+  arrows move the cell cursor; Enter/F2 edits Assigned (or opens Activity, moves money from
+  Available, toggles a group); typing a digit starts editing; in the editor Enter saves and moves down,
+  Tab/Shift+Tab save and edit the next/previous Assigned, Esc cancels; `M` move money, `T` target,
+  `I` inspector, `Q` quick-assign palette, `Alt+←/→` months, `Ctrl/Cmd+Shift+F` fund targets.
+- The budget view model keeps `BudgetLedgerData` (ADR 0041): recompute on `BudgetChanged`, reload on
+  `LedgerChanged` (lazily while hidden), all through one pump on the UI thread; budget writes go
+  through `BudgetViewModel.QueueWrite` so the undo order is the user's order.
 
 **Import**
 - Parsers are pure (bytes + `ImportOptions` in, `ParseResult` out) and never throw on bad rows:
