@@ -55,7 +55,15 @@ internal static class Program
     /// <param name="args">Command-line arguments.</param>
     /// <param name="dataDirectory">Data directory (tests pass a temporary one).</param>
     /// <param name="logger">Serilog logger; null disables logging (tests).</param>
-    public static IHost CreateHost(string[] args, IDataDirectory dataDirectory, Serilog.ILogger? logger)
+    public static IHost CreateHost(string[] args, IDataDirectory dataDirectory, Serilog.ILogger? logger) =>
+        CreateHost(args, dataDirectory, logger, configure: null);
+
+    /// <summary>Builds the generic host; <paramref name="configure"/> runs last (tests swap the secret store and bank providers).</summary>
+    /// <param name="args">Command-line arguments.</param>
+    /// <param name="dataDirectory">Data directory (tests pass a temporary one).</param>
+    /// <param name="logger">Serilog logger; null disables logging (tests).</param>
+    /// <param name="configure">Extra service registrations applied after the app's own.</param>
+    public static IHost CreateHost(string[] args, IDataDirectory dataDirectory, Serilog.ILogger? logger, Action<IServiceCollection>? configure)
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
         {
@@ -73,6 +81,7 @@ internal static class Program
 
         builder.Services.AddKeelInfrastructure(dataDirectory);
         builder.Services.AddKeelDesktop();
+        configure?.Invoke(builder.Services);
         return builder.Build();
     }
 }

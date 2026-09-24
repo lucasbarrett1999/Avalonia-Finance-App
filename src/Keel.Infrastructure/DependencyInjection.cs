@@ -21,6 +21,7 @@ using Keel.Infrastructure.Persistence;
 using Keel.Infrastructure.Reports;
 using Keel.Infrastructure.Rules;
 using Keel.Infrastructure.Settings;
+using Keel.Infrastructure.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -74,6 +75,7 @@ public static class DependencyInjection
         services.AddSingleton<Keel.Application.Scheduling.IScheduledTransactionService, Keel.Infrastructure.Scheduling.ScheduledTransactionService>();
         services.AddSingleton<Keel.Infrastructure.Forecast.ForecastService>();
         services.AddSingleton<Keel.Application.Forecast.IForecastService>(sp => sp.GetRequiredService<Keel.Infrastructure.Forecast.ForecastService>());
+        services.AddKeelSync();
         return services;
     }
 }

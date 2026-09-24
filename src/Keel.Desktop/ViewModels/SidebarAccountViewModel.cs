@@ -2,7 +2,9 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Keel.Application.Accounts;
+using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
+using Keel.Desktop.ViewModels.Sync;
 using Keel.Domain;
 
 namespace Keel.Desktop.ViewModels;
@@ -46,6 +48,7 @@ public sealed partial class SidebarAccountViewModel : ObservableObject
     /// <summary>The account.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Id), nameof(Name), nameof(BalanceText), nameof(IsNegative), nameof(IconKey), nameof(AutomationName), nameof(IsClosed))]
+    [NotifyPropertyChangedFor(nameof(IsLinked), nameof(Health), nameof(HealthToolTip))]
     public partial AccountDto Account { get; set; }
 
     /// <summary>Account id.</summary>
@@ -71,8 +74,21 @@ public sealed partial class SidebarAccountViewModel : ObservableObject
         _ => "Icon.Wallet",
     };
 
-    /// <summary>Screen-reader text: name and balance.</summary>
-    public string AutomationName => Name + ", " + BalanceText;
+    /// <summary>Screen-reader text: name, balance and, when linked, the connection health.</summary>
+    public string AutomationName => Name + ", " + BalanceText + (IsLinked ? ", " + HealthToolTip : string.Empty);
+
+    /// <summary>Whether the account is linked to a bank connection (shows the health dot).</summary>
+    public bool IsLinked => Account.SyncStatus is not null;
+
+    /// <summary>Health dot colour (PRD 9.1: green ok, amber needs attention, red error).</summary>
+    public HealthKind Health => SyncText.Health(Account.SyncStatus);
+
+    /// <summary>Tooltip of the health dot.</summary>
+    public string HealthToolTip => Account.SyncStatus is { } status ? LedgerText.Format(Strings.Nav_HealthTip, SyncText.Status(status)) : string.Empty;
+
+    /// <summary>Whether a sync is running for this (linked) account: the dot becomes a spinner.</summary>
+    [ObservableProperty]
+    public partial bool IsSyncing { get; set; }
 
     /// <summary>Whether this account's register is shown.</summary>
     [ObservableProperty]

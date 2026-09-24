@@ -20,4 +20,16 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Keel.Infrastructure.Tests" />
   </ItemGroup>
+  <PropertyGroup Label="Bank sync (M7)">
+    <!-- LibraryImport marshalling for the macOS Keychain (Platform/MacOS). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup Label="Bank sync (M7)">
+    <PackageReference Include="Going.Plaid" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+    <PackageReference Include="Tmds.DBus.Protocol" />
+    <PackageReference Include="Konscious.Security.Cryptography.Argon2" />
+  </ItemGroup>
 </Project>

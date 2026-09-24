@@ -65,6 +65,8 @@
           </StackPanel>
         </Border>
 
+        <!-- Connections (F-SET-3) -->
+        <ContentControl x:Name="ConnectionsSection" Content="{Binding Connections}" />
         <!-- Payees (F-TXN-9) -->
         <Border Classes="card" x:Name="PayeesSection">
           <StackPanel Spacing="12">

@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sync="using:Keel.Desktop.ViewModels.Sync"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Sync.UnlinkConnectionView"
+             x:DataType="sync:UnlinkConnectionViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="440">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Unlink_KeepsTransactions}" TextWrapping="Wrap" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="ConfirmUnlinkButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Unlink_Confirm}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

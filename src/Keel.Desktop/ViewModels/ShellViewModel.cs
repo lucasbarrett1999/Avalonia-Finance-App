@@ -14,6 +14,7 @@ using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
 using Keel.Desktop.ViewModels.Import;
+using Keel.Desktop.ViewModels.Sync;
 using Keel.Domain;
 
 namespace Keel.Desktop.ViewModels;
@@ -47,9 +48,14 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         IMessenger messenger,
         ImportWorkflow import,
         IRegisterQuery register,
+        SyncCoordinator sync,
         Alerts.NotificationCenterViewModel? notifications = null,
         RecurringJobs? jobs = null)
     {
+        ArgumentNullException.ThrowIfNull(sync);
+        Sync = sync;
+        Sync.PropertyChanged += OnSyncChanged;
+        Sync.ConnectionsRefreshed += (_, _) => AccountsLoading = RefreshAccountsAsync();
         ArgumentNullException.ThrowIfNull(navigation);
         _import = import;
         ArgumentNullException.ThrowIfNull(session);
@@ -93,6 +99,7 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         Notifications = notifications;
         Jobs = jobs;
         jobs?.Start();
+        SyncStarting = session.BudgetFile is null ? Task.CompletedTask : Sync.StartAsync();
     }
 
     /// <summary>The notification center behind the top-bar bell (M5).</summary>
@@ -100,6 +107,12 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
 
     /// <summary>Scheduled entry and recurring detection jobs (M5; tests await <see cref="RecurringJobs.Running"/>).</summary>
     public RecurringJobs? Jobs { get; }
+
+    /// <summary>Bank sync: "Sync all", schedule, and the connection flows (M7).</summary>
+    public SyncCoordinator Sync { get; }
+
+    /// <summary>The start-up sync (connections load, sync on start); tests await it.</summary>
+    public Task SyncStarting { get; }
 
     /// <summary>In-window dialogs.</summary>
     public DialogService Dialogs { get; }
@@ -306,8 +319,8 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
     /// <summary>Label of the sync button.</summary>
     public string SyncAllLabel => Strings.Shell_SyncAll;
 
-    /// <summary>Sync button tooltip.</summary>
-    public string SyncToolTip => Strings.Shell_SyncUnavailable;
+    /// <summary>Sync button tooltip: the last sync time, or why sync is unavailable.</summary>
+    public string SyncToolTip => Sync.SyncAllToolTip;
 
     /// <summary>Alerts button tooltip.</summary>
     public string AlertsToolTip => Strings.Shell_Alerts;
@@ -402,13 +415,28 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
 
     private bool IsCurrentAccount(Guid id) => CurrentPage is AccountsViewModel { AccountId: { } current } && current == id;
 
-    // Sync needs a bank connection (M7); with none configured the command is disabled.
+    // Sync needs a bank connection; with none configured the command is disabled.
     [RelayCommand(CanExecute = nameof(CanSyncAll))]
-    private void SyncAll()
-    {
-    }
+    private Task SyncAllAsync() => Sync.SyncAllAsync();
 
-    private static bool CanSyncAll() => false;
+    private bool CanSyncAll() => Sync.CanSyncAll;
+
+    private void OnSyncChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SyncCoordinator.HasConnections) or nameof(SyncCoordinator.IsSyncing) or nameof(SyncCoordinator.LastSyncText))
+        {
+            SyncAllCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(SyncToolTip));
+        }
+
+        if (e.PropertyName == nameof(SyncCoordinator.IsSyncing))
+        {
+            foreach (var account in AccountGroups.SelectMany(g => g.Accounts))
+            {
+                account.IsSyncing = Sync.IsSyncing && account.IsLinked;
+            }
+        }
+    }
 
     private NavigationItemViewModel Item<TViewModel>(string title, string iconKey)
         where TViewModel : class => new(title, iconKey, typeof(TViewModel), () => _navigation.NavigateTo<TViewModel>());

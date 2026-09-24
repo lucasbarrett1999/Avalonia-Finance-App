@@ -3,6 +3,88 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M7 — Bank sync
+
+Milestone 7 (PRD 12): OS secret stores (PRD 6.7), the Plaid provider with Hosted Link and
+`/transactions/sync` (F-TXN-3, PRD 7.5), the sync service over the unified import pipeline,
+Settings → Connections (F-SET-3), health states in the shell and register, and SimpleFIN Bridge (P1).
+
+### Added
+
+- **Secret stores** (`Keel.Infrastructure/Platform/`): Windows DPAPI blobs in `secrets/`, macOS
+  Keychain through Security.framework (`SecItemAdd/CopyMatching/Update/Delete`, service
+  `com.keel.app`), Linux Secret Service over D-Bus (`Tmds.DBus.Protocol`) with an AES-256-GCM file
+  fallback keyed by Argon2id over the machine id and user name. `SecretStoreSelector` picks one at
+  first use and reports the weaker fallback to Settings (ADR 0070).
+- **Plaid provider** (`Sync/Plaid/`, Going.Plaid 6.67.0 behind `IPlaidApi`, `IHttpClientFactory` +
+  standard resilience handler): bring-your-own keys and environment from the secret store; Hosted Link
+  opened in the system browser with `/link/token/get` polling every 2 s for up to 10 min; token
+  exchange into the secret store under the connection's `SecretRef`; update-mode links for
+  `ITEM_LOGIN_REQUIRED`; accounts, cached balances, `/transactions/sync` pages, health, `/item/remove`.
+- **Sync service** (`ISyncService`, `Sync/SyncService`): link with an account mapping (create, link
+  existing with a suggestion, skip); sync one, one account's, or all connections, each page imported
+  through `IImportService` (source Provider) with the cursor stored after the page commits; removed
+  ids soft-deleted; balances as reported balances and Provider snapshots; new linked accounts start at
+  the bank's balance once history is in; reconnect; unlink keeping local transactions; sync settings
+  in the `Setting` table (ADR 0071).
+- **SimpleFIN Bridge** (P1, `Sync/SimpleFin/`): setup token → access URL claim, `/accounts?start-date=`
+  polling with an overlap window, balances and health; credentials only in a Basic header (ADR 0072).
+- **Desktop**: Settings → Connections (connection list with health dot, accounts, last sync, Reconnect,
+  Sync now, Unlink; masked key and token entry with Replace; environment; the BYO-keys warning; the
+  secret store in use with the Linux fallback warning; schedule; "No connections yet" empty state);
+  the add-connection dialog (provider, browser, cancellable waiting state with the link shown, account
+  mapping); top-bar Sync all with the last-sync time; scheduled sync on open and every N hours; sidebar
+  health dots (green, amber, red, with tooltips and screen-reader text) and a syncing spinner; the
+  register's Sync button and a reconnect banner on linked accounts; progress and results in the status
+  strip (`ViewModels/Sync/`, `Views/Sync/`, `Styles/Sync.axaml`).
+- **Docs**: `docs/user-guide/bank-sync.md` (Plaid keys, sandbox `user_good` / `pass_good`, the
+  security caveat, SimpleFIN setup, where secrets live). The obsolete MyApp-era
+  `docs/PlaidConfiguration.md` and `docs/PlaidTokenManagement.md` are removed (PRD 7.6).
+- **Tests**: `FakePlaidServer` (Plaid over HTTP, real Going.Plaid and resilience on top) for every
+  F-TXN-3 criterion: link, list, initial sync, incremental sync without duplicates (also after a lost
+  cursor), pagination with the cursor stored per committed page, mutation-during-pagination restart,
+  `ITEM_LOGIN_REQUIRED` as a reconnect state repaired by update mode, unlink keeping rows, pending to
+  posted in place (category kept), modified and removed rows, balances as snapshots, retries, no
+  secret or payee in any log line, no token in the database file; secret store round trips (Linux
+  fallback for real, real Secret Service behind `KEEL_TEST_SECRET_SERVICE`, DPAPI on Windows,
+  Keychain behind `KEEL_TEST_KEYCHAIN`, platform-neutral framing and query tests everywhere); the
+  gated Plaid sandbox test (`KEEL_PLAID_CLIENT_ID`, `KEEL_PLAID_SECRET`); headless UI flows
+  (`SyncConnectionsTests`) and light/dark renders (`SyncRenderingTests`).
+
+### Decisions and deviations
+
+- [ADR 0070](docs/decisions/0070-os-secret-stores.md): selector, key names, blob formats, DPAPI files
+  in the data directory (PRD 7.4) instead of `%LOCALAPPDATA%` (PRD 6.7), `Tmds.DBus.Protocol` pinned to
+  0.21.3 (Avalonia's version; 0.90+ would break Avalonia on Linux), Konscious Argon2id.
+- [ADR 0071](docs/decisions/0071-bank-sync-service.md): connection ids, page and cursor order,
+  removals, balances, starting balance for new accounts, connection state not audited, unlink.
+- [ADR 0072](docs/decisions/0072-plaid-and-simplefin-providers.md): Plaid request shapes, update-mode
+  completion, payee field, cached balances, error mapping; SimpleFIN cursor-as-time and overlap.
+- Appended to the M0 contracts: `LinkSession.OpensBrowser`, `LinkResult.ExternalItemId`,
+  `SyncResult.IsHistoryComplete`. `Program.CreateHost` gained an overload with a `configure` callback
+  (tests swap the secret store and providers).
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release --no-incremental` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,513 passed, 0 failed, 4 skipped: Domain 1,032; Infrastructure 407 (+4 skipped: DPAPI, Keychain, Secret Service, Plaid sandbox); Desktop 74 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet list Keel.sln package --vulnerable --include-transitive` | No vulnerable packages |
+| `dbus-run-session` + GNOME Keyring 46.1, `KEEL_TEST_SECRET_SERVICE=1 dotnet test ... --filter SecretStoreTests` | 13 passed, 2 skipped (DPAPI, Keychain): the real Secret Service round trip and the selector choosing it |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter SyncRenderingTests` | 12 PNGs (Connections empty and with a broken connection, register reconnect banner, add-connection choose and waiting, account mapping; light and dark) reviewed by eye |
+
+### Not done here
+
+- **M7 exit is not claimed.** The Plaid sandbox test ran skipped: no sandbox keys are available in
+  this environment (the sandbox host is reachable). Windows DPAPI and the macOS Keychain compile and
+  their platform-neutral parts are tested, but they run only on those OSes (Windows DPAPI in CI; the
+  Keychain test needs `KEEL_TEST_KEYCHAIN=1`), and CI runners are currently unavailable.
+- Hosted Link was not opened in a real browser here (the windowed app is not launched in the sandbox).
+- The Home dashboard's Accounts card does not show health dots yet (Home cards belong to another
+  work stream); the register and sidebar do.
+
 ## M5 — Bills, alerts, scheduling and forecast UI
 
 Second half of Milestone 5: the services behind the M5 contracts and every M5 screen (F-ACC-6,
