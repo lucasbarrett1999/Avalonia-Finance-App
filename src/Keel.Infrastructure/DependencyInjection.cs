@@ -1,10 +1,13 @@
+using Keel.Application.Budget;
 using Keel.Application.Files;
 using Keel.Application.Settings;
+using Keel.Infrastructure.Budgeting;
 using Keel.Infrastructure.Files;
 using Keel.Infrastructure.Persistence;
 using Keel.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Keel.Infrastructure;
 
@@ -25,6 +28,8 @@ public static class DependencyInjection
         services.AddSingleton<KeelDbContextFactory>();
         services.AddSingleton<IDbContextFactory<KeelDbContext>>(sp => sp.GetRequiredService<KeelDbContextFactory>());
         services.AddSingleton<IBudgetFileService, BudgetFileService>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IBudgetService, BudgetService>();
         return services;
     }
 }
