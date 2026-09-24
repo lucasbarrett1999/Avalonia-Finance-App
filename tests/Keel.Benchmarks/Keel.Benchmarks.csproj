@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Keel.Domain\Keel.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Keel.Infrastructure\Keel.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- The deterministic budget input generator is shared with Keel.Domain.Tests. -->

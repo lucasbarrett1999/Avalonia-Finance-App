@@ -9,6 +9,9 @@ using Keel.Desktop.Controls;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels;
 using Keel.Desktop.Views;
+using Keel.Infrastructure.Fixtures;
+using Keel.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Keel.Desktop.Tests;
 
@@ -49,6 +52,84 @@ public sealed class RenderingTests : IDisposable
 
         // Every sidebar icon resolved to a geometry.
         window.GetVisualDescendants().OfType<Icon>().ShouldAllBe(i => i.Data != null);
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
+    public async Task Register_renders_fixture_data_in_light_and_dark()
+    {
+        var fixture = await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(
+            _host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(5_000, Seed: 42), CancellationToken.None));
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var register = _host.Get<AccountsViewModel>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            foreach (var (name, target) in new (string, Guid?)[] { ("Register", fixture.Accounts["Visa Rewards"]), ("AllAccounts", null), ("Tracking", fixture.Accounts["Brokerage"]) })
+            {
+                if (target is { } id)
+                {
+                    shell.OpenAccount(id);
+                }
+                else
+                {
+                    shell.AccountItems[0].NavigateCommand.Execute(null);
+                }
+
+                await register.SettleAsync();
+                if (name == "Register")
+                {
+                    // Show the inline editor and a split row as well.
+                    var split = register.Rows.LoadedRows.FirstOrDefault(r => r.IsSplit);
+                    if (split is not null)
+                    {
+                        split.IsExpanded = true;
+                    }
+
+                    await register.NewTransactionAsync();
+                    register.Editor!.Payee = "Trader Joe's";
+                    register.Editor.Outflow = 4_250;
+                    register.StartReconcile();
+                    await register.SettleAsync();
+                }
+
+                using var frame = window.CaptureRenderedFrame()!;
+                frame.PixelSize.Width.ShouldBeGreaterThan(0);
+                register.RowCount.ShouldBeGreaterThan(0);
+                if (!string.IsNullOrEmpty(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                    frame.Save(Path.Combine(outputDir, $"{name}-{theme}.png"));
+                }
+
+                register.CancelEdit();
+                register.Reconcile?.CancelCommand.Execute(null);
+            }
+
+            // The add-account dialog over the shell.
+            shell.AddAccountCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+            using (var dialogFrame = window.CaptureRenderedFrame()!)
+            {
+                if (!string.IsNullOrEmpty(outputDir))
+                {
+                    dialogFrame.Save(Path.Combine(outputDir, $"AddAccountDialog-{theme}.png"));
+                }
+            }
+
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            Dispatcher.UIThread.RunJobs();
+        }
 
         themes.SetTheme(AppTheme.System);
         window.Close();
