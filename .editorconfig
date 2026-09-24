@@ -46,6 +46,6 @@ dotnet_naming_style.underscore_camel.capitalization = camel_case
 dotnet_diagnostic.CA1707.severity = none
 
 # EF Core migrations are generated code
-[src/Keel.Infrastructure/Migrations/**.cs]
+[src/Keel.Infrastructure/Persistence/Migrations/**.cs]
 generated_code = true
 dotnet_diagnostic.CA1861.severity = none
