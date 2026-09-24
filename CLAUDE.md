@@ -51,6 +51,10 @@ dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests --logger
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*RegisterBenchmarks*' --job short
 # Regenerate import fixture expectations after a deliberate parser change; review the JSON diff
 KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter ImportFixtureTests
+# M6 reports, goals, dashboard: report query rules and 100k timings, headless flows, screenshots
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Reports|FullyQualifiedName~Goals" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter ReportsGoalsHomeTests
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -68,6 +72,8 @@ src/
                         order reference), PayeeNames, SearchQuery (F-TXN-7 syntax), MoneyExpression.
                         Budgeting/: BudgetCalculator (PRD 6.4, pure; input BudgetInput, output BudgetSnapshot
                         with per-cell explain), BudgetMonth, TargetCalculator (F-BUD-4), QuickAssign (F-BUD-5).
+                        Reports/ (M6): ReportPeriod (previous period, month-end points), BalanceSeries (ledger plus
+                        latest snapshot, ADR 0060), GoalProjection (pace and completion month).
                         Import/ (PRD 6.5): PayeeNormalizer + PayeeNoiseTable, ImportFingerprint,
                         JaroWinkler, DuplicateMatcher (DedupCandidate/DedupDecision), TransferDetector.
   Keel.Application/     Use-case interfaces and DTO records: IAccountService, IBudgetService,
@@ -79,6 +85,7 @@ src/
                         Budget/: IBudgetService and its DTOs, BudgetDtoMapper (calculator results to DTOs).
                         Import/: ParsedTransaction, IFileImportParser(+Resolver), ImportOptions, ParseResult,
                         ImportWarning, CsvColumnMapping, DetectedCsvLayout.
+                        Reports/IReportService (spending, income vs expense, net worth DTOs), Goals/IGoalService (M6).
   Keel.Infrastructure/  Persistence/ (KeelDbContext, entity configurations, SQLite pragma interceptor,
                         KeelDbContextFactory, design-time factory, Migrations/), Files/ (DataDirectory,
                         BudgetFileService), Settings/ (JsonAppSettingsStore), Logging/ (Serilog),
@@ -93,6 +100,8 @@ src/
                         DelimiterSniffer, CsvVocabulary, CsvLayoutDetector, CsvImportParser), Ofx/ (OfxReader,
                         OfxImportParser, also QFX), Qif/QifImportParser, FileImportParserResolver,
                         AddKeelFileImportParsers (not yet wired into AddKeelInfrastructure).
+                        Reports/ReportService (raw-SQL GROUP BY report queries, ADR 0060), Goals/GoalService (goals over
+                        the category and budget services) (M6).
   Keel.Desktop/         Avalonia app. Program.cs (composition root, generic host), App.axaml,
                         ViewLocator, Views/ (ShellWindow, ShellView, one View per screen),
                         ViewModels/ (ShellViewModel, NavigationItemViewModel, page view models),
@@ -103,6 +112,12 @@ src/
                         virtual collection view, rows, TransactionEditorViewModel, ReconcileViewModel),
                         ViewModels/Dialogs/ + Views/Dialogs/ (in-window dialogs), SidebarAccountViewModel,
                         Controls/MoneyTextBox, Services/ (DialogService, StatusService, LedgerText), Styles/Register.
+                        M6: ViewModels/Reports/ (ReportsViewModel page + Spending/IncomeExpense/NetWorth report view
+                        models, ReportFormat incl. CSV), Views/Reports/ (LiveCharts views), ViewModels/Goals/ (GoalsViewModel,
+                        GoalCardViewModel, NewGoalViewModel wizard) + Views/Goals/, ViewModels/Home/ (HomeViewModel dashboard,
+                        card records), Styles/Charts.axaml (palette, chart chrome, report icons), Controls/ (ChartPalette,
+                        ChartSwatch, ChartSparkline, GoalProgressRing, ReportChartKit, ReportIconConverter). The page view
+                        models live in those folders but keep the Keel.Desktop.ViewModels namespace (ViewLocator).
 tests/
   Keel.Domain.Tests/          xUnit + Shouldly: Money, classification, entities.
   Keel.Infrastructure.Tests/  Real SQLite files in temp dirs: migrations, round trips, pragmas,
@@ -114,6 +129,8 @@ tests/
                               theme, shortcuts, window state, rendering in light and dark.
                               M1: RegisterTests (keyboard add, inline edit, C, delete + undo, reconcile,
                               100k virtualization), MoneyTextBoxTests, fixture rendering.
+                              M6: ReportsGoalsHomeTests (drill-downs incl. a real donut click, CSV export, goal
+                              wizard, dashboard numbers and refresh), ReportRenderingTests (light and dark PNGs).
   Keel.Benchmarks/            BenchmarkDotNet (Money baseline; register/calculator/import to come).
                               M1: RegisterBenchmarks over the 100k fixture.
   Keel.Domain.Tests/Budgeting/  Verify golden tests (PRD 6.4.7, 6.4.8, edge cases; *.verified.txt), naive
@@ -218,3 +235,16 @@ From PRD 15, plus decisions made while building M0.
   `.gitattributes`) and its reviewed `.expected.json`.
 - `PayeeNoiseTable` feeds stored fingerprints: bump `PayeeNormalizer.Version` when it changes
   (ADR 0005). Every table entry has a test.
+
+**Reports, goals and dashboard (M6)**
+- Report numbers come only from `IReportService` (raw SQL `GROUP BY`, never row loads); the counting
+  rules (system rows, transfers and tracking toggles, uncategorized rows, previous period, net-worth
+  snapshot rule, goal pace) are in ADR 0060. With default toggles Spending equals the negated budget
+  Activity; keep the cross-check test green.
+- Charts use LiveCharts through `ReportChartKit` (animations off, built-in legend hidden) and colours
+  from `Styles/Charts.axaml` via `ChartPalette` slots: eight slots in fixed order, then "Other".
+  Every chart has a legend or table with names and values (colour is never the only signal) and every
+  chart element and table row drills down (usually to the register through `RegisterNavigation`).
+- Headless captures must wait for LiveCharts' throttled redraw (a few dispatcher cycles with short delays).
+- Upcoming bills and the forecast low point on Home are the only placeholders; wire them to the
+  recurring and forecast services when those land (M5).

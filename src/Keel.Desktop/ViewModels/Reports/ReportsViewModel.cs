@@ -412,7 +412,7 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
         {
             return;
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ex is InvalidOperationException or System.Data.Common.DbException)
         {
             ErrorMessage = LedgerText.Format(Strings.Reports_ErrorLoading, ex.Message);
         }

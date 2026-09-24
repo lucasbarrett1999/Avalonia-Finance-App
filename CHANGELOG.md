@@ -3,6 +3,65 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M6 — Reports, goals and dashboard (part 1)
+
+First part of Milestone 6: reports, goals and the Home dashboard. The forecast report (F-REP-4) and
+the dashboard's upcoming-bills and forecast cards need recurring detection and the forecast engine
+(M5) and follow in part 2.
+
+### Added
+
+- **Report queries** (`IReportService`, `Keel.Infrastructure/Reports/ReportService`): spending by group
+  and category with the previous period (F-REP-1), income versus expense per month with net (F-REP-2),
+  and month-end net worth with a per-account breakdown (F-REP-3) where tracking accounts use the latest
+  balance snapshot on or before each point plus later activity (F-ACC-7). Transfer, tracking-account and
+  account filters. Pure helpers in `Keel.Domain/Reports` (`ReportPeriod`, `BalanceSeries`, `GoalProjection`).
+- **Reports screen** (PRD 9.8): report list, shared toolbar (range presets and custom dates, accounts
+  filter, include transfers and tracking toggles, Export CSV of the report table), Spending donut that
+  drills from groups to categories to the All Accounts register filtered by category and range, Income vs
+  expense bars with a net line and table, Net worth line with optional stacked account areas. Every
+  slice, bar, point and table row drills to the underlying transactions.
+- **Chart styling**: `Styles/Charts.axaml` with one categorical palette (light and dark steps, validated
+  for colour-vision deficiency) and chart chrome; LiveCharts 2.0.5 (`LiveChartsCore.SkiaSharpView.Avalonia`).
+- **Goals** (F-GOAL-1, PRD 9.7): `IGoalService` over the category and budget services; cards with progress
+  ring, monthly need, projected completion at the three-month average pace and a live "what if I added
+  $X/month" slider; a two-step "New goal" wizard (name, amount, date, optional linked tracking account)
+  that creates the category in a "Goals" group and its savings-balance-by-date target.
+- **Home dashboard** (F-DASH-1, PRD 9.2): Ready to Assign (Assign opens Budget), review queue count
+  (Start review opens Review), accounts overview by group, top five overspent/underfunded categories,
+  12-month net worth sparkline, and designed "available after recurring detection" cards for upcoming
+  bills and the forecast. Two columns, one when narrow; refreshes on `LedgerChanged` and `BudgetChanged`.
+- `RegisterNavigation` takes an optional category filter (report drill-down).
+- **Tests**: report rules on hand-built ledgers (system rows, splits, deleted rows, refunds, both
+  toggles, account filter, previous period, snapshot rule), spending equals budget activity on the
+  fixture, 100k timings, goal service, domain math; headless flows for every report's drill-down
+  (including a real click on a donut slice), CSV export, the goal wizard and card, dashboard numbers
+  against the budget service and live refresh, responsive layout; light and dark renderings of Home,
+  each report and Goals (reviewed).
+
+### Decisions and deviations
+
+- [ADR 0060](docs/decisions/0060-report-rules-and-drill-down.md): what counts as spending and income,
+  the transfer toggle, previous period, net-worth points and the snapshot rule, goal pace, drill-down
+  targets (an expense bar opens the Spending report for its month; the Uncategorized bucket opens the
+  register for the range only), chart settings, CSV format; PNG export not done.
+
+### Verification (Linux sandbox, .NET SDK 10.0.401)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | Build succeeded, 0 warnings, 0 errors |
+| `dotnet test Keel.sln -c Release --no-build` | 699 passed, 0 failed, 0 skipped: Domain 362, Infrastructure 296, Desktop 41 |
+| `dotnet format Keel.sln --verify-no-changes` | Exit code 0 |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter Report_queries_over_100k` | Best of 3 at 100k: spending 12 months 75 ms, all history 195 ms; income vs expense 43 / 208 ms; net worth all history 78 ms |
+| `KEEL_SCREENSHOT_DIR=… dotnet test tests/Keel.Desktop.Tests --filter ReportRenderingTests` | 18 PNGs (Home, Home lower half, Spending, Spending drill, Income vs expense, Net worth, Net worth by account, Goals, New goal dialog; light and dark), reviewed |
+
+### Not done here
+
+- Forecast report (F-REP-4) and the dashboard's upcoming-bills and forecast cards (need M5 services).
+- PNG export of charts (PRD 9.8); sync health dots on the accounts card (M7).
+- Windows and macOS runs happen in CI only.
+
 ## M2 — Budget engine
 
 Domain half of Milestone 2 (the Budget screen is a later task).
