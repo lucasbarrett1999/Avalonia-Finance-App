@@ -72,6 +72,14 @@ dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.R
 dotnet test tests/Keel.Desktop.Tests --filter "ReviewTests|RulesUiTests"
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter ReviewRulesRenderingTests
 dotnet run -c Release --project tests/Keel.Benchmarks -- --filter '*ImportBenchmarks*' --job short
+# M7 bank sync: secret stores, Plaid/SimpleFIN providers against fake HTTP, sync service on real SQLite
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Sync"
+dotnet test tests/Keel.Desktop.Tests --filter "SyncConnectionsTests|SyncRenderingTests"
+# Real Plaid sandbox end to end (skipped without keys)
+KEEL_PLAID_CLIENT_ID=... KEEL_PLAID_SECRET=... dotnet test tests/Keel.Infrastructure.Tests --filter PlaidSandboxTests
+# Real Linux Secret Service: a private session bus with an unlocked GNOME Keyring
+dbus-run-session -- sh -c 'printf pw | gnome-keyring-daemon --daemonize --unlock --components=secrets >/dev/null; \
+  KEEL_TEST_SECRET_SERVICE=1 dotnet test tests/Keel.Infrastructure.Tests --filter SecretStoreTests'
 ```
 
 The app applies pending migrations itself when it opens a budget file; there is no
@@ -243,7 +251,22 @@ tests/
                               items (re-runs, dismissed, re-enable, undo), totals and targets, scheduled entry (auto,
                               prompt, transfers, undo, interval phase), post-import detection, alert idempotence, forecast
                               inputs, cache and settings.
-docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs)
+M7 bank sync:
+  Keel.Application/Sync/      IBankDataProvider (PRD 7.5), ISyncService + DTOs (PendingConnection, AccountLinkChoice,
+                              SyncRunResult, SyncSettings, SyncConnectionsChanged), IBankCredentialsService, SecretKeys,
+                              BankProviderException/BankErrorCodes. Security/: ISecretStore, ISecretStoreInfo.
+  Keel.Infrastructure/Platform/  SecretStoreSelector, SecretFiles, InMemorySecretStore; Windows/DpapiSecretStore,
+                              MacOS/KeychainSecretStore (+KeychainQuery), Linux/SecretServiceStore (D-Bus) and
+                              EncryptedFileSecretStore (Argon2id + AES-GCM fallback) (ADR 0070).
+  Keel.Infrastructure/Sync/   SyncService, BankCredentialsService, ConnectionSecret, AddKeelSync; Plaid/ (IPlaidApi,
+                              GoingPlaidApi, PlaidProvider, PlaidMapping); SimpleFin/SimpleFinProvider (ADR 0071, 0072).
+  Keel.Desktop/ViewModels/Sync/  SyncCoordinator (Sync all, schedule, add/reconnect/unlink flows, status strip),
+                              ConnectionsSettingsViewModel, AddConnectionViewModel, AccountMappingViewModel,
+                              UnlinkConnectionViewModel, AccountsViewModel.Sync (register Sync button, reconnect banner),
+                              IBrowserLauncher; Views/Sync/ + Styles/Sync.axaml (health dots, spinner).
+  Keel.Infrastructure.Tests/Sync/  FakePlaidServer (HTTP), SyncTestHost, sync/provider/secret-store tests, gated sandbox test.
+  Keel.Desktop.Tests/         FakeBankProvider, SyncConnectionsTests, SyncRenderingTests.
+docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs), user-guide/bank-sync.md
 .github/workflows/ci.yml  Build+test on windows/macos/ubuntu, format check, vulnerable-package scan.
 ```
 
@@ -414,3 +437,14 @@ From PRD 15, plus decisions made while building M0.
 - Review keys (ADR 0028): every decision approves and advances; `J/K` only move. Row templates bind to
   commands through an owner property on the row view model (`Owner`, `Editor`, `Choose`), not
   `$parent[...]`, which logs binding errors while a view is torn down.
+**Bank sync (M7)**
+- Secrets only through `ISecretStore` under `SecretKeys` names; never in the database, `settings.json`, logs or
+  test output. The UI learns only whether a value is set (`IBankCredentialsService`) and shows dots plus Replace.
+- Providers implement `IBankDataProvider` and throw `BankProviderException(status, code)`; the sync service turns
+  failures into connection health (`NeedsReauth`, `Error`), never dialogs. Log codes only, never tokens or payees.
+- Synced rows enter only through `IImportService` (source Provider, `SyncConnectionId` set); the cursor is saved
+  after the page's writes commit. Connection state (cursor, health, last sync) is saved directly, not audited.
+- Plaid HTTP goes through `IPlaidApi` and the `PlaidClient` named client (resilience); tests swap the primary
+  handler for `FakePlaidServer`. Desktop tests replace the providers with `FakeBankProvider` through
+  `TestHost.Create(configure)`, and every desktop test host uses `InMemorySecretStore`.
+- `Tmds.DBus.Protocol` stays on the version Avalonia.FreeDesktop uses (ADR 0070).

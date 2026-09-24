@@ -4,19 +4,21 @@ using Keel.Application.Settings;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Rules;
+using Keel.Desktop.ViewModels.Sync;
 
 namespace Keel.Desktop.ViewModels;
 
-/// <summary>Settings (PRD 9.9): appearance, data locations, the shortcut reference, rules and payees.</summary>
+/// <summary>Settings (PRD 9.9): appearance, data locations, bank connections, the shortcut reference, rules and payees.</summary>
 public sealed class SettingsViewModel : PageViewModel
 {
     private readonly ThemeService _themes;
 
     /// <summary>Creates the view model.</summary>
-    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts, RulesViewModel rules, PayeesViewModel payees)
+    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts, RulesViewModel rules, PayeesViewModel payees, ConnectionsSettingsViewModel connections)
     {
         Rules = rules;
         Payees = payees;
+        Connections = connections;
         ArgumentNullException.ThrowIfNull(dataDirectory);
         ArgumentNullException.ThrowIfNull(shortcuts);
         _themes = themes;
@@ -144,6 +146,9 @@ public sealed class SettingsViewModel : PageViewModel
 
     /// <summary>Settings → Payees (F-TXN-9).</summary>
     public PayeesViewModel Payees { get; }
+
+    /// <summary>The Connections section (F-SET-3).</summary>
+    public ConnectionsSettingsViewModel Connections { get; }
 }
 
 /// <summary>One row of the shortcut reference.</summary>

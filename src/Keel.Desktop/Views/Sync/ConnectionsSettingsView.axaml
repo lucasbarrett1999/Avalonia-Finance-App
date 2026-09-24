@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sync="using:Keel.Desktop.ViewModels.Sync"
+             xmlns:views="using:Keel.Desktop.Views.Sync"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Sync.ConnectionsSettingsView"
+             x:DataType="sync:ConnectionsSettingsViewModel">
+  <Border Classes="card" x:Name="ConnectionsCard">
+    <StackPanel Spacing="16">
+      <!-- Header -->
+      <DockPanel>
+        <Button DockPanel.Dock="Right" x:Name="AddConnectionButton" Classes="accent" Command="{Binding AddConnectionCommand}" VerticalAlignment="Top"
+                AutomationProperties.Name="{x:Static res:Strings.Connections_Add}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Plus}" Width="14" Height="14" />
+            <TextBlock Text="{x:Static res:Strings.Connections_Add}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+        <StackPanel Spacing="4" Margin="0,0,16,0">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <controls:Icon Data="{StaticResource Icon.Sync}" Width="18" Height="18" />
+            <TextBlock Text="{x:Static res:Strings.Settings_Connections}" FontWeight="SemiBold" FontSize="16" />
+          </StackPanel>
+          <TextBlock Classes="secondary" Text="{x:Static res:Strings.Connections_Intro}" TextWrapping="Wrap" />
+        </StackPanel>
+      </DockPanel>
+
+      <!-- Loading and error states -->
+      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoading}">
+        <ProgressBar IsIndeterminate="True" Width="120" VerticalAlignment="Center" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Connections_Loading}" />
+      </StackPanel>
+      <Border Classes="warning" IsVisible="{Binding HasError}">
+        <TextBlock x:Name="ConnectionsError" Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+      </Border>
+
+      <!-- Empty state -->
+      <Border x:Name="NoConnections" Classes="emptyConnections" IsVisible="{Binding !HasConnections}">
+        <StackPanel Spacing="6" HorizontalAlignment="Center">
+          <controls:Icon Data="{StaticResource Icon.Accounts}" Width="28" Height="28" HorizontalAlignment="Center"
+                         Foreground="{DynamicResource Keel.TextSecondary}" />
+          <TextBlock Text="{x:Static res:Strings.Connections_EmptyHeading}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Classes="secondary" Text="{x:Static res:Strings.Connections_EmptyMessage}" TextWrapping="Wrap"
+                     TextAlignment="Center" MaxWidth="460" />
+        </StackPanel>
+      </Border>
+
+      <!-- Connection list -->
+      <ItemsControl x:Name="ConnectionList" ItemsSource="{Binding Connections}" IsVisible="{Binding HasConnections}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="8" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="sync:ConnectionItemViewModel">
+            <Border Classes="connectionRow" AutomationProperties.Name="{Binding AutomationName}">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <Button Classes="accent" Command="{Binding ReconnectCommand}" IsVisible="{Binding NeedsReconnect}"
+                          Content="{x:Static res:Strings.Connections_Reconnect}"
+                          AutomationProperties.Name="{x:Static res:Strings.Connections_Reconnect}" />
+                  <Button Command="{Binding SyncNowCommand}" ToolTip.Tip="{x:Static res:Strings.Connections_SyncNow}"
+                          AutomationProperties.Name="{x:Static res:Strings.Connections_SyncNow}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Sync}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Connections_SyncNow}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding UnlinkCommand}" ToolTip.Tip="{x:Static res:Strings.Connections_Unlink}"
+                          AutomationProperties.Name="{x:Static res:Strings.Connections_Unlink}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Close}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Connections_Unlink}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+                <StackPanel Spacing="3" Margin="0,0,12,0">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Ellipse Classes="health"
+                             Classes.ok="{Binding Health, Converter={x:Static views:HealthKindConverter.Instance}, ConverterParameter=Ok}"
+                             Classes.attention="{Binding Health, Converter={x:Static views:HealthKindConverter.Instance}, ConverterParameter=Attention}"
+                             Classes.error="{Binding Health, Converter={x:Static views:HealthKindConverter.Instance}, ConverterParameter=Error}" />
+                    <TextBlock Text="{Binding InstitutionName}" FontWeight="SemiBold" />
+                    <TextBlock Classes="secondary" Text="{Binding StatusText}" />
+                  </StackPanel>
+                  <TextBlock Classes="secondary" TextWrapping="Wrap" Text="{Binding AccountsText}" />
+                  <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}">
+                    <Run Text="{Binding ProviderText}" />
+                    <Run Text=" · " />
+                    <Run Text="{Binding LastSyncText}" />
+                  </TextBlock>
+                  <TextBlock Classes="secondary" Classes.error="{Binding IsFailed}" TextWrapping="Wrap" Text="{Binding ErrorText}" IsVisible="{Binding HasErrorText}" />
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Separator />
+
+      <!-- Plaid keys (bring your own, PRD 14 D2) -->
+      <StackPanel Spacing="10">
+        <TextBlock Text="{x:Static res:Strings.Connections_PlaidKeys}" FontWeight="SemiBold" />
+        <Border Classes="warning">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <controls:Icon Data="{StaticResource Icon.Alert}" Width="16" Height="16" VerticalAlignment="Top"
+                           Foreground="{DynamicResource Keel.Warning}" />
+            <TextBlock x:Name="ByoKeysWarning" Text="{x:Static res:Strings.Connections_ByoWarning}" TextWrapping="Wrap" MaxWidth="600" />
+          </StackPanel>
+        </Border>
+        <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+          <TextBlock Grid.Row="0" Classes="secondary" VerticalAlignment="Center" Text="{x:Static res:Strings.Connections_ClientId}" />
+          <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding !ShowClientIdEditor}">
+            <TextBlock Classes="maskedValue" Text="••••••••••••" AutomationProperties.Name="{x:Static res:Strings.Connections_ValueSet}" />
+            <Button x:Name="ReplaceClientIdButton" Command="{Binding ReplaceClientIdCommand}" Content="{x:Static res:Strings.Connections_Replace}" />
+          </StackPanel>
+          <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowClientIdEditor}">
+            <TextBox x:Name="ClientIdBox" Width="300" PasswordChar="•" Text="{Binding ClientIdInput}"
+                     Watermark="{x:Static res:Strings.Connections_ClientIdWatermark}"
+                     AutomationProperties.Name="{x:Static res:Strings.Connections_ClientId}">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding SaveClientIdCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+            <Button x:Name="SaveClientIdButton" Command="{Binding SaveClientIdCommand}" Content="{x:Static res:Strings.Connections_Save}" />
+            <Button Command="{Binding CancelReplaceCommand}" IsVisible="{Binding IsReplacingClientId}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+          </StackPanel>
+
+          <TextBlock Grid.Row="1" Classes="secondary" VerticalAlignment="Center" Text="{x:Static res:Strings.Connections_Secret}" />
+          <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding !ShowSecretEditor}">
+            <TextBlock Classes="maskedValue" Text="••••••••••••" AutomationProperties.Name="{x:Static res:Strings.Connections_ValueSet}" />
+            <Button x:Name="ReplaceSecretButton" Command="{Binding ReplaceSecretCommand}" Content="{x:Static res:Strings.Connections_Replace}" />
+          </StackPanel>
+          <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowSecretEditor}">
+            <TextBox x:Name="SecretBox" Width="300" PasswordChar="•" Text="{Binding SecretInput}"
+                     Watermark="{x:Static res:Strings.Connections_SecretWatermark}"
+                     AutomationProperties.Name="{x:Static res:Strings.Connections_Secret}">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding SaveSecretCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+            <Button x:Name="SaveSecretButton" Command="{Binding SaveSecretCommand}" Content="{x:Static res:Strings.Connections_Save}" />
+            <Button Command="{Binding CancelReplaceCommand}" IsVisible="{Binding IsReplacingSecret}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+          </StackPanel>
+
+          <TextBlock Grid.Row="2" Classes="secondary" VerticalAlignment="Center" Text="{x:Static res:Strings.Connections_Environment}" />
+          <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12">
+            <ComboBox x:Name="EnvironmentBox" Width="160" ItemsSource="{Binding Environments}" SelectedItem="{Binding SelectedEnvironment}"
+                      AutomationProperties.Name="{x:Static res:Strings.Connections_Environment}" />
+            <Button Command="{Binding RemovePlaidKeysCommand}" IsVisible="{Binding PlaidKeysComplete}"
+                    Content="{x:Static res:Strings.Connections_RemoveKeys}" />
+          </StackPanel>
+        </Grid>
+        <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap"
+                   Text="{x:Static res:Strings.Connections_KeysHelp}" />
+      </StackPanel>
+
+      <!-- SimpleFIN setup token -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="{x:Static res:Strings.Connections_SimpleFin}" FontWeight="SemiBold" />
+        <TextBlock Classes="secondary" TextWrapping="Wrap" Text="{x:Static res:Strings.Connections_SimpleFinHelp}" />
+        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !ShowSetupTokenEditor}">
+          <TextBlock Classes="maskedValue" Text="••••••••••••" AutomationProperties.Name="{x:Static res:Strings.Connections_ValueSet}" />
+          <Button Command="{Binding ReplaceSetupTokenCommand}" Content="{x:Static res:Strings.Connections_Replace}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ShowSetupTokenEditor}">
+          <TextBox x:Name="SetupTokenBox" Width="440" PasswordChar="•" Text="{Binding SetupTokenInput}"
+                   Watermark="{x:Static res:Strings.Connections_SetupTokenWatermark}"
+                   AutomationProperties.Name="{x:Static res:Strings.Connections_SimpleFin}">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding SaveSetupTokenCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+          <Button Command="{Binding SaveSetupTokenCommand}" Content="{x:Static res:Strings.Connections_Save}" />
+          <Button Command="{Binding CancelReplaceCommand}" IsVisible="{Binding IsReplacingSetupToken}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Schedule -->
+      <StackPanel Spacing="8">
+        <TextBlock Text="{x:Static res:Strings.Connections_Schedule}" FontWeight="SemiBold" />
+        <StackPanel Orientation="Horizontal" Spacing="16">
+          <ComboBox x:Name="IntervalBox" Width="180" ItemsSource="{Binding Intervals}" SelectedItem="{Binding SelectedInterval}"
+                    AutomationProperties.Name="{x:Static res:Strings.Connections_Schedule}" />
+          <CheckBox IsChecked="{Binding SyncOnStart}" Content="{x:Static res:Strings.Connections_SyncOnStart}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Secret store -->
+      <StackPanel Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14" Foreground="{DynamicResource Keel.TextSecondary}" />
+          <TextBlock Classes="secondary" TextWrapping="Wrap">
+            <Run Text="{x:Static res:Strings.Connections_StoredIn}" />
+            <Run x:Name="StoreRun" Text="{Binding StoreText}" FontWeight="SemiBold" />
+          </TextBlock>
+        </StackPanel>
+        <Border x:Name="FallbackWarning" Classes="warning" IsVisible="{Binding IsWeakerFallback}">
+          <TextBlock Text="{x:Static res:Strings.Connections_FallbackWarning}" TextWrapping="Wrap" MaxWidth="620" />
+        </Border>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</UserControl>

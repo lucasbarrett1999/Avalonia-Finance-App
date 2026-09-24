@@ -46,10 +46,19 @@ public enum LinkMode
 /// <param name="LinkUrl">URL to open in the system browser.</param>
 /// <param name="ExpiresAt">When the session expires.</param>
 /// <param name="ExistingConnectionId">Connection being repaired, for update mode.</param>
-public sealed record LinkSession(string ProviderId, string SessionToken, Uri LinkUrl, DateTimeOffset ExpiresAt, string? ExistingConnectionId);
+public sealed record LinkSession(string ProviderId, string SessionToken, Uri LinkUrl, DateTimeOffset ExpiresAt, string? ExistingConnectionId)
+{
+    /// <summary>Whether the user finishes the link in the system browser (Plaid Hosted Link). SimpleFIN
+    /// links from a setup token the user pasted, so there is nothing to open.</summary>
+    public bool OpensBrowser { get; init; } = true;
+}
 
 /// <summary>Outcome of a link session.</summary>
-public sealed record LinkResult(bool Succeeded, string? ConnectionId, string? InstitutionName, string? Error);
+public sealed record LinkResult(bool Succeeded, string? ConnectionId, string? InstitutionName, string? Error)
+{
+    /// <summary>The provider's id for the linked item (Plaid <c>item_id</c>), stored as <c>SyncConnection.ExternalItemId</c>.</summary>
+    public string? ExternalItemId { get; init; }
+}
 
 /// <summary>An account at the provider.</summary>
 public sealed record ProviderAccount(string ProviderAccountId, string Name, string? Mask, AccountType SuggestedType, string Currency);
@@ -76,7 +85,12 @@ public sealed record SyncResult(
     IReadOnlyList<ProviderTransaction> Modified,
     IReadOnlyList<string> Removed,
     string NextCursor,
-    bool HasMore);
+    bool HasMore)
+{
+    /// <summary>Whether the provider has finished pulling the account history (Plaid
+    /// <c>HISTORICAL_UPDATE_COMPLETE</c>); new linked accounts get their starting balance only then.</summary>
+    public bool IsHistoryComplete { get; init; } = true;
+}
 
 /// <summary>A provider-reported balance in minor units.</summary>
 public sealed record ProviderBalance(string ProviderAccountId, long Current, long? Available, string Currency, DateTimeOffset AsOf);

@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sync="using:Keel.Desktop.ViewModels.Sync"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Sync.AccountMappingView"
+             x:DataType="sync:AccountMappingViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="780">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Mapping_Intro}" TextWrapping="Wrap" />
+
+    <Grid ColumnDefinitions="2*,110,3*" Margin="0,4,0,0">
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Mapping_BankAccount}" />
+      <TextBlock Grid.Column="1" Classes="fieldLabel" Text="{x:Static res:Strings.Mapping_Balance}" HorizontalAlignment="Right" Margin="0,0,16,0" />
+      <TextBlock Grid.Column="2" Classes="fieldLabel" Text="{x:Static res:Strings.Mapping_InKeel}" />
+    </Grid>
+    <ScrollViewer MaxHeight="420" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl x:Name="MappingRows" ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Spacing="10" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="sync:AccountMappingRowViewModel">
+            <Grid ColumnDefinitions="2*,110,3*">
+              <StackPanel VerticalAlignment="Top" Margin="0,4,8,0">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}">
+                  <Run Text="{Binding TypeText}" />
+                  <Run Text="  " />
+                  <Run Text="{Binding MaskText}" />
+                </TextBlock>
+              </StackPanel>
+              <TextBlock Grid.Column="1" Classes="amount" Text="{Binding BalanceText}" VerticalAlignment="Top" Margin="0,6,16,0" />
+              <StackPanel Grid.Column="2" Spacing="6">
+                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Options}" SelectedItem="{Binding SelectedOption}"
+                          AutomationProperties.Name="{Binding AutomationName}" />
+                <Grid ColumnDefinitions="*,8,150" IsVisible="{Binding IsCreatingNew}">
+                  <TextBox Text="{Binding NewName}" Watermark="{x:Static res:Strings.Mapping_NewName}"
+                           AutomationProperties.Name="{x:Static res:Strings.Mapping_NewName}" />
+                  <ComboBox Grid.Column="2" HorizontalAlignment="Stretch" ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedType}"
+                            AutomationProperties.Name="{x:Static res:Strings.Mapping_NewType}" />
+                </Grid>
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Mapping_NoAccounts}" IsVisible="{Binding HasNoAccounts}" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button x:Name="DiscardLinkButton" Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Mapping_Discard}" />
+      <Button x:Name="SaveMappingButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Mapping_Save}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>
