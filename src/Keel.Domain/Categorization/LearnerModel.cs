@@ -168,7 +168,7 @@ public sealed class LearnerModel
             .Where(i => !usePayee || payeeRow!.ContainsKey(Classes[i]))
             .ToArray();
 
-        if (allowed.Length == 0 || posterior[allowed[0]] < CategoryLearner.MinimumConfidence || topN <= 0)
+        if (allowed.Length == 0 || posterior[allowed[0]] < CategoryLearner.MinimumConfidence)
         {
             var best = allowed.Length > 0 ? allowed[0] : -1;
             return new LearnerPrediction
@@ -188,7 +188,7 @@ public sealed class LearnerModel
         var suggestions = new List<CategorySuggestion>();
         foreach (var i in allowed)
         {
-            if (suggestions.Count >= topN || (suggestions.Count > 0 && posterior[i] < Options.MinimumAlternativeConfidence))
+            if (suggestions.Count >= Math.Max(topN, 1) || (suggestions.Count > 0 && posterior[i] < Options.MinimumAlternativeConfidence))
             {
                 break;
             }
@@ -200,7 +200,7 @@ public sealed class LearnerModel
         return new LearnerPrediction
         {
             Outcome = LearnerOutcome.Suggested,
-            Suggestions = suggestions,
+            Suggestions = topN <= 0 ? [] : suggestions,
             NormalizedPayee = features.Payee,
             PayeeExamples = payeeExamples,
             Basis = basis,

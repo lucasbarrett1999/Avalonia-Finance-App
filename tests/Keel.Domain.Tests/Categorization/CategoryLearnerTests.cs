@@ -131,6 +131,7 @@ public class CategoryLearnerTests
         suggestions[1].Explanation.ShouldBe("Suggested because 4 of 12 past 'AMAZON' transactions were Electronics");
         model.Suggest(Txn("AMAZON", -2000), 1).Count.ShouldBe(1);
         model.Suggest(Txn("AMAZON", -2000), 0).ShouldBeEmpty();
+        model.Predict(Txn("AMAZON", -2000), 0).Outcome.ShouldBe(LearnerOutcome.Suggested);
     }
 
     [Fact]

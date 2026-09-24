@@ -4,7 +4,12 @@ using Xunit.Abstractions;
 
 namespace Keel.Domain.Tests.Categorization;
 
+/// <summary>Runs alone, after the parallel tests, so its timings neither disturb nor are disturbed by other tests.</summary>
+[CollectionDefinition(nameof(LearnerPerformanceCollection), DisableParallelization = true)]
+public sealed class LearnerPerformanceCollection;
+
 /// <summary>Training time for 100k examples and suggestion latency (target &lt; 1 ms after warm-up).</summary>
+[Collection(nameof(LearnerPerformanceCollection))]
 public class LearnerPerformanceTests(ITestOutputHelper output)
 {
     [Fact]
