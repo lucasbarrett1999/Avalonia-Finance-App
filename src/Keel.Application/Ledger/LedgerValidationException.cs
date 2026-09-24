@@ -56,6 +56,15 @@ public enum LedgerError
 
     /// <summary>Finishing a reconciliation needs a zero difference or a balance adjustment.</summary>
     ReconciliationNotBalanced,
+
+    /// <summary>The rule does not exist.</summary>
+    RuleNotFound,
+
+    /// <summary>The payee does not exist.</summary>
+    PayeeNotFound,
+
+    /// <summary>A payee needs a name.</summary>
+    PayeeNameRequired,
 }
 
 /// <summary>A ledger rule was violated; nothing was written.</summary>

@@ -1,15 +1,19 @@
 using Keel.Application.Accounts;
 using Keel.Application.Budget;
 using Keel.Application.Categories;
+using Keel.Application.Categorization;
 using Keel.Application.Files;
 using Keel.Application.Ledger;
 using Keel.Application.Payees;
+using Keel.Application.Rules;
 using Keel.Application.Settings;
 using Keel.Application.Undo;
 using Keel.Infrastructure.Budgeting;
+using Keel.Infrastructure.Categorization;
 using Keel.Infrastructure.Files;
 using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
+using Keel.Infrastructure.Rules;
 using Keel.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +51,11 @@ public static class DependencyInjection
         services.AddSingleton<IBalanceSnapshotService, BalanceSnapshotService>();
         services.AddSingleton<IRegisterQuery, RegisterQuery>();
         services.AddSingleton<IBudgetService, BudgetService>();
+        services.TryAddSingleton<ICategorizationEngine, CategorizationEngine>();
+        services.AddSingleton<IRuleService, RuleService>();
+        services.AddSingleton<ILearnerService, LearnerService>();
+        services.AddSingleton<ICategorizationService, CategorizationService>();
+        services.AddSingleton<ImportCategorizationAdapter>();
         return services;
     }
 }

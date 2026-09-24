@@ -15,6 +15,18 @@ public interface IPayeeService
     /// Null when the payee is unknown.
     /// </summary>
     Task<PayeeSuggestion?> GetSuggestionAsync(string name, Guid? accountId, CancellationToken ct);
+
+    /// <summary>Payees for Settings → Payees (F-TXN-9): name contains <paramref name="search"/>, alphabetical, with use counts.</summary>
+    Task<IReadOnlyList<PayeeListItem>> ListAsync(string? search, int limit, CancellationToken ct);
+
+    /// <summary>Sets (or clears) a payee's default category, used by categorization at 0.95 confidence. Undoable.</summary>
+    Task SetDefaultCategoryAsync(Guid payeeId, Guid? categoryId, CancellationToken ct);
+
+    /// <summary>
+    /// Renames a payee; every transaction of the payee shows the new name (retroactive). When
+    /// another payee already has that name, this payee's transactions move to it. Undoable.
+    /// </summary>
+    Task<PayeeDto> RenameAsync(Guid payeeId, string name, CancellationToken ct);
 }
 
 /// <summary>A payee.</summary>

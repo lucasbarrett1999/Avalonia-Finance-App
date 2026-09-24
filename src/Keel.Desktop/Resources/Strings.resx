@@ -861,4 +861,28 @@
   <data name="TxnStatus_Reconciled" xml:space="preserve">
     <value>Reconciled</value>
   </data>
+  <data name="LedgerError_RuleNotFound" xml:space="preserve">
+    <value>The rule no longer exists.</value>
+  </data>
+  <data name="LedgerError_PayeeNotFound" xml:space="preserve">
+    <value>The payee no longer exists.</value>
+  </data>
+  <data name="LedgerError_PayeeNameRequired" xml:space="preserve">
+    <value>A payee needs a name.</value>
+  </data>
+  <data name="Action_SaveRule" xml:space="preserve">
+    <value>save rule</value>
+  </data>
+  <data name="Action_DeleteRule" xml:space="preserve">
+    <value>delete rule</value>
+  </data>
+  <data name="Action_ReorderRules" xml:space="preserve">
+    <value>reorder rules</value>
+  </data>
+  <data name="Action_ApplyRules" xml:space="preserve">
+    <value>apply rules</value>
+  </data>
+  <data name="Action_UpdatePayee" xml:space="preserve">
+    <value>update payee</value>
+  </data>
 </root>

@@ -93,4 +93,19 @@ public enum LedgerAction
 
     /// <summary>Create a category.</summary>
     CreateCategory,
+
+    /// <summary>Create or edit a rule.</summary>
+    SaveRule,
+
+    /// <summary>Delete a rule.</summary>
+    DeleteRule,
+
+    /// <summary>Reorder, enable or disable rules.</summary>
+    ReorderRules,
+
+    /// <summary>Apply rules to transactions.</summary>
+    ApplyRules,
+
+    /// <summary>Rename a payee or change its default category.</summary>
+    UpdatePayee,
 }
