@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             x:Class="Keel.Desktop.Views.ReportsView"
+             x:DataType="vm:ReportsViewModel">
+  <DockPanel Margin="{StaticResource Keel.PagePadding}">
+    <StackPanel DockPanel.Dock="Top">
+      <TextBlock Classes="pageTitle" Text="{Binding Title}" />
+      <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+    </StackPanel>
+    <controls:EmptyState Icon="{StaticResource Icon.Reports}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}" />
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+  <DockPanel Margin="{StaticResource Keel.PagePadding}">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,24">
+      <TextBlock Classes="pageTitle" Text="{Binding Title}" />
+      <TextBlock Classes="pageSubtitle" Text="{Binding Subtitle}" />
+    </StackPanel>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="16" MaxWidth="720" HorizontalAlignment="Left">
+
+        <!-- Appearance -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="{x:Static res:Strings.Settings_Appearance}" FontWeight="SemiBold" FontSize="16" />
+            <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Theme}" />
+            <StackPanel Orientation="Horizontal" Spacing="24">
+              <RadioButton x:Name="ThemeSystem" GroupName="Theme" IsChecked="{Binding IsSystemTheme}"
+                           AutomationProperties.Name="{x:Static res:Strings.Settings_ThemeSystem}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <controls:Icon Data="{StaticResource Icon.Monitor}" Width="16" Height="16" />
+                  <TextBlock Text="{x:Static res:Strings.Settings_ThemeSystem}" VerticalAlignment="Center" />
+                </StackPanel>
+              </RadioButton>
+              <RadioButton x:Name="ThemeLight" GroupName="Theme" IsChecked="{Binding IsLightTheme}"
+                           AutomationProperties.Name="{x:Static res:Strings.Settings_ThemeLight}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <controls:Icon Data="{StaticResource Icon.Sun}" Width="16" Height="16" />
+                  <TextBlock Text="{x:Static res:Strings.Settings_ThemeLight}" VerticalAlignment="Center" />
+                </StackPanel>
+              </RadioButton>
+              <RadioButton x:Name="ThemeDark" GroupName="Theme" IsChecked="{Binding IsDarkTheme}"
+                           AutomationProperties.Name="{x:Static res:Strings.Settings_ThemeDark}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <controls:Icon Data="{StaticResource Icon.Moon}" Width="16" Height="16" />
+                  <TextBlock Text="{x:Static res:Strings.Settings_ThemeDark}" VerticalAlignment="Center" />
+                </StackPanel>
+              </RadioButton>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Data -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="{x:Static res:Strings.Settings_Data}" FontWeight="SemiBold" FontSize="16" />
+            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+              <TextBlock Grid.Row="0" Classes="secondary" Text="{x:Static res:Strings.Settings_BudgetFile}" />
+              <SelectableTextBlock Grid.Row="0" Grid.Column="1" Classes="path" Text="{Binding BudgetFilePath}" />
+              <TextBlock Grid.Row="1" Classes="secondary" Text="{x:Static res:Strings.Settings_DataFolder}" />
+              <SelectableTextBlock Grid.Row="1" Grid.Column="1" Classes="path" Text="{Binding DataFolderPath}" />
+              <TextBlock Grid.Row="2" Classes="secondary" Text="{x:Static res:Strings.Settings_Logs}" />
+              <SelectableTextBlock Grid.Row="2" Grid.Column="1" Classes="path" Text="{Binding LogsFolderPath}" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14"
+                             Foreground="{DynamicResource Keel.TextSecondary}" />
+              <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Privacy}" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Keyboard -->
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.Keyboard}" Width="18" Height="18" />
+              <TextBlock Text="{x:Static res:Strings.Settings_Shortcuts}" FontWeight="SemiBold" FontSize="16" />
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding Shortcuts}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:ShortcutViewModel">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                    <TextBlock Text="{Binding Action}" VerticalAlignment="Center" />
+                    <Border Grid.Column="1" Classes="keycap">
+                      <TextBlock Text="{Binding Keys}" FontSize="{StaticResource Keel.FontSize.Small}" />
+                    </Border>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

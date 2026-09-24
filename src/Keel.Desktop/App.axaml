@@ -1,0 +1,30 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:Keel.Desktop"
+             x:Class="Keel.Desktop.App"
+             RequestedThemeVariant="Default"
+             Name="Keel">
+  <Application.DataTemplates>
+    <local:ViewLocator />
+  </Application.DataTemplates>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Keel.Desktop/Styles/Tokens.axaml" />
+        <ResourceInclude Source="avares://Keel.Desktop/Styles/Icons.axaml" />
+        <ResourceInclude Source="avares://Keel.Desktop/Styles/Controls.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Light" Accent="#0B6477" />
+        <ColorPaletteResources x:Key="Dark" Accent="#3FB5CC" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://Keel.Desktop/Styles/Shell.axaml" />
+  </Application.Styles>
+</Application>

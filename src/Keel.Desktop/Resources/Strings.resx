@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_Name" xml:space="preserve">
+    <value>Keel</value>
+  </data>
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Nav_Budget" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="Nav_Review" xml:space="preserve">
+    <value>Review</value>
+  </data>
+  <data name="Nav_Bills" xml:space="preserve">
+    <value>Bills</value>
+  </data>
+  <data name="Nav_Goals" xml:space="preserve">
+    <value>Goals</value>
+  </data>
+  <data name="Nav_Reports" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="Nav_Accounts" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Nav_AllAccounts" xml:space="preserve">
+    <value>All accounts</value>
+  </data>
+  <data name="Nav_NoAccounts" xml:space="preserve">
+    <value>No accounts yet</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Nav_Primary" xml:space="preserve">
+    <value>Primary navigation</value>
+  </data>
+  <data name="Shell_ToggleSidebar" xml:space="preserve">
+    <value>Collapse or expand the sidebar</value>
+  </data>
+  <data name="Shell_SearchName" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Shell_SearchWatermark" xml:space="preserve">
+    <value>Search transactions ({0})</value>
+  </data>
+  <data name="Shell_SyncAll" xml:space="preserve">
+    <value>Sync all</value>
+  </data>
+  <data name="Shell_SyncUnavailable" xml:space="preserve">
+    <value>Sync all: no bank connections are set up</value>
+  </data>
+  <data name="Shell_Alerts" xml:space="preserve">
+    <value>Alerts: nothing new</value>
+  </data>
+  <data name="Shell_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Shell_Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="Shell_UndoTip" xml:space="preserve">
+    <value>Undo ({0}): nothing to undo</value>
+  </data>
+  <data name="Shell_RedoTip" xml:space="preserve">
+    <value>Redo ({0}): nothing to redo</value>
+  </data>
+  <data name="Shell_NoFile" xml:space="preserve">
+    <value>No budget file</value>
+  </data>
+  <data name="Shell_StatusOpened" xml:space="preserve">
+    <value>Opened {0}</value>
+  </data>
+  <data name="Shell_StatusCreated" xml:space="preserve">
+    <value>Created a new budget file: {0}</value>
+  </data>
+  <data name="Shell_StatusOpenFailed" xml:space="preserve">
+    <value>The budget file could not be opened. {0}</value>
+  </data>
+  <data name="Shell_StatusOpenedFallback" xml:space="preserve">
+    <value>Could not open the last budget file, so {0} was opened instead.</value>
+  </data>
+  <data name="Shell_LocalOnly" xml:space="preserve">
+    <value>Stored on this computer</value>
+  </data>
+  <data name="Page_Home_Title" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Page_Home_Subtitle" xml:space="preserve">
+    <value>Your money at a glance</value>
+  </data>
+  <data name="Page_Home_EmptyHeading" xml:space="preserve">
+    <value>Welcome to Keel</value>
+  </data>
+  <data name="Page_Home_EmptyMessage" xml:space="preserve">
+    <value>Your budget file is ready and lives on this computer. Add your first account with its current balance to begin; Ready to Assign, upcoming bills, and your net worth will appear here.</value>
+  </data>
+  <data name="Page_Home_FileLabel" xml:space="preserve">
+    <value>Budget file</value>
+  </data>
+  <data name="Page_Budget_Title" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="Page_Budget_Subtitle" xml:space="preserve">
+    <value>Give every dollar a job</value>
+  </data>
+  <data name="Page_Budget_EmptyHeading" xml:space="preserve">
+    <value>Your budget starts with money you have</value>
+  </data>
+  <data name="Page_Budget_EmptyMessage" xml:space="preserve">
+    <value>Once an account with a balance exists, its money shows up here as Ready to Assign. Then assign it to categories until Ready to Assign reaches zero.</value>
+  </data>
+  <data name="Page_Review_Title" xml:space="preserve">
+    <value>Review</value>
+  </data>
+  <data name="Page_Review_Subtitle" xml:space="preserve">
+    <value>Approve imported and synced transactions</value>
+  </data>
+  <data name="Page_Review_EmptyHeading" xml:space="preserve">
+    <value>You're all caught up</value>
+  </data>
+  <data name="Page_Review_EmptyMessage" xml:space="preserve">
+    <value>Transactions from file imports and bank sync wait here until you approve them. There is nothing to review right now.</value>
+  </data>
+  <data name="Page_Bills_Title" xml:space="preserve">
+    <value>Bills</value>
+  </data>
+  <data name="Page_Bills_Subtitle" xml:space="preserve">
+    <value>Recurring bills, subscriptions, and paychecks</value>
+  </data>
+  <data name="Page_Bills_EmptyHeading" xml:space="preserve">
+    <value>No bills or subscriptions yet</value>
+  </data>
+  <data name="Page_Bills_EmptyMessage" xml:space="preserve">
+    <value>Keel spots charges that repeat, like rent, streaming services, and paychecks, as soon as your transactions show a pattern. They will be listed here with their next due date.</value>
+  </data>
+  <data name="Page_Goals_Title" xml:space="preserve">
+    <value>Goals</value>
+  </data>
+  <data name="Page_Goals_Subtitle" xml:space="preserve">
+    <value>Save toward what matters</value>
+  </data>
+  <data name="Page_Goals_EmptyHeading" xml:space="preserve">
+    <value>No goals yet</value>
+  </data>
+  <data name="Page_Goals_EmptyMessage" xml:space="preserve">
+    <value>A goal is a budget category with a target amount and date. Keel tracks your progress and tells you how much to set aside each month.</value>
+  </data>
+  <data name="Page_Reports_Title" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="Page_Reports_Subtitle" xml:space="preserve">
+    <value>Spending, income, net worth, and forecast</value>
+  </data>
+  <data name="Page_Reports_EmptyHeading" xml:space="preserve">
+    <value>Reports need a little history</value>
+  </data>
+  <data name="Page_Reports_EmptyMessage" xml:space="preserve">
+    <value>Spending, income versus expense, net worth, and the cash-flow forecast are computed from your transactions. They fill in as soon as you record some.</value>
+  </data>
+  <data name="Page_Accounts_Title" xml:space="preserve">
+    <value>All accounts</value>
+  </data>
+  <data name="Page_Accounts_Subtitle" xml:space="preserve">
+    <value>Every transaction in every account</value>
+  </data>
+  <data name="Page_Accounts_EmptyHeading" xml:space="preserve">
+    <value>No accounts yet</value>
+  </data>
+  <data name="Page_Accounts_EmptyMessage" xml:space="preserve">
+    <value>Checking, savings, credit cards, loans, and investments all live here. Accounts can be added by hand with a starting balance, filled from bank export files, or connected to your bank.</value>
+  </data>
+  <data name="Page_Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Page_Settings_Subtitle" xml:space="preserve">
+    <value>Appearance, data, and shortcuts</value>
+  </data>
+  <data name="Settings_Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_ThemeSystem" xml:space="preserve">
+    <value>Match system</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Settings_Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Settings_BudgetFile" xml:space="preserve">
+    <value>Budget file</value>
+  </data>
+  <data name="Settings_DataFolder" xml:space="preserve">
+    <value>Data folder</value>
+  </data>
+  <data name="Settings_Logs" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="Settings_Privacy" xml:space="preserve">
+    <value>Your data stays on this computer. Keel sends nothing anywhere unless you connect a bank.</value>
+  </data>
+  <data name="Settings_Shortcuts" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="Shortcut_Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Shortcut_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Shortcut_Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="Shortcut_ToggleSidebar" xml:space="preserve">
+    <value>Collapse or expand the sidebar</value>
+  </data>
+</root>
