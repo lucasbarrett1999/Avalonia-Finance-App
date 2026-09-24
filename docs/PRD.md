@@ -446,25 +446,35 @@ Secrets stored: Plaid client id and secret, Plaid access tokens (one per connect
 
 ## 7. Architecture and technology
 
-### 7.1 Stack (fixed)
+### 7.1 Stack (fixed, versions pinned September 2026)
 
-| Concern | Choice | Notes |
-|---|---|---|
-| Runtime | .NET 10 (LTS), C# latest | Single TFM `net10.0` |
-| UI | Avalonia 11.3.x (latest stable 11.x at build time), Fluent theme, compiled bindings on | No ReactiveUI |
-| MVVM | CommunityToolkit.Mvvm 8.4+ (source generators: `[ObservableProperty]`, `[RelayCommand]`), `WeakReferenceMessenger` | |
-| DI / hosting | Microsoft.Extensions.Hosting + DependencyInjection + Logging | Generic host inside the Avalonia app |
-| Persistence | EF Core 10 + SQLite (`Microsoft.EntityFrameworkCore.Sqlite`), migrations in `Keel.Infrastructure` | WAL mode, `PRAGMA foreign_keys=ON` |
-| Optional encryption | SQLitePCLRaw bundle_e_sqlcipher (P1) | Behind a feature flag |
-| Charts | LiveChartsCore.SkiaSharpView.Avalonia (v2) | |
-| CSV | CsvHelper | |
-| OFX/QIF | Hand-written parsers in `Keel.Infrastructure/Import` | No suitable maintained NuGet |
-| Plaid | Going.Plaid (latest) | Already proven in the old codebase |
-| HTTP | `IHttpClientFactory` with Polly retries | |
-| Logging | Serilog to rolling file in data dir, Debug sink in Debug builds | No PII in logs (payee, amounts are PII) |
-| Packaging/updates | Velopack | Windows Setup.exe + MSIX optional, macOS .app in .dmg, Linux AppImage + .deb |
-| Tests | xUnit, FluentAssertions, NSubstitute, Avalonia.Headless.XUnit, Verify (snapshot) for golden budget tests | |
-| Lint | `dotnet format`, analyzers with `TreatWarningsAsErrors` for `Keel.Domain` and `Keel.Application` | |
+Use these exact versions in `Directory.Packages.props`. Avalonia 12 exists but the chart and SVG ecosystem still targets 11, so v1 stays on the 11.3 line; upgrading to 12 is a post-v1 ADR.
+
+| Concern | Package(s) | Version | Notes |
+|---|---|---|---|
+| Runtime | .NET SDK | 10.0.x (LTS) | Single TFM `net10.0`; `global.json` pins `10.0.0` with `rollForward: latestFeature` |
+| UI | Avalonia, Avalonia.Desktop, Avalonia.Themes.Fluent, Avalonia.Fonts.Inter, Avalonia.Diagnostics (Debug only) | 11.3.22 | Compiled bindings on; no ReactiveUI |
+| Grids | Avalonia.Controls.DataGrid | 11.3.13 | Registers |
+| | Avalonia.Controls.TreeDataGrid | 11.3.2 | Budget grid (hierarchical) |
+| SVG | Avalonia.Svg.Skia | 11.3.0 | Icons |
+| MVVM | CommunityToolkit.Mvvm | 8.4.2 | Source generators, WeakReferenceMessenger |
+| Hosting/DI/Logging | Microsoft.Extensions.Hosting (+ DependencyInjection, Logging, Options) | 10.0.12 | Generic host inside the Avalonia app |
+| Persistence | Microsoft.EntityFrameworkCore.Sqlite, Microsoft.EntityFrameworkCore.Design | 10.0.12 | WAL mode, foreign keys on |
+| Charts | LiveChartsCore.SkiaSharpView.Avalonia | 2.0.5 | Targets Avalonia 11 |
+| CSV | CsvHelper | 33.1.0 | |
+| OFX/QIF | hand-written in `Keel.Infrastructure/Import` | | No maintained NuGet |
+| Plaid | Going.Plaid | 6.67.0 | |
+| HTTP resilience | Microsoft.Extensions.Http.Resilience | 10.10.0 | Polly 8 underneath |
+| Logging | Serilog.Extensions.Hosting | 10.0.0 | |
+| | Serilog.Sinks.File | 7.0.0 | Rolling file in data dir; no PII |
+| Packaging | Velopack | 1.2.158 | Windows/macOS/Linux installers and updates |
+| Tests | xunit, xunit.runner.visualstudio, Microsoft.NET.Test.Sdk | 2.9.3 / latest / latest | |
+| | Shouldly | latest 4.x | Assertions (FluentAssertions 8+ is commercially licensed; do not use it) |
+| | NSubstitute | 6.2.0 | |
+| | Verify.Xunit | 31.12.5 | Golden/snapshot tests for the budget calculator |
+| | Avalonia.Headless.XUnit | 11.3.22 | Headless UI tests |
+| Benchmarks | BenchmarkDotNet | 0.15.8 | |
+| Lint | `dotnet format`, built-in analyzers, `TreatWarningsAsErrors` in Domain and Application | | |
 
 ### 7.2 Solution layout
 

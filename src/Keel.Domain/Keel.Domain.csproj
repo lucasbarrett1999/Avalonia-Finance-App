@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure domain: no package references except System.* (PRD 7.2). -->
+  <PropertyGroup>
+    <RootNamespace>Keel.Domain</RootNamespace>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Keel.Domain.Tests" />
+  </ItemGroup>
+</Project>

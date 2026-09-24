@@ -1,0 +1,69 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Window">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Base}" />
+  </Style>
+
+  <!-- Page headers -->
+  <Style Selector="TextBlock.pageTitle">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.PageTitle}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
+  </Style>
+  <Style Selector="TextBlock.pageSubtitle">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+  </Style>
+  <Style Selector="TextBlock.secondary">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="TextBlock.sectionHeader">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="SelectableTextBlock.path">
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
+  </Style>
+
+  <!-- Cards -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CardCornerRadius}" />
+    <Setter Property="Padding" Value="24" />
+  </Style>
+
+  <!-- Sidebar: labels hide when collapsed to icons -->
+  <Style Selector="Border.sidebar.collapsed :is(Control).navLabel">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <!-- Keyboard shortcut chips -->
+  <Style Selector="Border.keycap">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="6,2" />
+    <Setter Property="Background" Value="{DynamicResource Keel.WindowBackground}" />
+  </Style>
+
+  <!-- Unread-count badge on navigation items -->
+  <Style Selector="Border.badge">
+    <Setter Property="Background" Value="{DynamicResource Keel.BadgeBackground}" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="MinWidth" Value="18" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="Padding" Value="5,0" />
+  </Style>
+  <Style Selector="Border.badge > TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.BadgeForeground}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+</Styles>

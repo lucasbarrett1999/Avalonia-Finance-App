@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Design tokens (PRD 9.11): 8-px spacing grid, 13-px base font, light and dark variants. -->
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="Keel.WindowBackground" Color="#F7F8FA" />
+      <SolidColorBrush x:Key="Keel.SidebarBackground" Color="#EEF1F5" />
+      <SolidColorBrush x:Key="Keel.SurfaceBackground" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="Keel.BorderBrush" Color="#DDE2EA" />
+      <SolidColorBrush x:Key="Keel.TextPrimary" Color="#1B1F27" />
+      <SolidColorBrush x:Key="Keel.TextSecondary" Color="#545D6B" />
+      <SolidColorBrush x:Key="Keel.IconCircle" Color="#DDEFF3" />
+      <SolidColorBrush x:Key="Keel.IconCircleForeground" Color="#0B6477" />
+      <SolidColorBrush x:Key="Keel.NavHover" Color="#E2E7EE" />
+      <SolidColorBrush x:Key="Keel.NavSelected" Color="#D6E7EC" />
+      <SolidColorBrush x:Key="Keel.NavSelectedForeground" Color="#0B5566" />
+      <SolidColorBrush x:Key="Keel.BadgeBackground" Color="#0B6477" />
+      <SolidColorBrush x:Key="Keel.BadgeForeground" Color="#FFFFFF" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="Keel.WindowBackground" Color="#15171C" />
+      <SolidColorBrush x:Key="Keel.SidebarBackground" Color="#1B1E24" />
+      <SolidColorBrush x:Key="Keel.SurfaceBackground" Color="#20242B" />
+      <SolidColorBrush x:Key="Keel.BorderBrush" Color="#2F343D" />
+      <SolidColorBrush x:Key="Keel.TextPrimary" Color="#E8EBF0" />
+      <SolidColorBrush x:Key="Keel.TextSecondary" Color="#A4ACB8" />
+      <SolidColorBrush x:Key="Keel.IconCircle" Color="#1E3740" />
+      <SolidColorBrush x:Key="Keel.IconCircleForeground" Color="#7CD4E6" />
+      <SolidColorBrush x:Key="Keel.NavHover" Color="#252A32" />
+      <SolidColorBrush x:Key="Keel.NavSelected" Color="#223A42" />
+      <SolidColorBrush x:Key="Keel.NavSelectedForeground" Color="#9BE0EE" />
+      <SolidColorBrush x:Key="Keel.BadgeBackground" Color="#7CD4E6" />
+      <SolidColorBrush x:Key="Keel.BadgeForeground" Color="#0F1D22" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <FontFamily x:Key="ContentControlThemeFontFamily">fonts:Inter#Inter, $Default</FontFamily>
+  <x:Double x:Key="ControlContentThemeFontSize">13</x:Double>
+  <x:Double x:Key="Keel.FontSize.Base">13</x:Double>
+  <x:Double x:Key="Keel.FontSize.Small">12</x:Double>
+  <x:Double x:Key="Keel.FontSize.PageTitle">24</x:Double>
+  <x:Double x:Key="Keel.FontSize.Heading">18</x:Double>
+  <Thickness x:Key="Keel.PagePadding">32,24,32,24</Thickness>
+  <CornerRadius x:Key="Keel.CornerRadius">6</CornerRadius>
+  <CornerRadius x:Key="Keel.CardCornerRadius">8</CornerRadius>
+  <x:Double x:Key="Keel.SidebarCollapsedWidth">60</x:Double>
+</ResourceDictionary>

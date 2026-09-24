@@ -1,0 +1,21 @@
+<Project>
+  <!-- Shared settings for every project in Keel.sln. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <Product>Keel</Product>
+    <Company>Keel</Company>
+    <Copyright>Copyright (c) Keel contributors</Copyright>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>m0</VersionSuffix>
+  </PropertyGroup>
+</Project>

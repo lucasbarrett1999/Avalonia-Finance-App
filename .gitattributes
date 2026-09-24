@@ -1,0 +1,10 @@
+# Normalize text to LF in the repository and working tree (matches .editorconfig).
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.icns binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.keel binary
