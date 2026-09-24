@@ -17,6 +17,7 @@ using Keel.Infrastructure.Ledger;
 using Keel.Infrastructure.Persistence;
 using Keel.Infrastructure.Reports;
 using Keel.Infrastructure.Settings;
+using Keel.Infrastructure.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -59,6 +60,7 @@ public static class DependencyInjection
         services.AddSingleton<IImportCategorizationHook, NoOpImportCategorizationHook>();
         services.AddSingleton<IImportService, ImportService>();
         services.AddSingleton<IImportSettingsStore, ImportSettingsStore>();
+        services.AddKeelSync();
         return services;
     }
 }
