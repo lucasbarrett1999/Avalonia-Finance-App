@@ -164,7 +164,7 @@ public sealed class ShellSmokeTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void Undo_redo_and_sync_are_disabled_placeholders()
+    public void Undo_and_redo_start_disabled_and_sync_is_a_disabled_placeholder()
     {
         var window = ShowShell();
         var shell = (ShellViewModel)window.DataContext!;

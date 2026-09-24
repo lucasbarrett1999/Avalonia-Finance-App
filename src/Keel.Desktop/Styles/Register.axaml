@@ -1,0 +1,125 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Keel.Desktop.Controls">
+  <!-- Register, balances and dialog styles (M1). Amounts are right-aligned with tabular figures (PRD 9.11). -->
+  <Style Selector="TextBlock.amount">
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="TextBlock.negative">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Negative}" />
+  </Style>
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="FontStyle" Value="Italic" />
+  </Style>
+  <Style Selector="TextBlock.cell">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="8,0" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <!-- Balance tiles in the register header -->
+  <Style Selector="Border.tile">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CardCornerRadius}" />
+    <Setter Property="Padding" Value="16,10" />
+    <Setter Property="MinWidth" Value="150" />
+  </Style>
+  <Style Selector="Border.tile TextBlock.tileLabel">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="Border.tile TextBlock.tileValue">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="Margin" Value="0,2,0,0" />
+  </Style>
+
+  <!-- Bars above the grid -->
+  <Style Selector="Border.bar">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="8" />
+  </Style>
+  <Style Selector="Border.editor">
+    <Setter Property="Background" Value="{DynamicResource Keel.EditorBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Accent}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="0,6" />
+  </Style>
+  <Style Selector="Border.warning">
+    <Setter Property="Background" Value="{DynamicResource Keel.WarningBackground}" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="10,6" />
+  </Style>
+  <Style Selector="Border.warning TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+  </Style>
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Negative}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBox:error, controls|MoneyTextBox:error">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Negative}" />
+  </Style>
+
+  <!-- Small toolbar buttons with an icon and a label -->
+  <Style Selector="Button.tool">
+    <Setter Property="Padding" Value="10,6" />
+    <Setter Property="MinHeight" Value="32" />
+  </Style>
+  <Style Selector="Button.tool controls|Icon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
+
+  <!-- The register grid -->
+  <Style Selector="DataGrid.register">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="RowHeight" Value="34" />
+    <Setter Property="HeadersVisibility" Value="Column" />
+  </Style>
+  <Style Selector="DataGrid.register DataGridColumnHeader">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+
+  <!-- Sidebar account rows -->
+  <Style Selector="TextBlock.accountBalance">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="TextBlock.accountBalance.negative">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.Negative}" />
+  </Style>
+
+  <!-- Dialog card -->
+  <Style Selector="Border.dialog">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CardCornerRadius}" />
+    <Setter Property="Padding" Value="24" />
+    <Setter Property="BoxShadow" Value="0 8 32 0 #40000000" />
+  </Style>
+  <Style Selector="TextBlock.fieldLabel">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+</Styles>

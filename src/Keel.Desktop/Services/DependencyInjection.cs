@@ -23,6 +23,8 @@ public static class DependencyInjection
         services.AddSingleton<ThemeService>();
         services.AddSingleton<WindowPlacementService>();
         services.AddSingleton(_ => PlatformShortcuts.FromCurrentPlatform());
+        services.AddSingleton<DialogService>();
+        services.AddSingleton<StatusService>();
 
         services.AddSingleton<ShellViewModel>();
         services.AddSingleton<HomeViewModel>();
