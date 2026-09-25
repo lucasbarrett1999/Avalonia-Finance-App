@@ -1,0 +1,9 @@
+Date,Merchant,Category,Account,Original Statement,Notes,Amount,Tags
+2026-02-01,Acme Payroll,Paychecks,Joint Checking (...1234),ACME PAYROLL PPD 0201,,2450.00,
+2026-02-02,Trader Joe's,Groceries,Joint Checking (...1234),TRADER JOE S #123 PORTLAND OR,,-86.45,"Household, Weekly"
+2026-02-03,Shell,Gas,Rewards Card (...9876),SHELL OIL 5744,,-41.20,
+2026-02-05,Netflix,Entertainment & Recreation,Rewards Card (...9876),NETFLIX.COM,monthly plan,-15.49,Subscription
+2026-02-10,Credit Card Payment,Credit Card Payment,Joint Checking (...1234),ONLINE PAYMENT THANK YOU,,-500.00,
+2026-02-10,Credit Card Payment,Credit Card Payment,Rewards Card (...9876),PAYMENT RECEIVED,,500.00,
+2026-02-12,Dog Park Vet,Pet Supplies,Joint Checking (...1234),DOG PARK VET CLINIC,,-120.00,Pets
+2026-02-14,,Uncategorized,Joint Checking (...1234),POS 4471 SQ *MYSTERY,,-9.75,

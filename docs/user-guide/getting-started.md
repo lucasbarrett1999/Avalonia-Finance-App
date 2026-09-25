@@ -21,7 +21,12 @@ the first time.
 The first time Keel starts it walks you through four steps. Nothing is created until you choose.
 
 1. **Welcome.** Create a new budget file (name it, and optionally choose another folder, for
-   example a synced folder), or **Open existing** if you already have a `.keel` file.
+   example a synced folder), or **Open existing** if you already have a `.keel` file. Two more ways
+   in: **Restore from a Keel export bundle…** creates the file from a bundle made with Export
+   ([Backups and the data file](backups-and-data.md#export-and-import)), and **Import from YNAB or
+   Monarch export…** creates the file and brings in your accounts, categories and history from the
+   other app ([Importing files](importing.md#moving-to-keel-from-ynab-or-monarch)); both skip the
+   remaining steps.
 2. **Starter categories.** Pick a template (Simple, Detailed, Student, Family) or **Start empty**.
    You can rename, add, hide and reorder everything later (Budget → Manage categories).
 3. **Your first account.** Enter the account name, type (checking, savings, cash or credit card),

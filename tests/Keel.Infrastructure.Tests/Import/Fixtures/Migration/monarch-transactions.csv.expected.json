@@ -1,0 +1,124 @@
+{
+  "format": "Monarch",
+  "encoding": "utf-8",
+  "accounts": [
+    {
+      "accountId": "Joint Checking (...1234)",
+      "name": "Joint Checking (...1234)"
+    },
+    {
+      "accountId": "Rewards Card (...9876)",
+      "name": "Rewards Card (...9876)"
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-02-01",
+      "amount": 245000,
+      "payeeRaw": "Acme Payroll",
+      "currency": "USD",
+      "category": "Paychecks",
+      "sourceAccountId": "Joint Checking (...1234)",
+      "extras": {
+        "Original Statement": "ACME PAYROLL PPD 0201"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-02-02",
+      "amount": -8645,
+      "payeeRaw": "Trader Joe's",
+      "currency": "USD",
+      "category": "Groceries",
+      "sourceAccountId": "Joint Checking (...1234)",
+      "extras": {
+        "Original Statement": "TRADER JOE S #123 PORTLAND OR",
+        "Tags": "Household, Weekly"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-02-03",
+      "amount": -4120,
+      "payeeRaw": "Shell",
+      "currency": "USD",
+      "category": "Gas",
+      "sourceAccountId": "Rewards Card (...9876)",
+      "extras": {
+        "Original Statement": "SHELL OIL 5744"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-02-05",
+      "amount": -1549,
+      "payeeRaw": "Netflix",
+      "memo": "monthly plan",
+      "currency": "USD",
+      "category": "Entertainment & Recreation",
+      "sourceAccountId": "Rewards Card (...9876)",
+      "extras": {
+        "Original Statement": "NETFLIX.COM",
+        "Tags": "Subscription"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    },
+    {
+      "date": "2026-02-10",
+      "amount": -50000,
+      "payeeRaw": "Credit Card Payment",
+      "currency": "USD",
+      "category": "Credit Card Payment",
+      "sourceAccountId": "Joint Checking (...1234)",
+      "extras": {
+        "Original Statement": "ONLINE PAYMENT THANK YOU"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 6
+    },
+    {
+      "date": "2026-02-10",
+      "amount": 50000,
+      "payeeRaw": "Credit Card Payment",
+      "currency": "USD",
+      "category": "Credit Card Payment",
+      "sourceAccountId": "Rewards Card (...9876)",
+      "extras": {
+        "Original Statement": "PAYMENT RECEIVED"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 7
+    },
+    {
+      "date": "2026-02-12",
+      "amount": -12000,
+      "payeeRaw": "Dog Park Vet",
+      "currency": "USD",
+      "category": "Pet Supplies",
+      "sourceAccountId": "Joint Checking (...1234)",
+      "extras": {
+        "Original Statement": "DOG PARK VET CLINIC",
+        "Tags": "Pets"
+      },
+      "sourceIndex": 6,
+      "sourceLine": 8
+    },
+    {
+      "date": "2026-02-14",
+      "amount": -975,
+      "payeeRaw": "POS 4471 SQ *MYSTERY",
+      "currency": "USD",
+      "category": "Uncategorized",
+      "sourceAccountId": "Joint Checking (...1234)",
+      "extras": {
+        "Original Statement": "POS 4471 SQ *MYSTERY"
+      },
+      "sourceIndex": 7,
+      "sourceLine": 9
+    }
+  ]
+}

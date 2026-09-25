@@ -1,8 +1,10 @@
 name: CI
 
+# Runs once per change: on pull requests and on main. A push to a feature branch is
+# covered by its pull request, so it does not start a second run of the same commit.
 on:
   push:
-    branches: ["**"]
+    branches: ["main"]
   pull_request:
   workflow_dispatch:
 

@@ -44,7 +44,41 @@
             <StackPanel Spacing="10">
               <TextBlock Text="{x:Static res:Strings.FirstRun_OpenTitle}" FontWeight="SemiBold" FontSize="15" />
               <TextBlock Classes="secondary" Text="{x:Static res:Strings.FirstRun_OpenText}" TextWrapping="Wrap" />
-              <Button x:Name="OpenExistingButton" Command="{Binding OpenExistingCommand}" Content="{x:Static res:Strings.FirstRun_OpenExisting}" IsEnabled="{Binding !IsBusy}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="OpenExistingButton" Command="{Binding OpenExistingCommand}" Content="{x:Static res:Strings.FirstRun_OpenExisting}" IsEnabled="{Binding !IsBusy}" />
+                <Button x:Name="RestoreBundleButton" Command="{Binding ChooseBundleCommand}" Content="{x:Static res:Strings.Bundle_FirstRunRestore}"
+                        IsEnabled="{Binding !IsBusy}" IsVisible="{Binding CanMigrate}" />
+              </StackPanel>
+              <!-- A chosen Keel export bundle, restored into the file named above (M9) -->
+              <Border x:Name="PendingBundlePanel" Classes="card" IsVisible="{Binding HasPendingBundle}">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="{Binding PendingBundleSource}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Classes="secondary" Text="{Binding PendingBundleCounts}" TextWrapping="Wrap" />
+                  <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap">
+                    <Run Text="{x:Static res:Strings.Bundle_FirstRunInto}" />
+                    <Run Text=" " />
+                    <Run Text="{Binding NewFilePath}" />
+                  </TextBlock>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="RestoreBundleConfirmButton" Classes="accent" Command="{Binding RestoreBundleCommand}" Content="{x:Static res:Strings.Bundle_FirstRunConfirm}"
+                            IsEnabled="{Binding !IsBusy}" />
+                    <Button x:Name="RestoreBundleCancelButton" Command="{Binding CancelBundleCommand}" Content="{x:Static res:Strings.Bundle_FirstRunCancel}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </Border>
+          <!-- PRD 9.10 step 1: import from YNAB or Monarch (M9) -->
+          <Border Classes="card" x:Name="MigrateCard" IsVisible="{Binding CanMigrate}">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{x:Static res:Strings.Ynab_FirstRunTitle}" FontWeight="SemiBold" FontSize="15" />
+              <TextBlock Classes="secondary" Text="{x:Static res:Strings.Ynab_FirstRunText}" TextWrapping="Wrap" />
+              <Button x:Name="ImportFromAppButton" Command="{Binding ImportFromAppCommand}" IsEnabled="{Binding !IsBusy}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <controls:Icon Data="{StaticResource Icon.Import}" Width="14" Height="14" />
+                  <TextBlock Text="{x:Static res:Strings.Ynab_FirstRunButton}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
             </StackPanel>
           </Border>
         </StackPanel>

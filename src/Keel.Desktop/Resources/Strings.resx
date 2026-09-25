@@ -4803,6 +4803,303 @@
   <data name="FirstRun_BankGuide" xml:space="preserve">
     <value>Read the bank sync guide</value>
   </data>
+  <data name="Export_Command" xml:space="preserve">
+    <value>Export data…</value>
+  </data>
+  <data name="Export_Section" xml:space="preserve">
+    <value>Export and import</value>
+  </data>
+  <data name="Export_SectionHint" xml:space="preserve">
+    <value>Export the whole budget as CSV files for spreadsheets, or as a Keel export bundle that restores everything into a new budget file. Moving from another app? Import a YNAB or Monarch export.</value>
+  </data>
+  <data name="Export_Button" xml:space="preserve">
+    <value>Export…</value>
+  </data>
+  <data name="Export_Title" xml:space="preserve">
+    <value>Export data</value>
+  </data>
+  <data name="Export_Intro" xml:space="preserve">
+    <value>Everything in this budget file: transactions (split lines, tags, cleared state, import ids), assigned amounts, accounts, categories, payees, rules, targets, scheduled transactions and recurring items.</value>
+  </data>
+  <data name="Export_Kind" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Export_KindZip" xml:space="preserve">
+    <value>CSV files in a zip</value>
+  </data>
+  <data name="Export_KindZipHint" xml:space="preserve">
+    <value>Nine CSV files (UTF-8, ISO dates, decimal amounts) in one zip file.</value>
+  </data>
+  <data name="Export_KindFolder" xml:space="preserve">
+    <value>CSV files in a folder</value>
+  </data>
+  <data name="Export_KindFolderHint" xml:space="preserve">
+    <value>The same CSV files in a new folder inside the folder you choose.</value>
+  </data>
+  <data name="Export_KindBundle" xml:space="preserve">
+    <value>Keel export bundle (JSON)</value>
+  </data>
+  <data name="Export_KindBundleHint" xml:space="preserve">
+    <value>One JSON file with every table and attachment. Import it into a new budget file to get back exactly this budget.</value>
+  </data>
+  <data name="Export_Unencrypted" xml:space="preserve">
+    <value>Exports are not encrypted. Keep them somewhere private.</value>
+  </data>
+  <data name="Export_ConfirmCsv" xml:space="preserve">
+    <value>Export CSV…</value>
+  </data>
+  <data name="Export_ConfirmBundle" xml:space="preserve">
+    <value>Export bundle…</value>
+  </data>
+  <data name="Export_Working" xml:space="preserve">
+    <value>Exporting…</value>
+  </data>
+  <data name="Export_DefaultName" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="Export_FolderName" xml:space="preserve">
+    <value>{0} export {1}</value>
+  </data>
+  <data name="Export_ZipFileType" xml:space="preserve">
+    <value>Zip files</value>
+  </data>
+  <data name="Export_FolderPickerTitle" xml:space="preserve">
+    <value>Choose where to put the export</value>
+  </data>
+  <data name="Export_ZipPickerTitle" xml:space="preserve">
+    <value>Save the CSV export</value>
+  </data>
+  <data name="Export_BundlePickerTitle" xml:space="preserve">
+    <value>Save the Keel export bundle</value>
+  </data>
+  <data name="Export_CsvDone" xml:space="preserve">
+    <value>Exported {1:N0} transaction lines and the rest of the budget to {0}</value>
+  </data>
+  <data name="Export_BundleDone" xml:space="preserve">
+    <value>Exported the whole budget ({1:N0} transactions) to {0}</value>
+  </data>
+  <data name="Export_Failed" xml:space="preserve">
+    <value>The export failed: {0}</value>
+  </data>
+  <data name="Bundle_Command" xml:space="preserve">
+    <value>Import a Keel export bundle into a new file…</value>
+  </data>
+  <data name="Bundle_Button" xml:space="preserve">
+    <value>Import bundle into a new file…</value>
+  </data>
+  <data name="Bundle_FileType" xml:space="preserve">
+    <value>Keel export bundles</value>
+  </data>
+  <data name="Bundle_PickerTitle" xml:space="preserve">
+    <value>Choose a Keel export bundle</value>
+  </data>
+  <data name="Bundle_Title" xml:space="preserve">
+    <value>Import a Keel export bundle</value>
+  </data>
+  <data name="Bundle_Intro" xml:space="preserve">
+    <value>The bundle is restored into a new budget file, which then opens. The budget file open now is not changed.</value>
+  </data>
+  <data name="Bundle_Source" xml:space="preserve">
+    <value>Exported from {0} on {1} by Keel {2}</value>
+  </data>
+  <data name="Bundle_UnknownFile" xml:space="preserve">
+    <value>a budget file</value>
+  </data>
+  <data name="Bundle_Counts" xml:space="preserve">
+    <value>{0:N0} accounts · {1:N0} transactions · {2:N0} categories · {3:N0} rules · {4:N0} scheduled</value>
+  </data>
+  <data name="Bundle_NewFile" xml:space="preserve">
+    <value>Name of the new budget file</value>
+  </data>
+  <data name="Bundle_CreatedAt" xml:space="preserve">
+    <value>It will be created at</value>
+  </data>
+  <data name="Bundle_ChooseLocation" xml:space="preserve">
+    <value>Choose location…</value>
+  </data>
+  <data name="Bundle_LocationTitle" xml:space="preserve">
+    <value>Where to create the restored budget file</value>
+  </data>
+  <data name="Bundle_Confirm" xml:space="preserve">
+    <value>Import and open</value>
+  </data>
+  <data name="Bundle_Working" xml:space="preserve">
+    <value>Importing…</value>
+  </data>
+  <data name="Bundle_RestoredName" xml:space="preserve">
+    <value>{0} (restored)</value>
+  </data>
+  <data name="Bundle_FileExists" xml:space="preserve">
+    <value>{0} already exists. Choose another name.</value>
+  </data>
+  <data name="Bundle_Failed" xml:space="preserve">
+    <value>The bundle could not be imported: {0}</value>
+  </data>
+  <data name="Bundle_RestoredStatus" xml:space="preserve">
+    <value>Restored {1:N0} transactions into {0}</value>
+  </data>
+  <data name="Bundle_ErrorNotABundle" xml:space="preserve">
+    <value>This file is not a Keel export bundle, or it is damaged.</value>
+  </data>
+  <data name="Bundle_ErrorTooNew" xml:space="preserve">
+    <value>This bundle was made by a newer version of Keel. Update Keel to import it.</value>
+  </data>
+  <data name="Bundle_ErrorInvalid" xml:space="preserve">
+    <value>The bundle cannot be imported: {0}</value>
+  </data>
+  <data name="Bundle_ErrorTargetNotEmpty" xml:space="preserve">
+    <value>A bundle is imported only into a new, empty budget file.</value>
+  </data>
+  <data name="Bundle_FirstRunRestore" xml:space="preserve">
+    <value>Restore from a Keel export bundle…</value>
+  </data>
+  <data name="Bundle_FirstRunInto" xml:space="preserve">
+    <value>Restores into</value>
+  </data>
+  <data name="Bundle_FirstRunConfirm" xml:space="preserve">
+    <value>Restore and open</value>
+  </data>
+  <data name="Bundle_FirstRunCancel" xml:space="preserve">
+    <value>Choose another way</value>
+  </data>
+  <data name="Ynab_Name" xml:space="preserve">
+    <value>YNAB</value>
+  </data>
+  <data name="Monarch_Name" xml:space="preserve">
+    <value>Monarch</value>
+  </data>
+  <data name="Ynab_Command" xml:space="preserve">
+    <value>Import from YNAB or Monarch…</value>
+  </data>
+  <data name="Ynab_Button" xml:space="preserve">
+    <value>Import from YNAB or Monarch…</value>
+  </data>
+  <data name="Ynab_PickerTitle" xml:space="preserve">
+    <value>Choose a YNAB or Monarch export (CSV)</value>
+  </data>
+  <data name="Ynab_NotAnExport" xml:space="preserve">
+    <value>{0} is not a YNAB register or budget export or a Monarch transactions export.</value>
+  </data>
+  <data name="Ynab_Title" xml:space="preserve">
+    <value>Import from {0}: {1}</value>
+  </data>
+  <data name="Ynab_Intro" xml:space="preserve">
+    <value>Each account in the export goes to a Keel account. Transactions keep their category, cleared state and tags; categories, groups and tags that do not exist yet are created. Importing the same export again adds nothing.</value>
+  </data>
+  <data name="Ynab_ColAccount" xml:space="preserve">
+    <value>Account in the export</value>
+  </data>
+  <data name="Ynab_ColTarget" xml:space="preserve">
+    <value>Import into</value>
+  </data>
+  <data name="Ynab_ColType" xml:space="preserve">
+    <value>Type of new account</value>
+  </data>
+  <data name="Ynab_ColResult" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Ynab_AccountDetail" xml:space="preserve">
+    <value>{0:N0} transactions, {1} – {2}</value>
+  </data>
+  <data name="Ynab_TargetNew" xml:space="preserve">
+    <value>New account “{0}”</value>
+  </data>
+  <data name="Ynab_TargetExisting" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="Ynab_TargetSkip" xml:space="preserve">
+    <value>Don’t import</value>
+  </data>
+  <data name="Ynab_TargetFor" xml:space="preserve">
+    <value>Import {0} into</value>
+  </data>
+  <data name="Ynab_TypeFor" xml:space="preserve">
+    <value>Type of the new account for {0}</value>
+  </data>
+  <data name="Ynab_AccountResult" xml:space="preserve">
+    <value>{0:N0} new · {1:N0} already in Keel</value>
+  </data>
+  <data name="Ynab_AccountSkipped" xml:space="preserve">
+    <value>Not imported</value>
+  </data>
+  <data name="Ynab_CategoriesHeading" xml:space="preserve">
+    <value>Categories and tags</value>
+  </data>
+  <data name="Ynab_NoNewCategories" xml:space="preserve">
+    <value>Every category in the export already exists.</value>
+  </data>
+  <data name="Ynab_NewCategories" xml:space="preserve">
+    <value>Creates {0:N0} categories in {1:N0} groups: {2}</value>
+  </data>
+  <data name="Ynab_NewTags" xml:space="preserve">
+    <value>Creates tags: {0}</value>
+  </data>
+  <data name="Ynab_PreviewRunning" xml:space="preserve">
+    <value>Checking what the import will do…</value>
+  </data>
+  <data name="Ynab_Preview" xml:space="preserve">
+    <value>{0:N0} new transactions, {1:N0} already in Keel, {2:N0} transfers matched, {3:N0} accounts to create.</value>
+  </data>
+  <data name="Ynab_NothingChosen" xml:space="preserve">
+    <value>Choose where at least one account goes.</value>
+  </data>
+  <data name="Ynab_Confirm" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Ynab_Working" xml:space="preserve">
+    <value>Importing…</value>
+  </data>
+  <data name="Ynab_Summary" xml:space="preserve">
+    <value>Imported {0}: {1}</value>
+  </data>
+  <data name="Ynab_SummaryAccounts" xml:space="preserve">
+    <value>{0:N0} accounts created</value>
+  </data>
+  <data name="Ynab_SummaryAdded" xml:space="preserve">
+    <value>{0:N0} transactions added</value>
+  </data>
+  <data name="Ynab_SummaryDuplicates" xml:space="preserve">
+    <value>{0:N0} already in Keel</value>
+  </data>
+  <data name="Ynab_SummaryTransfers" xml:space="preserve">
+    <value>{0:N0} transfers matched</value>
+  </data>
+  <data name="Ynab_SummaryCategories" xml:space="preserve">
+    <value>{0:N0} categories created</value>
+  </data>
+  <data name="Ynab_SummaryTags" xml:space="preserve">
+    <value>{0:N0} tags created</value>
+  </data>
+  <data name="Ynab_NothingNew" xml:space="preserve">
+    <value>Nothing new in {0}: every transaction is already in Keel.</value>
+  </data>
+  <data name="Ynab_BudgetTitle" xml:space="preserve">
+    <value>Import YNAB budget: {0}</value>
+  </data>
+  <data name="Ynab_BudgetIntro" xml:space="preserve">
+    <value>Sets the assigned amount of each category and month to the amount in the export. Ready to Assign is calculated by Keel, so the Inflow rows are left out.</value>
+  </data>
+  <data name="Ynab_BudgetRange" xml:space="preserve">
+    <value> ({0} – {1})</value>
+  </data>
+  <data name="Ynab_BudgetPreview" xml:space="preserve">
+    <value>{0:N0} months{1}: {2:N0} assigned amounts to write, {3:N0} already the same, {4:N0} rows left out; creates {5:N0} categories in {6:N0} groups.</value>
+  </data>
+  <data name="Ynab_BudgetConfirm" xml:space="preserve">
+    <value>Import budget</value>
+  </data>
+  <data name="Ynab_BudgetDone" xml:space="preserve">
+    <value>Imported the budget from {0}: {1:N0} assigned amounts over {2:N0} months</value>
+  </data>
+  <data name="Ynab_FirstRunTitle" xml:space="preserve">
+    <value>Moving from YNAB or Monarch?</value>
+  </data>
+  <data name="Ynab_FirstRunText" xml:space="preserve">
+    <value>Create the budget file named above and bring in your accounts, categories and history from a YNAB register export or a Monarch transactions export. Import the YNAB budget export afterwards from Settings → General.</value>
+  </data>
+  <data name="Ynab_FirstRunButton" xml:space="preserve">
+    <value>Import from YNAB or Monarch export…</value>
+  </data>
   <data name="ExportPng_Button" xml:space="preserve">
     <value>Export PNG</value>
   </data>
@@ -5088,6 +5385,12 @@
   <data name="Debt_AtMinimumNever" xml:space="preserve">
     <value>At the minimum alone: never paid off</value>
   </data>
+  <data name="Debt_PlanOutlay" xml:space="preserve">
+    <value>{0} a month</value>
+  </data>
+  <data name="Debt_ComparisonNeverPlan" xml:space="preserve">
+    <value>Raise the extra per month until every debt is paid off.</value>
+  </data>
   <data name="Debt_PaymentCategory" xml:space="preserve">
     <value>Budgeted in {0}</value>
   </data>
@@ -5177,11 +5480,5 @@
   </data>
   <data name="Debt_Editor_RateInvalid" xml:space="preserve">
     <value>Enter an interest rate between 0 and 100, for example 19.99.</value>
-  </data>
-  <data name="Debt_PlanOutlay" xml:space="preserve">
-    <value>{0} a month</value>
-  </data>
-  <data name="Debt_ComparisonNeverPlan" xml:space="preserve">
-    <value>Raise the extra per month until every debt is paid off.</value>
   </data>
 </root>
