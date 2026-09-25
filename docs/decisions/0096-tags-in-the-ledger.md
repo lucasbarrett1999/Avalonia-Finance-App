@@ -27,7 +27,7 @@ them. Rules name tags by text in their JSON (`TagCondition`, `AddTagAction`).
 - **Register.** Rows carry their tag names and attachment count (read for the page only, two bounded
   queries like the splits); chips sit before the memo and are clipped, never overlapping. The filter bar
   gains a tag filter (`RegisterFilter.TagId`, shown when the file has tags); free words also match tag
-  names; `has:tag` and `has:attachment` join the F-TXN-7 syntax. In windows under 1000 px the filters
+  names; `has:tag` and `has:attachment` join the F-TXN-7 syntax. When the register is narrower than 1000 px the filters
   move under the search box.
 - **Management** (Settings → Tags, one undoable action each; tag, link, rule and setting rows are all tracked
   so undo restores them, never the database cascade):
