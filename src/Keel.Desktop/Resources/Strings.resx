@@ -6276,4 +6276,7 @@
   <data name="Palette_InstallUpdate" xml:space="preserve">
     <value>Install the downloaded update</value>
   </data>
+  <data name="Palette_GoalsTab" xml:space="preserve">
+    <value>Goals: {0}</value>
+  </data>
 </root>
