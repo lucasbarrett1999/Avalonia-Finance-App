@@ -46,6 +46,8 @@ or screen by typing part of its name, and shows each action's shortcut.
 | `Ctrl+Shift+F` | Budget: fund targets |
 | `I` | Budget: show or hide the inspector |
 | `Q` | Budget: quick assign |
+| `W` | Budget: show three months side by side |
+| `F` | Budget: switch between the grid and the Flex view |
 
 ## Review
 

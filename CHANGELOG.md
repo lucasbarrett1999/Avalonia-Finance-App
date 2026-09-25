@@ -3,6 +3,54 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M9a — Flex mode and three-month view
+
+P1 backlog stream A (PRD 12, M9): the three-month side-by-side budget (F-BUD-2 P1) and Flex mode
+(F-BUD-6), both from PRD 9.3. No schema change: tags use the existing `Category.FlexKind` column.
+
+### Added
+
+- **Three months side by side** (ADR 0090): `W`, a header toggle, the palette and View → Three-month
+  budget show the shown month and the next two, each with Assigned/Activity/Available, group sums and
+  its own Ready to Assign in the column header (select it for the breakdown). The cell cursor crosses
+  months with `←/→`; typing, `Enter`, `Tab`/`Shift+Tab`, `Esc`, `M`, `T`, `Q`, quick assign, Activity
+  and the inspector act in the cursor's month; clicks pick the month; `Alt+←/→` shift the window. Uses
+  the loaded ledger data (ADR 0041): switching or shifting recomputes nothing and reloads nothing inside
+  the loaded range. The mode is remembered in `settings.json` (`BudgetThreeMonths`). At 960 × 540 or
+  with the inspector open the grid scrolls sideways and keeps the cursor's cell in view.
+- **Flex mode** (ADR 0091): tag categories Fixed, Non-monthly or Flex (Automatic by default: monthly
+  targets → Fixed, savings-by-date → Non-monthly, no target → Flex; a user's tag is never overridden)
+  in the inspector ("Flex view group") and in Manage categories; each change is one undoable action
+  (`ICategoryService.SetFlexKindAsync`, `LedgerAction.TagCategoryFlex`). The **Flex view** (`F`, header
+  toggle, palette, View menu; remembered as `BudgetFlexView`) shows income (InflowRTA), Fixed assigned,
+  Non-monthly set-aside and saved so far, and one Flex number (carry + assigned of Flex categories) with
+  a spending bar, a today marker, what is left or over, days left and safe-to-spend per day. Every
+  number drills down: to the grid filtered to its categories (with a "Show all categories" banner) or,
+  for income, to the register. All numbers come from `FlexSummary.Compute` (Keel.Domain, pure) over the
+  same `BudgetMonthResult` as the grid, carried on `BudgetMonthDto.Flex`.
+- Shortcuts `budget-three-months` (`W`) and `budget-flex` (`F`) in the registry, the palette, the View
+  menu, Settings → Keyboard shortcuts and `docs/user-guide/keyboard-shortcuts.md`; the budgeting guide
+  and the QA checklist cover both views.
+
+### Changed
+
+- At Budget view widths under 760 px, Fund targets and Move money show icons only (names and tooltips
+  unchanged) to make room for the two toggles. The Manage categories dialog is 560 px wide (the tag
+  pickers) and its list is at most 440 px high, so it fits at 960 × 540.
+
+### Verification
+
+VERIFICATION_PLACEHOLDER
+
+### Decisions and deviations
+
+- [ADR 0090](docs/decisions/0090-three-month-budget-view.md): one active month (`CurrentMonth` = the
+  cursor's month), row month cells, template selector, sideways scroll, `W`. A three-month window shift
+  lays out three times the cells: its headless timing budget is 250 ms (PRD 11's 100 ms stays asserted
+  for the one-month switch).
+- [ADR 0091](docs/decisions/0091-flex-mode.md): tags and computed defaults, what counts (visible regular
+  categories; card payments in no bucket), the Flex number as carry + assigned, pace rules, `F`.
+
 ## M8 — Polish, first-run, backups and packaging
 
 Milestone 8 (PRD 12): the first-run experience (PRD 9.10), data-file management and backups (F-SET-1,

@@ -64,6 +64,13 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
 - [ ] Import a CSV and an OFX from your own bank; re-import the same file: 0 new rows.
 - [ ] Review: approve with `A`, `1`–`9`, change category with `C`, create a rule with `R`.
 - [ ] Budget: assign with typing and Tab, move money with `M` and by dragging a pill, `Alt+←/→`.
+- [ ] Budget three months (`W`): each month shows its own numbers and Ready to Assign; `→` crosses
+      into the next month; typing, `Tab` and `M` act in the cursor's month; `Alt+←/→` shift the three
+      months; the mode survives a restart; at 960 × 540 the grid scrolls sideways to the cursor.
+- [ ] Budget Flex view (`F`): income, Fixed, Non-monthly and the Flex number match the grid (add the
+      categories up by hand once); each number opens the grid with only its categories; tag a category
+      in the inspector and in Manage categories, then undo; a category you tagged keeps its group after
+      you add a target.
 - [ ] Bills: confirm a detected item; add a scheduled transaction; the bell shows alerts.
 - [ ] Reports: click a donut slice down to the register; Export CSV opens in a spreadsheet.
 - [ ] Command palette `Ctrl/⌘+K`: "backup", "budget", an account name, "dark" all work.
