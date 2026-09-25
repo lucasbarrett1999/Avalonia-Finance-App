@@ -32,6 +32,8 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
         Settings.UpdatesSettingsViewModel? updates = null,
         ShortcutRegistry? registry = null)
     {
+        _themes = themes;
+        _themes.ThemeChanged += OnThemeChanged;
         DataFile = dataFile;
         AppearanceExtras = appearance;
         Bills = bills;
@@ -41,7 +43,6 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
         Connections = connections;
         ArgumentNullException.ThrowIfNull(dataDirectory);
         ArgumentNullException.ThrowIfNull(shortcuts);
-        _themes = themes;
         BudgetFilePath = session?.BudgetFile?.Path ?? Strings.Shell_NoFile;
         DataFolderPath = dataDirectory.Root;
         LogsFolderPath = dataDirectory.LogsDirectory;
@@ -77,11 +78,15 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
             }
 
             _themes.SetTheme(value);
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsSystemTheme));
-            OnPropertyChanged(nameof(IsLightTheme));
-            OnPropertyChanged(nameof(IsDarkTheme));
         }
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(Theme));
+        OnPropertyChanged(nameof(IsSystemTheme));
+        OnPropertyChanged(nameof(IsLightTheme));
+        OnPropertyChanged(nameof(IsDarkTheme));
     }
 
     /// <summary>Theme follows the OS.</summary>

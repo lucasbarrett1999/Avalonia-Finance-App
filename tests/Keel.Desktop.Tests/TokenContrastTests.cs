@@ -84,6 +84,7 @@ public sealed class TokenContrastTests
 
                 AccessibilityAudit.Contrast(Color("Keel.BadgeForeground", variant), color).ShouldBeGreaterThanOrEqualTo(4.5, $"badge text on {accent} ({variant})");
                 AccessibilityAudit.Contrast(Color("AccentButtonForeground", variant), color).ShouldBeGreaterThanOrEqualTo(4.5, $"button text on {accent} ({variant})");
+                AccessibilityAudit.Contrast(Color("Keel.SelectionForeground", variant), color).ShouldBeGreaterThanOrEqualTo(4.5, $"selected text on {accent} ({variant})");
             }
         }
 

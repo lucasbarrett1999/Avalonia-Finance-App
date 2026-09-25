@@ -138,6 +138,7 @@ public sealed class FirstRunTests(ITestOutputHelper output) : IDisposable
         await SettleAsync(() => home.Loading);
         await UiTestHelpers.WaitUntilAsync(() => home.IsSetupComplete, "all four steps done");
         home.SetupCompleted.ShouldBe(4);
+        home.ShowChecklist.ShouldBeTrue(); // "You're set up" until hidden
 
         // Dismissing hides the card for this file.
         ImportDialogTests.Click(window, window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "DismissChecklistButton"));
@@ -223,6 +224,27 @@ public sealed class FirstRunTests(ITestOutputHelper output) : IDisposable
         // A later launch never shows the setup again.
         Host.Current<IAppSettingsStore>().Current.FirstRunCompleted.ShouldBeTrue();
         Host.Current<BudgetFileStartup>().IsFirstRun.ShouldBeFalse();
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task A_file_that_is_already_set_up_shows_no_checklist()
+    {
+        using var host = TestHost.Create();
+        await Task.Run(async () =>
+        {
+            await host.Get<ICategoryService>().ApplyTemplateAsync(BudgetTemplate.All[0].Groups, CancellationToken.None);
+            await host.Get<IAccountService>().CreateAccountAsync(new CreateAccountRequest("Checking", Keel.Domain.AccountType.Checking, "USD", new DateOnly(2026, 1, 1), 500_00), CancellationToken.None);
+            var category = (await host.Get<ICategoryService>().GetCategoriesAsync(includeHidden: false, CancellationToken.None)).First(c => !c.IsSystem);
+            await host.Get<IBudgetService>().AssignAsync(category.Id, new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), 100_00, CancellationToken.None);
+        });
+        var window = host.Get<ShellWindow>();
+        window.Show();
+        var home = host.Get<HomeViewModel>();
+        ((ShellViewModel)window.DataContext!).NavigateTo<HomeViewModel>();
+        await SettleAsync(() => home.Loading);
+        home.IsSetupComplete.ShouldBeTrue();
+        home.ShowChecklist.ShouldBeFalse();
         window.Close();
     }
 

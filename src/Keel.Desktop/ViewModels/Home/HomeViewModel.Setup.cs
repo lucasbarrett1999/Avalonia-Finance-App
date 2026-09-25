@@ -11,6 +11,7 @@ namespace Keel.Desktop.ViewModels;
 public sealed partial class HomeViewModel
 {
     private readonly ISetupProgressService? _setup;
+    private bool _sawIncompleteSetup;
 
     /// <summary>The checklist steps, in order.</summary>
     [ObservableProperty]
@@ -27,6 +28,7 @@ public sealed partial class HomeViewModel
 
     /// <summary>All four steps are done.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowChecklist))]
     public partial bool IsSetupComplete { get; private set; }
 
     /// <summary>The user hid the card.</summary>
@@ -34,8 +36,11 @@ public sealed partial class HomeViewModel
     [NotifyPropertyChangedFor(nameof(ShowChecklist))]
     public partial bool IsSetupDismissed { get; private set; }
 
-    /// <summary>Whether the card shows.</summary>
-    public bool ShowChecklist => SetupSteps.Count > 0 && !IsSetupDismissed;
+    /// <summary>
+    /// Whether the card shows: while steps are open, and after the last one is done in this session (with
+    /// "You're set up") until hidden. A file that was already set up never shows it.
+    /// </summary>
+    public bool ShowChecklist => SetupSteps.Count > 0 && !IsSetupDismissed && (!IsSetupComplete || _sawIncompleteSetup);
 
     /// <summary>Hides the checklist for this budget file.</summary>
     [RelayCommand]
@@ -69,6 +74,7 @@ public sealed partial class HomeViewModel
             new(Strings.Setup_Assign, Strings.Setup_AssignHint, progress.HasAssignments, AssignCommand, Strings.Setup_AssignAction),
         ];
         SetupCompleted = progress.CompletedSteps;
+        _sawIncompleteSetup |= !progress.IsComplete;
         IsSetupComplete = progress.IsComplete;
         SetupProgressText = LedgerText.Format(Strings.Setup_Progress, progress.CompletedSteps, 4);
         IsSetupDismissed = progress.IsDismissed;

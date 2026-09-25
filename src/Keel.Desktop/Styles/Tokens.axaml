@@ -26,6 +26,7 @@
       <SolidColorBrush x:Key="Keel.EditorBackground" Color="#EEF6F8" />
       <!-- Fluent override for WCAG AA (M8 accessibility pass): text on accent buttons contrasts with every
            accent (AppearanceService offers dark accents for the light theme and light ones for the dark theme). -->
+      <SolidColorBrush x:Key="Keel.SelectionForeground" Color="#FFFFFF" />
       <SolidColorBrush x:Key="AccentButtonForeground" Color="#FFFFFF" />
       <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#FFFFFF" />
       <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#FFFFFF" />
@@ -52,6 +53,7 @@
       <SolidColorBrush x:Key="Keel.RowAlternate" Color="#1D2127" />
       <SolidColorBrush x:Key="Keel.Scrim" Color="#99000000" />
       <SolidColorBrush x:Key="Keel.EditorBackground" Color="#1E3037" />
+      <SolidColorBrush x:Key="Keel.SelectionForeground" Color="#0F1D22" />
       <SolidColorBrush x:Key="AccentButtonForeground" Color="#0F1D22" />
       <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#0F1D22" />
       <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#0F1D22" />

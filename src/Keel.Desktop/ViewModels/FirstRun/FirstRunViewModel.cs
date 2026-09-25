@@ -296,13 +296,24 @@ public sealed partial class FirstRunViewModel : ViewModelBase
     {
         try
         {
-            var code = RegionInfo.CurrentRegion.ISOCurrencySymbol;
-            return Keel.Domain.Currency.IsValidCode(code) ? code : Keel.Domain.Currency.Default;
+            return CurrencyFor(RegionInfo.CurrentRegion);
         }
         catch (ArgumentException)
         {
             return Keel.Domain.Currency.Default;
         }
+    }
+
+    /// <summary>
+    /// The budget currency suggested for <paramref name="region"/>: its ISO currency, or the default when the
+    /// region is the invariant one (a "C" or POSIX locale reports XDR, special drawing rights) or unknown.
+    /// </summary>
+    public static string CurrencyFor(RegionInfo? region)
+    {
+        var code = region?.ISOCurrencySymbol;
+        return region is null || region.Name is "IV" or "" || code is null or "XDR" or "XXX" || !Keel.Domain.Currency.IsValidCode(code)
+            ? Keel.Domain.Currency.Default
+            : code;
     }
 }
 

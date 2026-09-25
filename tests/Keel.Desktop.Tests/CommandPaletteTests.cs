@@ -220,6 +220,22 @@ public sealed class CommandPaletteTests : IDisposable
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void The_user_guide_lists_every_registered_shortcut()
+    {
+        var root = AppContext.BaseDirectory;
+        while (!File.Exists(Path.Combine(root, "Keel.sln")))
+        {
+            root = Path.GetDirectoryName(root) ?? throw new InvalidOperationException("Keel.sln not found");
+        }
+
+        var guide = File.ReadAllText(Path.Combine(root, "docs", "user-guide", "keyboard-shortcuts.md"));
+        foreach (var entry in new ShortcutRegistry(PlatformShortcuts.FromCurrentPlatform()).All.Where(e => !e.Id.StartsWith("go-", StringComparison.Ordinal)))
+        {
+            guide.ShouldContain(entry.Action, Case.Sensitive, $"docs/user-guide/keyboard-shortcuts.md is missing '{entry.Action}'");
+        }
+    }
+
     [Theory]
     [InlineData("bdgt", "Budget", true)]
     [InlineData("BUD", "Budget", true)]

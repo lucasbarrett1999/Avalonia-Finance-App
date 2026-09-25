@@ -96,6 +96,24 @@ public sealed class AppearanceTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void A_theme_chosen_from_the_menu_or_palette_shows_in_settings()
+    {
+        var settings = _host.Get<SettingsViewModel>();
+        var changed = new List<string?>();
+        settings.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        _host.Get<ThemeService>().SetTheme(AppTheme.Dark);
+        try
+        {
+            settings.IsDarkTheme.ShouldBeTrue();
+            changed.ShouldContain(nameof(SettingsViewModel.IsDarkTheme));
+        }
+        finally
+        {
+            _host.Get<ThemeService>().SetTheme(AppTheme.System);
+        }
+    }
+
+    [AvaloniaFact]
     public async Task A_format_override_reformats_after_reopening_and_following_the_os_restores_it()
     {
         var original = CultureInfo.CurrentCulture;
@@ -220,5 +238,28 @@ public sealed class SingleInstanceTests : IDisposable
         {
             result.ShouldBe(Path.GetFullPath(expected));
         }
+    }
+}
+
+/// <summary>The first-run currency suggestion.</summary>
+public sealed class FirstRunCurrencyTests
+{
+    [Theory]
+    [InlineData("en-US", "USD")]
+    [InlineData("en-GB", "GBP")]
+    [InlineData("de-DE", "EUR")]
+    [InlineData("ja-JP", "JPY")]
+    public void The_region_suggests_its_currency(string culture, string expected) =>
+        Keel.Desktop.ViewModels.FirstRun.FirstRunViewModel.CurrencyFor(new RegionInfo(culture)).ShouldBe(expected);
+
+    [Fact]
+    public void An_invariant_or_unknown_region_suggests_the_default_currency()
+    {
+        Keel.Desktop.ViewModels.FirstRun.FirstRunViewModel.CurrencyFor(null).ShouldBe(Keel.Domain.Currency.Default);
+
+        // The machine's region, whatever it is (CI runners and "C" locales report the invariant region, XDR).
+        var current = Keel.Desktop.ViewModels.FirstRun.FirstRunViewModel.CurrencyFor(RegionInfo.CurrentRegion);
+        current.ShouldNotBe("XDR");
+        Keel.Domain.Currency.IsValidCode(current).ShouldBeTrue();
     }
 }

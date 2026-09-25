@@ -25,6 +25,11 @@
     <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
   </Style>
 
+  <!-- Selected text stays readable on the accent-colored selection. -->
+  <Style Selector="TextBox">
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource Keel.SelectionForeground}" />
+  </Style>
+
   <!-- Placeholder text meets WCAG AA like any other text (M8 accessibility pass). -->
   <Style Selector="TextBox /template/ TextBlock#PART_Watermark, TextBox /template/ TextBlock#PART_FloatingWatermark">
     <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />

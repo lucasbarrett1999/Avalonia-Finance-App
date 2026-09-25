@@ -20,15 +20,23 @@ public sealed class ThemeService(IAppSettingsStore settings)
     /// <summary>Applies the persisted preference (at startup).</summary>
     public void ApplySaved() => Apply(settings.Current.Theme);
 
+    /// <summary>Raised after the preference changed (Settings, the View menu or the command palette).</summary>
+    public event EventHandler? ThemeChanged;
+
     /// <summary>Applies and persists a new preference.</summary>
     public void SetTheme(AppTheme theme)
     {
-        if (settings.Current.Theme != theme)
+        var changed = settings.Current.Theme != theme;
+        if (changed)
         {
             settings.Update(s => s with { Theme = theme });
         }
 
         Apply(theme);
+        if (changed)
+        {
+            ThemeChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private static void Apply(AppTheme theme)
