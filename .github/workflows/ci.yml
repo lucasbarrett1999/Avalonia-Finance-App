@@ -47,6 +47,7 @@ jobs:
 
       - name: Upload test results
         if: always()
+        continue-on-error: true # the results are a convenience; a GitHub artifact-service timeout is not a test failure
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.os }}

@@ -16,6 +16,6 @@
     <Company>Keel</Company>
     <Copyright>Copyright (c) Keel contributors</Copyright>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>rc.1</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
   </PropertyGroup>
 </Project>
