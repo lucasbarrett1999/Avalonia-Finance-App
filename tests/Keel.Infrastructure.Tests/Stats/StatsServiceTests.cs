@@ -137,8 +137,13 @@ public sealed class StatsServiceTests : IAsyncLifetime
         // Nothing readable is stored: only hashes and counts.
         await using var db = _host.Db();
         var json = await db.Settings.Where(s => s.Key == ImportStatsLog.Key).Select(s => s.ValueJson).SingleAsync();
-        json.ShouldNotContain("Grocer");
-        json.ShouldNotContain("12");
+        foreach (var readable in new[] { "Grocer", "Noodle", "Payroll", "august", "12.00", "8.50", "2000" })
+        {
+            json.ShouldNotContain(readable);
+        }
+
+        var stored = System.Text.Json.JsonSerializer.Deserialize<ImportStatsLog>(json, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)).ShouldNotBeNull();
+        stored.Batches.ShouldAllBe(hash => System.Text.RegularExpressions.Regex.IsMatch(hash, "^[0-9a-f]{64}$"), "batches are SHA-256 fingerprints only");
     }
 
     [Fact]
