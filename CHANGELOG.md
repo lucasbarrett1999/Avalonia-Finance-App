@@ -3,6 +3,97 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M9d — Export, bundle import and YNAB/Monarch importers
+
+Milestone 9 stream D (P1 backlog): full export to CSV and a lossless JSON bundle with re-import into a new
+budget file (F-REP-6), and migration importers for YNAB and Monarch exports (PRD 9.10 step 1; PRD 14 open
+question 2 answered: build them). Branch `claude/keel-m9-data-portability`.
+
+### Added
+
+- **CSV export** (`IDataExportService.ExportCsvAsync`, ADR 0098): `transactions.csv` (splits flattened to one
+  line per split with `Parent Id`, tags, account, payee, category, transfer account, cleared status,
+  approval, source, import id), `budget.csv` (assigned per month), `accounts.csv` (with balances),
+  `categories.csv` (groups and categories), `payees.csv`, `rules.csv` (conditions and actions as JSON),
+  `targets.csv`, `scheduled-transactions.csv`, `recurring-items.csv`; into a folder or a zip. Stable column
+  order, ISO dates, invariant decimal amounts in the account's currency, UTF-8 without BOM. One read snapshot;
+  transactions in keyset pages of 2,000; files written as `.partial` and renamed.
+- **JSON bundle** `keel-export` version 1 (ADR 0098): every EF table except the audit log, ids included,
+  soft-deleted rows included, plus the attachment files; tables and columns come from the EF model, so later
+  migrations are carried without code changes. Streamed export; streamed import (`JsonTokenStream`) into a new
+  or empty file through `BulkTableWriter` (one prepared upsert per table plus one audit row per row, ADR 0052
+  style) in one transaction with deferred foreign keys; `PRAGMA foreign_key_check`, the split-sum violation
+  table and the header's row counts are checked before the commit; a failed import leaves no file. Newer
+  format versions, newer schemas and unknown tables, columns or enum values are refused (`BundleError.TooNew`);
+  files with data are never targets (`TargetNotEmpty`).
+- **YNAB and Monarch importers** (ADR 0099): `YnabRegisterParser`, `YnabBudgetParser`, `MonarchImportParser`,
+  recognized by header ahead of the generic CSV detector. `IMigrationImportService`: plan (accounts matched by
+  name or a suggested type, categories and tags to create), a rolled-back dry run as the preview
+  (`LedgerWriter.DryRunAsync`), and the import as one undoable action that creates on-budget accounts
+  (with Credit Card Payment categories), groups, categories and tags and runs each account through the unified
+  pipeline (dedup, payees, rules and learner, transfer detection, bulk insert) with the file's category,
+  cleared state, approval and tags (`IncomingTransaction.Status`, `IsApproved`, `Tags`). YNAB budget exports
+  write assigned amounts per category and month (Inflow skipped, card payment rows to the matching card).
+  Re-importing an export adds nothing.
+- **Desktop** (ADR 0100): Settings → General "Export and import" (Export… with CSV zip, CSV folder or bundle;
+  Import bundle into a new file…, which opens the new file in a new session; Import from YNAB or Monarch…);
+  the migration preview (target and type per source account, categories and tags, a live dry-run line) and the
+  YNAB budget dialog; the register's Import file hands YNAB/Monarch files to the migration preview; first run:
+  "Restore from a Keel export bundle…" (inline details, "Restore and open") and "Import from YNAB or Monarch
+  export…" (creates the named file, imports, lands on Budget); palette commands `export-data`, `import-bundle`,
+  `import-ynab-monarch`. 99 new strings (`Export_`, `Bundle_`, `Ynab_`, `Monarch_`).
+- **Tests**: Infrastructure: migration fixtures (`Import/Fixtures/Migration`: YNAB register with transfers,
+  flags, reconciled rows and split lines; YNAB budget; Monarch with tags, income, card payment and an
+  uncategorized row) with reviewed `.expected.json`, recognition by header, day-first YNAB dates and decimal
+  commas, plan, import twice (idempotent), preview equals import, one undo removes everything, skipped and
+  existing accounts, refused targets, budget import twice; CSV export (headers, formats, flattened splits,
+  transfers, deleted rows, zip equals folder, paging over 4,321 rows, refused non-empty folder); bundle round
+  trip of the fixture plus every other PRD 6.2 table compared table by table on stored values (row counts and
+  SHA-256), the restored file opening with the real services, header read, newer version/schema/table/column
+  refused, damaged and truncated bundles, a missing referenced row and unbalanced splits refused before commit
+  with no file left, never into a file with data; the 100k round trip with its timing line (`BundleTimingTests`,
+  `TimingCollection`). Desktop: export in three forms through the dialog, bundle into a new file and session
+  switch, first-run restore, first-run YNAB import to Budget, register Import file with a Monarch export,
+  YNAB budget dialog, refusals and palette commands; rendering in light and dark; the new dialogs in
+  `AccessibilityTests` and `HighDpiRenderingTests`.
+- **Docs**: user guide (Importing files → "Moving to Keel from YNAB or Monarch", Backups and the data file →
+  "Export and import", Getting started), QA checklist items, CLAUDE.md commands and solution map.
+
+### Decisions and deviations
+
+- [ADR 0098](docs/decisions/0098-full-export-and-json-bundle.md): CSV formats and file set; bundle format; the
+  audit log and the two audit-derived `Setting` keys (learner cache, recurring watermark) are not exported; the
+  import upserts the seeded system rows and writes its own audit rows; not undoable (the file is new).
+- [ADR 0099](docs/decisions/0099-ynab-and-monarch-migration.md): parsers keep app-specific fields in `Extras`;
+  three additive `IncomingTransaction` properties; `ImportService.ImportCoreAsync` became internal static so a
+  migration is one unit of work; mapping rules (Ready to Assign, transfers, Monarch groups, approval, flags as
+  the "Flagged" tag); YNAB split lines stay separate transactions; new accounts get no starting-balance row.
+- [ADR 0100](docs/decisions/0100-export-and-migration-ui.md): placement in Settings → General, a separate
+  `IPortabilityDialogs`, the inline first-run restore (dialogs sit under the first-run layer), the register
+  hand-off, and why the high-DPI test saves 1x frames for dialogs (the headless 2x bitmap of the dialog layer
+  scales dialog content twice, for existing dialogs too).
+- No EF model change and no migration.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,837 passed, 4 skipped (gated: Plaid sandbox, Secret Service, Keychain, DPAPI): Domain 1,032, Infrastructure 508 + 4 skipped, Desktop 297 |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Portability\|FullyQualifiedName~Import.Migration"` | 38 passed (includes the 100k round trip) |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter BundleTimingTests` | 100,000 transactions (101,779 rows, 31 MB bundle): export 2.3 s, import 9.2 s, CSV export 3.8 s (100,930 transaction lines); every table identical |
+| `dotnet test tests/Keel.Desktop.Tests --filter "PortabilityTests\|PortabilityRenderingTests"` | 9 passed; screenshots reviewed in light and dark |
+
+### Not done here
+
+- Real YNAB and Monarch exports from live accounts were not available; the fixtures follow the documented
+  column sets and are anonymized. QA checklist items cover real files.
+- YNAB split sub-rows are not recombined into one split transaction, and scheduled transactions, targets and
+  notes are not read from YNAB (its exports do not contain them).
+- The bundle import does not reuse `EntityChange` snapshots for undo: a restored file starts with an empty undo
+  history, as any newly opened file does.
+
 ## M8 — Polish, first-run, backups and packaging
 
 Milestone 8 (PRD 12): the first-run experience (PRD 9.10), data-file management and backups (F-SET-1,

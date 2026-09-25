@@ -35,7 +35,7 @@ public class FileImportParserResolverTests
     {
         using var provider = new ServiceCollection().AddKeelFileImportParsers().BuildServiceProvider();
 
-        provider.GetServices<IFileImportParser>().Count().ShouldBe(3);
+        provider.GetServices<IFileImportParser>().Count().ShouldBe(6, "OFX/QFX, QIF, CSV, and the YNAB register, YNAB budget and Monarch exports (M9)");
         provider.GetRequiredService<IFileImportParserResolver>()
             .Resolve("a.qif", []).ShouldBeOfType<QifImportParser>();
     }

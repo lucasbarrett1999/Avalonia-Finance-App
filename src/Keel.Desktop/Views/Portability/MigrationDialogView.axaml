@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Portability"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Portability.MigrationDialogView"
+             x:DataType="vm:MigrationDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <DockPanel MaxWidth="800">
+    <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
+      <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Ynab_Intro}" TextWrapping="Wrap" />
+      <Border x:Name="MigrationWarnings" Classes="warning" IsVisible="{Binding HasWarnings}">
+        <ItemsControl ItemsSource="{Binding Warnings}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </StackPanel>
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,12,0,0">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsPreviewing}" Width="80" Height="4" VerticalAlignment="Center"
+                     AutomationProperties.Name="{x:Static res:Strings.Ynab_PreviewRunning}" />
+        <TextBlock x:Name="MigrationPreviewText" Text="{Binding PreviewText}" TextWrapping="Wrap" FontWeight="SemiBold" />
+      </StackPanel>
+      <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" AutomationProperties.Name="{x:Static res:Strings.Ynab_Working}" />
+      <TextBlock x:Name="MigrationError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+        <Button x:Name="MigrationConfirmButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Ynab_Confirm}" IsEnabled="{Binding !IsBusy}" />
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer MaxHeight="340" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,16,0">
+        <Grid ColumnDefinitions="2*,2*,1.3*,1.3*" ColumnSpacing="12">
+          <TextBlock Grid.Column="0" Classes="fieldLabel" Text="{x:Static res:Strings.Ynab_ColAccount}" />
+          <TextBlock Grid.Column="1" Classes="fieldLabel" Text="{x:Static res:Strings.Ynab_ColTarget}" />
+          <TextBlock Grid.Column="2" Classes="fieldLabel" Text="{x:Static res:Strings.Ynab_ColType}" />
+          <TextBlock Grid.Column="3" Classes="fieldLabel" Text="{x:Static res:Strings.Ynab_ColResult}" />
+        </Grid>
+        <ItemsControl x:Name="MigrationAccounts" ItemsSource="{Binding Accounts}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:MigrationAccountRowViewModel">
+              <Grid ColumnDefinitions="2*,2*,1.3*,1.3*" ColumnSpacing="12" Margin="0,0,0,10">
+                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding SourceAccount}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="secondary" Text="{Binding DetailText}" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" />
+                </StackPanel>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Targets}" SelectedItem="{Binding Target}" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                          AutomationProperties.Name="{Binding TargetName}" />
+                <ComboBox Grid.Column="2" ItemsSource="{Binding TypeNames}" SelectedIndex="{Binding TypeIndex}" IsVisible="{Binding IsNew}"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Center" AutomationProperties.Name="{Binding TypeName}" />
+                <StackPanel Grid.Column="3" Spacing="2" VerticalAlignment="Center">
+                  <TextBlock Classes="amount" Text="{Binding NetText}" />
+                  <TextBlock Classes="secondary" Text="{Binding ResultText}" TextAlignment="Right" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" />
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.Ynab_CategoriesHeading}" />
+        <TextBlock x:Name="MigrationCategories" Text="{Binding NewCategoriesText}" TextWrapping="Wrap" />
+        <TextBlock x:Name="MigrationTags" Text="{Binding NewTagsText}" IsVisible="{Binding HasNewTags}" TextWrapping="Wrap" />
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

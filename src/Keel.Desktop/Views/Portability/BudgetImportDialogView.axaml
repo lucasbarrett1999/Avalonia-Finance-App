@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Portability"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Portability.BudgetImportDialogView"
+             x:DataType="vm:BudgetImportDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" MaxWidth="560">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Ynab_BudgetIntro}" TextWrapping="Wrap" />
+    <Border Classes="card">
+      <TextBlock x:Name="BudgetPreviewText" Text="{Binding PreviewText}" TextWrapping="Wrap" />
+    </Border>
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" AutomationProperties.Name="{x:Static res:Strings.Ynab_Working}" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="BudgetConfirmButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Ynab_BudgetConfirm}" IsEnabled="{Binding CanImport}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

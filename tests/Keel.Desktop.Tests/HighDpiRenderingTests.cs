@@ -71,4 +71,53 @@ public sealed class HighDpiRenderingTests : IDisposable
         window.Close();
         LogCapture.Instance.Messages.ShouldBeEmpty();
     }
+
+    [AvaloniaFact]
+    public async Task Export_bundle_and_migration_dialogs_render_at_2x_on_a_1080p_display()
+    {
+        await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(300, Seed: 6, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Width = 960;
+        window.Height = 540;
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+        var scenes = await PortabilityScenes.DialogsAsync(_host, shell, Path.Combine(_host.Root, "exports"));
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            foreach (var (name, open) in scenes)
+            {
+                var showing = open();
+                await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, name + " shown");
+                for (var i = 0; i < 6; i++)
+                {
+                    Dispatcher.UIThread.RunJobs();
+                    await Task.Delay(20);
+                }
+
+                using var bitmap = new RenderTargetBitmap(new PixelSize(1920, 1080), new Vector(192, 192));
+                bitmap.Render(window);
+                bitmap.PixelSize.ShouldBe(new PixelSize(1920, 1080));
+                if (!string.IsNullOrEmpty(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                    // The 1x frame at 960 × 540; a 2x bitmap of the dialog layer scales dialog content twice in the
+                    // headless renderer (existing dialogs too), so only the narrow frame is saved for review.
+                    using var frame = window.CaptureRenderedFrame()!;
+                    frame.Save(Path.Combine(outputDir, $"{name}-narrow-{theme}.png"));
+                }
+
+                shell.Dialogs.Current!.CancelCommand.Execute(null);
+                await showing;
+            }
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+    }
 }
