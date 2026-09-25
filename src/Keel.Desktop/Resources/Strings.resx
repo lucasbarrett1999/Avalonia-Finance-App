@@ -4794,4 +4794,10 @@
   <data name="Shortcut_RedoAlternate" xml:space="preserve">
     <value>Redo (alternative)</value>
   </data>
+  <data name="Home_Loading" xml:space="preserve">
+    <value>Loading your dashboard…</value>
+  </data>
+  <data name="Goals_Loading" xml:space="preserve">
+    <value>Loading goals…</value>
+  </data>
 </root>

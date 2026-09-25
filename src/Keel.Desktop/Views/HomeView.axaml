@@ -40,10 +40,11 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="home:SetupStepViewModel">
               <StackPanel Spacing="4" Margin="0,0,12,0" AutomationProperties.Name="{Binding AutomationName}">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <controls:Icon Data="{StaticResource Icon.Check}" Width="14" Height="14" Foreground="{DynamicResource Keel.Positive}" IsVisible="{Binding IsDone}" />
+                <DockPanel>
+                  <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Check}" Width="14" Height="14" Margin="0,2,6,0" VerticalAlignment="Top"
+                                 Foreground="{DynamicResource Keel.Positive}" IsVisible="{Binding IsDone}" />
                   <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                </StackPanel>
+                </DockPanel>
                 <TextBlock Classes="secondary" Text="{Binding StateText}" FontSize="{StaticResource Keel.FontSize.Small}" />
                 <TextBlock Classes="secondary" Text="{Binding Hint}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
                 <Button Content="{Binding ActionText}" Command="{Binding Command}" IsVisible="{Binding ShowAction}" HorizontalAlignment="Left" Margin="0,4,0,0" />
@@ -55,6 +56,10 @@
     </Border>
 
     <Panel>
+      <StackPanel x:Name="LoadingState" IsVisible="{Binding ShowLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+        <ProgressBar IsIndeterminate="True" Width="220" AutomationProperties.Name="{x:Static res:Strings.Home_Loading}" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_Loading}" HorizontalAlignment="Center" />
+      </StackPanel>
       <controls:EmptyState Icon="{StaticResource Icon.Home}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
                            IsVisible="{Binding ShowEmptyState}">
         <StackPanel Spacing="16" HorizontalAlignment="Center">

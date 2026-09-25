@@ -1,7 +1,36 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Keel.Desktop.Controls">
   <Style Selector="Window">
     <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Base}" />
+  </Style>
+
+  <!-- Amounts use tabular figures everywhere (PRD 8, 9.11): typed amounts line up like shown ones. -->
+  <Style Selector="controls|MoneyTextBox">
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+
+  <!-- Selected list items use the navigation selection colour, on which secondary text still meets WCAG AA
+       (Fluent's accent-tinted selection does not). -->
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.NavSelected}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.NavSelected}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource Keel.NavSelected}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
+  </Style>
+
+  <!-- Placeholder text meets WCAG AA like any other text (M8 accessibility pass). -->
+  <Style Selector="TextBox /template/ TextBlock#PART_Watermark, TextBox /template/ TextBlock#PART_FloatingWatermark">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark, TextBox:pointerover /template/ TextBlock#PART_Watermark">
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
   </Style>
 
   <!-- Page headers -->

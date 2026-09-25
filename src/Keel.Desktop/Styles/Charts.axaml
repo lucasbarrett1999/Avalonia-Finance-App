@@ -75,6 +75,7 @@
     <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
   </Style>
   <Style Selector="TextBlock.heroNumber">
+    <Setter Property="FontFeatures" Value="+tnum" />
     <Setter Property="FontSize" Value="32" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />

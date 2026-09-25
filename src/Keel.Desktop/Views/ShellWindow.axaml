@@ -9,7 +9,7 @@
         x:DataType="vm:ShellViewModel"
         Title="{Binding WindowTitle}"
         Icon="/Assets/keel-icon-256.png"
-        Width="1280" Height="800" MinWidth="880" MinHeight="560"
+        Width="1280" Height="800" MinWidth="880" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Keel.WindowBackground}">
   <views:ShellView x:Name="Shell" />
