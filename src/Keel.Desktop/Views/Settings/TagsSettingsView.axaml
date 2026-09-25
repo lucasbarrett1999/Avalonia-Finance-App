@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.TagsSettingsView"
+             x:DataType="vm:TagsSettingsViewModel">
+  <StackPanel Spacing="10">
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Tag_SettingsDescription}" TextWrapping="Wrap" />
+    <Panel>
+      <ScrollViewer MaxHeight="360" HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl x:Name="TagRows" ItemsSource="{Binding Tags}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TagRowViewModel">
+              <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,2">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <Border Classes="tagChip small">
+                    <TextBlock Text="{Binding Name}" />
+                  </Border>
+                  <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Tag_ReservedNote}"
+                             IsVisible="{Binding IsReserved}" VerticalAlignment="Center" />
+                  <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Tag_SubscriptionNote}"
+                             IsVisible="{Binding IsSubscriptionTag}" VerticalAlignment="Center" />
+                  <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding RuleText}"
+                             IsVisible="{Binding HasRules}" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="link" Margin="8,0" Command="{Binding Owner.ShowTransactionsCommand}" CommandParameter="{Binding}"
+                        ToolTip.Tip="{Binding ShowName}" AutomationProperties.Name="{Binding ShowName}">
+                  <TextBlock Text="{Binding CountText}" FontFeatures="+tnum" FontSize="{StaticResource Keel.FontSize.Small}" />
+                </Button>
+                <Button Grid.Column="2" Padding="6" Margin="4,0,0,0" IsEnabled="{Binding CanChange}"
+                        Command="{Binding Owner.RenameCommand}" CommandParameter="{Binding}"
+                        ToolTip.Tip="{Binding RenameName}" AutomationProperties.Name="{Binding RenameName}">
+                  <controls:Icon Data="{StaticResource Icon.Edit}" Width="14" Height="14" />
+                </Button>
+                <Button Grid.Column="3" Padding="6" Margin="4,0,0,0" IsEnabled="{Binding CanChange}"
+                        Command="{Binding Owner.MergeCommand}" CommandParameter="{Binding}"
+                        ToolTip.Tip="{Binding MergeName}" AutomationProperties.Name="{Binding MergeName}">
+                  <controls:Icon Data="{StaticResource Icon.Merge}" Width="14" Height="14" />
+                </Button>
+                <Button Grid.Column="4" Padding="6" Margin="4,0,0,0"
+                        Command="{Binding Owner.DeleteCommand}" CommandParameter="{Binding}"
+                        ToolTip.Tip="{Binding DeleteName}" AutomationProperties.Name="{Binding DeleteName}">
+                  <controls:Icon Data="{StaticResource Icon.Trash}" Width="14" Height="14" />
+                </Button>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Tag_SettingsEmpty}" IsVisible="{Binding IsEmpty}" TextWrapping="Wrap" />
+      <ProgressBar IsIndeterminate="True" Width="120" HorizontalAlignment="Left" IsVisible="{Binding IsLoading}"
+                   AutomationProperties.Name="{x:Static res:Strings.Tag_SettingsTitle}" />
+      <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    </Panel>
+  </StackPanel>
+</UserControl>

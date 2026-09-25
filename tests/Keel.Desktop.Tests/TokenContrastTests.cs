@@ -15,7 +15,7 @@ public sealed class TokenContrastTests
         "Keel.NavHover", "Keel.NavSelected", "Keel.WarningBackground", "Keel.Budget.GroupBackground", "Keel.Budget.SelectedRow",
         "Keel.Bills.DayBackground", "Keel.Bills.OtherMonthBackground", "Keel.Bills.ChipBackground", "Keel.Bills.ChipPaidBackground",
         "Keel.Bills.ChipIncomeBackground", "Keel.Bills.PillBackground", "Keel.Bills.DetectedBackground", "Keel.Bills.GhostBackground",
-        "Keel.Chart.RowHover",
+        "Keel.Chart.RowHover", "Keel.Tag.ChipBackground",
     ];
 
     public static TheoryData<string, string, string, double> Pairs()

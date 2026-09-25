@@ -3,6 +3,84 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M9c — Tags, attachments and payee merge
+
+Milestone 9 stream C (PRD 12 P1 backlog): tags and attachments (F-TXN-8) and payee merge (F-TXN-9), with the
+tag parts of search (F-TXN-7). No schema change: the `Tag`, `TransactionTag` and `Attachment` tables existed.
+
+### Added
+
+- **Tags in the register** (ADR 0096): a Tags box on the editor's second line with chips, type-ahead over the
+  file's tags, `Enter` adds (the highlighted suggestion or the typed text), `Backspace` in the empty box
+  removes the last chip; `T` on a row opens the editor there. New tags are created in the same ledger action
+  as the transaction save (`SaveTransactionRequest.Tags`), so one undo removes them. Tag chips before the memo
+  (clipped, never overlapping), a tag filter in the filter bar (`RegisterFilter.TagId`, shown when the file
+  has tags), free words that match tag names, and `has:tag` / `has:attachment` in the search syntax. In
+  registers narrower than 1000 px the filters wrap under the search box (the bar overflowed at 960 × 540 with the extra
+  filter).
+- **Settings → Tags**: every tag with transaction and rule counts, a link to its transactions, rename (rules
+  that name the tag follow), merge into another tag (links, rules and the subscription designation move),
+  delete with a count confirmation; each undoable. The reserved `Flagged` tag (the rules' flag) can only be
+  deleted; subscription-marker tags keep working through rename, merge and delete.
+- **Attachments** (ADR 0097): `IAttachmentService` stores files content-addressed (SHA-256 names) in the
+  `Name.keel-attachments` folder next to the budget file; the copy happens before the row is written in an
+  undoable `LedgerWriter` action; identical content is stored once. The editor lists attachments with open
+  (a read-only copy under the original name, opened with the system app through Avalonia's launcher) and
+  remove (undoable), an **Attach file…** picker, and drag and drop onto the editor; files for a new
+  transaction are attached after its save. A paperclip with the count on register rows. The daily
+  maintenance job deletes files no row refers to, keeping any named by an attachment change of the last 30
+  days (undo) or written in the last day. Backups, restore and "Move budget file" carry the folder (tested
+  with real attachments). Not encrypted (PRD 10; the data guide says so).
+- **Payee merge** (ADR 0097): Settings → Payees gets a check box per payee and **Merge into…**; the dialog
+  picks the survivor and shows the counts (transactions, scheduled transactions, recurring items, rules) and
+  the default-category outcome. One undoable action moves transactions (deleted ones too), schedules and
+  recurring items, rewrites "set payee" and "payee equals" rules, keeps the survivor's default category or
+  takes the first merged payee's, and removes the others; the learner follows through the audit log.
+- **Palette and keys**: `T` (edit tags), `Enter`/`Backspace` in the Tags box in the registry and the keyboard
+  guide; palette commands "Manage tags", "Merge payees", and, with one register row selected, "Attach a file to
+  the selected transaction" and "Edit tags of the selected transaction"; Settings section `Tags`.
+- **Docs**: `docs/user-guide/transactions.md` (register, full search syntax, tags, attachments), payee merge
+  in the review and rules guide, attachments in the data guide, keyboard guide, QA checklist items.
+
+### Changed
+
+- Renaming a payee onto an existing name now uses the merge (it failed with a foreign-key error when the
+  renamed payee had scheduled transactions or recurring items), and a rename also rewrites rules that set or
+  equal the old name.
+- Purging deleted transactions removes their tag and attachment rows explicitly, so undo restores them.
+- Rules and imports (the M9d YNAB flag and Monarch tags) add tags through the tag service: the same
+  case-insensitive lookup as the editor, so `Flagged` and subscription-marker tags are reused by id.
+- The register footer's key hints mention `T`.
+
+### Decisions and deviations
+
+- [ADR 0096](docs/decisions/0096-tags-in-the-ledger.md): tag names, editing in the save action, register,
+  management rules, `Flagged` reserved, change messages.
+- [ADR 0097](docs/decisions/0097-attachments-and-payee-merge.md): the per-file `Name.keel-attachments` folder
+  instead of the PRD's literal `attachments/` (M8 backups, restore and moves already use it), orphan grace
+  period, opening copies, pending files on new transactions, payee merge semantics.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test` per project, `-m:1` (after merging M9d) | 1,887 passed, 4 skipped (gated): Domain 1,046, Infrastructure 529 + 4 skipped, Desktop 312 |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Tags\|FullyQualifiedName~Tests.Attachments\|FullyQualifiedName~PayeeMerge"` | 23 passed (tags with undo, rules and designations; attachments with dedup, undo, clean-up, backup/restore and move; merge with undo and the learner equal to a retrain) |
+| `dotnet test tests/Keel.Desktop.Tests --filter "TagsAttachmentsTests\|TokenContrastTests\|M9cRenderingTests"` plus the two new accessibility and 2x tests | all pass; audits report no unnamed controls, low-contrast text or proportional amounts |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter "M9cRenderingTests\|HighDpiRenderingTests"` | 16 M9c PNGs (light and dark) and the 2x captures reviewed by eye; the register filter bar at 960 × 540 fixed |
+
+A domain timing test (`BudgetPerformanceTests`, 200 ms) failed once while other worktrees were running their
+suites on the same machine and passed on the rerun; this stream did not touch budget code.
+
+### Not done here
+
+- Windows and macOS (file picker, drag and drop from Explorer/Finder, opening with the default app) run only
+  in CI and the QA checklist; the windowed app was not launched.
+- Recurring items flagged as subscriptions through a merged or deleted tag are reclassified at the next
+  detection run, not at once. Deleting a tag does not rewrite rules that add it (the confirmation says so).
+- No saved filters (F-TXN-7) and no attachment previews (thumbnails) in the register.
 ## M9b — Debt payoff, budget health and PNG export
 
 Milestone 9 (PRD 12, P1 backlog), stream B: the debt payoff planner (F-GOAL-2, PRD 9.7), age of money

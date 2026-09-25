@@ -30,6 +30,9 @@ or screen by typing part of its name, and shows each action's shortcut.
 | `Delete` | Delete with undo |
 | `Ctrl+Enter` | Save and add another |
 | `Esc` | Cancel editing |
+| `T` | Edit tags of the selected transaction |
+| `Enter` | Add the typed tag (in the Tags box) |
+| `Backspace` | Remove the last tag (in the empty Tags box) |
 
 ## Budget
 

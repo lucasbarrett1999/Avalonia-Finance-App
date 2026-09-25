@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:tags="using:Keel.Application.Tags"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.MergeTagDialogView"
+             x:DataType="vm:MergeTagDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" Width="440">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+    <StackPanel IsVisible="{Binding HasTargets}">
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Tag_MergeInto}" />
+      <ComboBox x:Name="MergeTargetBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Targets}" SelectedItem="{Binding Target}"
+                AutomationProperties.Name="{x:Static res:Strings.Tag_MergeInto}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="tags:TagUsage">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </StackPanel>
+    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="MergeTagButton" Classes="accent" Command="{Binding ConfirmCommand}" IsEnabled="{Binding HasTargets}"
+              Content="{x:Static res:Strings.Tag_MergeConfirm}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

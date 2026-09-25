@@ -108,6 +108,13 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         list.Add(Cmd("bills-new", Strings.Shortcut_BillsNew, actions, () => OnPage<BillsViewModel>(shell, b => _ = b.AddItemAsync())));
         list.Add(Cmd("goals-new", Strings.Shortcut_GoalsNew, actions, () => OnPage<GoalsViewModel>(shell, g => _ = g.NewGoalAsync())));
         list.Add(Cmd("reports-export", Strings.Shortcut_ReportsExport, actions, () => OnPage<ReportsViewModel>(shell, r => _ = r.ExportCsvAsync())));
+        list.Add(Cmd("manage-tags", Strings.Tag_PaletteManage, actions, () => shell.NavigateToSettings("Tags")));
+        list.Add(Cmd("merge-payees", Strings.PayeeMerge_Palette, actions, () => shell.NavigateToSettings("Payees")));
+        if (shell.CurrentPage is AccountsViewModel register && register.Selection.Count == 1)
+        {
+            list.Add(Cmd("attach-file", Strings.Attachment_PaletteAttach, actions, () => _ = register.AttachToSelectedAsync()));
+            list.Add(Cmd("register-tags", Strings.Tag_PaletteEdit, actions, () => _ = register.EditTagsAsync()));
+        }
         list.Add(Cmd("budget-three-months", Strings.BudgetMonths_Shortcut, view, () => OnPage<BudgetViewModel>(shell, b => b.ToggleThreeMonths())));
         list.Add(Cmd("budget-flex", Strings.Flex_Shortcut, view, () => OnPage<BudgetViewModel>(shell, b => b.ToggleFlexView())));
 
@@ -199,6 +206,7 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         ("Rules", Strings.Settings_Rules),
         ("Keyboard", Strings.Settings_Shortcuts),
         ("Updates", Strings.Settings_UpdatesTitle),
+        ("Tags", Strings.Tag_SettingsTitle),
     ];
 
     private AppCommand Cmd(string id, string title, string section, Action execute)

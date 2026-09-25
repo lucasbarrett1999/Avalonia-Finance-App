@@ -14,7 +14,7 @@ namespace Keel.Desktop.ViewModels.Register;
 /// The inline add/edit row of the register (PRD 9.4): date, account (All Accounts), payee with
 /// autocomplete (known payees and "Transfer: account" entries), category, memo, outflow, inflow,
 /// cleared, and optional split lines. Choosing a known payee on a new row pre-fills its last
-/// category and memo.
+/// category and memo. Tags and attachments (F-TXN-8) sit on a second line under the fields.
 /// </summary>
 public sealed partial class TransactionEditorViewModel : ObservableObject
 {
@@ -29,7 +29,9 @@ public sealed partial class TransactionEditorViewModel : ObservableObject
         IReadOnlyList<CategoryOption> categories,
         AccountOption? account,
         TransactionDto? existing,
-        bool canChooseAccount)
+        bool canChooseAccount,
+        IReadOnlyList<string>? knownTags = null,
+        AttachmentContext? attachments = null)
     {
         ArgumentNullException.ThrowIfNull(accounts);
         ArgumentNullException.ThrowIfNull(categories);
@@ -40,6 +42,8 @@ public sealed partial class TransactionEditorViewModel : ObservableObject
         Splits.CollectionChanged += (_, _) => OnSplitsChanged();
         Account = account;
         PayeePopulator = PopulatePayeesAsync;
+        Tags = new TagEditorViewModel(existing?.Tags ?? [], knownTags ?? []);
+        Attachments = attachments is null ? null : new EditorAttachmentsViewModel(attachments, existing?.Id);
 
         if (existing is null)
         {
@@ -78,6 +82,18 @@ public sealed partial class TransactionEditorViewModel : ObservableObject
 
     /// <summary>Id of the edited transaction; null for a new one.</summary>
     public Guid? Id { get; }
+
+    /// <summary>The tag box (F-TXN-8).</summary>
+    public TagEditorViewModel Tags { get; }
+
+    /// <summary>The attachment list (F-TXN-8), or null when attachments are not available.</summary>
+    public EditorAttachmentsViewModel? Attachments { get; }
+
+    /// <summary>Whether files can be attached here.</summary>
+    public bool CanAttach => Attachments is not null;
+
+    /// <summary>Focus the tag box instead of the payee when the editor opens (the register's T key).</summary>
+    public bool FocusTagsOnOpen { get; init; }
 
     /// <summary>Whether this is a new transaction.</summary>
     public bool IsNew => Id is null;
@@ -259,7 +275,8 @@ public sealed partial class TransactionEditorViewModel : ObservableObject
             status,
             IsApproved,
             transfer?.Id,
-            splits);
+            splits,
+            Tags.Names);
     }
 
     /// <summary>

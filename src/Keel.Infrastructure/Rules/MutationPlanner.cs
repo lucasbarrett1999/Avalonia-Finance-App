@@ -281,35 +281,9 @@ internal static class MutationPlanner
         }
     }
 
-    private static async Task AddTagAsync(KeelDbContext db, Guid transactionId, string name, CancellationToken ct)
-    {
-        var clean = name.Trim();
-        if (clean.Length == 0)
-        {
-            return;
-        }
-
-        var tag = db.ChangeTracker.Entries<Tag>().Select(e => e.Entity).FirstOrDefault(t => string.Equals(t.Name, clean, StringComparison.OrdinalIgnoreCase));
-        if (tag is null)
-        {
-            var upper = clean.ToUpperInvariant();
-            tag = await db.Tags.FirstOrDefaultAsync(t => t.Name.ToUpper() == upper, ct).ConfigureAwait(false);
-        }
-
-        if (tag is null)
-        {
-            tag = new Tag { Name = clean };
-            db.Tags.Add(tag);
-        }
-
-        var tagId = tag.Id;
-        var exists = db.ChangeTracker.Entries<TransactionTag>().Any(e => e.Entity.TransactionId == transactionId && e.Entity.TagId == tagId)
-            || await db.TransactionTags.AnyAsync(t => t.TransactionId == transactionId && t.TagId == tagId, ct).ConfigureAwait(false);
-        if (!exists)
-        {
-            db.TransactionTags.Add(new TransactionTag { TransactionId = transactionId, TagId = tagId });
-        }
-    }
+    // Tag names compare case-insensitively everywhere; the tag service owns the lookup (F-TXN-8).
+    private static Task AddTagAsync(KeelDbContext db, Guid transactionId, string name, CancellationToken ct) =>
+        Domain.Ledger.TagNames.Clean(name).Length == 0 ? Task.CompletedTask : Tags.TagService.AddToTransactionAsync(db, transactionId, name, ct);
 
     private static bool SameSplits(IReadOnlyList<SnapshotSplit> a, IReadOnlyList<SnapshotSplit> b)
     {

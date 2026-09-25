@@ -10,7 +10,7 @@ namespace Keel.Desktop.ViewModels;
 
 /// <summary>
 /// Settings (PRD 9.9): General (budget file, backups, integrity, diagnostics), appearance (theme, accent,
-/// density, motion, formats), bank connections, bills and subscriptions, payees, rules, the keyboard
+/// density, motion, formats), bank connections, bills and subscriptions, tags, payees, rules, the keyboard
 /// shortcut reference generated from the <see cref="ShortcutRegistry"/>, and updates.
 /// </summary>
 public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigation.INavigationTarget
@@ -30,8 +30,10 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
         Settings.AppearanceSettingsViewModel? appearance = null,
         Settings.BillsSettingsViewModel? bills = null,
         Settings.UpdatesSettingsViewModel? updates = null,
-        ShortcutRegistry? registry = null)
+        ShortcutRegistry? registry = null,
+        Settings.TagsSettingsViewModel? tags = null)
     {
+        Tags = tags;
         _themes = themes;
         _themes.ThemeChanged += OnThemeChanged;
         DataFile = dataFile;
@@ -158,6 +160,9 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
     /// <summary>Settings → Updates.</summary>
     public Settings.UpdatesSettingsViewModel? Updates { get; }
 
+    /// <summary>Settings → Tags (F-TXN-8).</summary>
+    public Settings.TagsSettingsViewModel? Tags { get; }
+
     /// <summary>The shortcut reference grouped by screen.</summary>
     public IReadOnlyList<ShortcutGroupViewModel> ShortcutGroups { get; }
 
@@ -174,6 +179,7 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
         SectionRequested?.Invoke(this, EventArgs.Empty);
         _ = DataFile?.LoadAsync();
         _ = Bills?.LoadAsync();
+        _ = Tags?.LoadAsync();
     }
 
     /// <summary>The Connections section (F-SET-3).</summary>

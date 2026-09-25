@@ -63,7 +63,7 @@ public sealed partial class MigrationImportService(
                         .ToList();
                     var newTags = parsed.Transactions
                         .SelectMany(r => MigrationRows.TagsOf(parsed.Format, r))
-                        .Select(PayeeNames.Clean)
+                        .Select(t => TagNames.Clean(t))
                         .Where(t => t.Length > 0 && !tags.Contains(t))
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .ToList();

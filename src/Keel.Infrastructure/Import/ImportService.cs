@@ -221,8 +221,10 @@ public sealed partial class ImportService(
         }
     }
 
-    // Tags the source stated for new rows (a Monarch export's Tags; M9): existing tags by name, ignoring
-    // case, else new ones; written after the rows they reference, in the same unit of work.
+    // Tags the source stated for new rows (a Monarch export's Tags, a YNAB flag; M9): through the tag service's
+    // lookup (ADR 0096), so names match existing tags ignoring case and keep their spelling, "Flagged" stays the
+    // rules' flag and subscription-marker tags are reused by id; written after the rows they reference, in the
+    // same unit of work.
     private static async Task TagInsertsAsync(LedgerSession session, ImportPlan plan, CancellationToken ct)
     {
         var tagged = plan.Rows.Where(r => r.Action == ImportRowAction.Insert && r.Incoming.Tags.Count > 0).ToList();
@@ -232,23 +234,11 @@ public sealed partial class ImportService(
         }
 
         var db = session.Db;
-        var tags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
-        foreach (var tag in await db.Tags.ToListAsync(ct).ConfigureAwait(false))
-        {
-            tags.TryAdd(tag.Name, tag);
-        }
-
         foreach (var row in tagged)
         {
-            foreach (var name in row.Incoming.Tags.Select(PayeeNames.Clean).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase))
+            foreach (var name in TagNames.Distinct(row.Incoming.Tags))
             {
-                if (!tags.TryGetValue(name, out var tag))
-                {
-                    tag = new Tag { Name = name.Length > 100 ? name[..100] : name };
-                    db.Tags.Add(tag);
-                    tags[name] = tag;
-                }
-
+                var tag = await Tags.TagService.GetOrAddAsync(db, name, ct).ConfigureAwait(false);
                 db.TransactionTags.Add(new TransactionTag { TransactionId = row.NewId, TagId = tag.Id });
             }
         }

@@ -170,6 +170,11 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
             {
                 splitParents.UnionWith(change.Values(nameof(TransactionSplit.TransactionId)).OfType<Guid>());
             }
+            else if (change.EntityType == typeof(TransactionTag) || change.EntityType == typeof(Attachment))
+            {
+                // Tags and attachments (F-TXN-8) belong to their transaction's account and month.
+                splitParents.UnionWith(change.Values(nameof(TransactionTag.TransactionId)).OfType<Guid>());
+            }
             else if (change.EntityType == typeof(Account))
             {
                 accounts.UnionWith(change.Values(nameof(Account.Id)).OfType<Guid>());

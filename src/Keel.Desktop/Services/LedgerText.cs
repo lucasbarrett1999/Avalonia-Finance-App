@@ -10,12 +10,12 @@ namespace Keel.Desktop.Services;
 public static class LedgerText
 {
     /// <summary>User-facing explanation of a refused ledger operation.</summary>
-    public static string Error(LedgerError error) => Lookup("LedgerError_" + error) ?? error.ToString();
+    public static string Error(LedgerError error) => Lookup("LedgerError_" + error) ?? FeatureLookup("Error_" + error) ?? error.ToString();
 
     /// <summary>User-facing name of an undoable action, e.g. "delete transactions".</summary>
     public static string Action(LedgerAction action) => action == LedgerAction.TagCategoryFlex
         ? Strings.Flex_ActionTagCategory
-        : Lookup("Action_" + action) ?? action.ToString();
+        : Lookup("Action_" + action) ?? FeatureLookup("Action_" + action) ?? action.ToString();
 
     /// <summary>Display name of an account type.</summary>
     public static string AccountType(AccountType type) => Lookup("AccountType_" + type) ?? type.ToString();
@@ -38,4 +38,7 @@ public static class LedgerText
     public static string Format(string template, params object?[] args) => string.Format(CultureInfo.CurrentCulture, template, args);
 
     private static string? Lookup(string key) => Strings.ResourceManager.GetString(key, Strings.Culture);
+
+    // Texts of later features live under their feature's prefix (M9: Tag_, Attachment_, PayeeMerge_).
+    private static string? FeatureLookup(string key) => Lookup("Tag_" + key) ?? Lookup("Attachment_" + key) ?? Lookup("PayeeMerge_" + key);
 }

@@ -196,4 +196,91 @@ public sealed class HighDpiRenderingTests : IDisposable
         window.Close();
         LogCapture.Instance.Messages.ShouldBeEmpty();
     }
+
+    [AvaloniaFact]
+    public async Task Tags_attachments_and_payee_merge_render_at_2x_on_a_1080p_display()
+    {
+        var ledger = await TagTestLedger.CreateAsync(_host);
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Width = 960;
+        window.Height = 540;
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+
+        async Task RenderAsync(string name)
+        {
+            for (var i = 0; i < 6; i++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                await Task.Delay(20);
+            }
+
+            using var bitmap = new RenderTargetBitmap(new PixelSize(1920, 1080), new Vector(192, 192));
+            bitmap.Render(window);
+            bitmap.PixelSize.ShouldBe(new PixelSize(1920, 1080));
+            if (!string.IsNullOrEmpty(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+                bitmap.Save(Path.Combine(outputDir, $"M9c-{name}-2x-{themes.Current}.png"));
+            }
+        }
+
+        async Task DialogAsync(string name, Func<Task> open)
+        {
+            var opening = open();
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, name + " shown");
+            if (shell.Dialogs.Current is Keel.Desktop.ViewModels.Rules.MergePayeesDialogViewModel merge)
+            {
+                await merge.Refreshing;
+            }
+
+            await RenderAsync(name);
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await opening;
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            shell.OpenAccount(ledger.Checking);
+            var register = _host.Get<AccountsViewModel>();
+            await register.SettleAsync();
+            await UiTestHelpers.WaitUntilAsync(() => register.Rows.LoadedRows.Any(r => r.Id == ledger.Hotel), "rows loaded");
+            window.Register().Grid.SelectedItem = register.Rows.LoadedRows.First(r => r.Id == ledger.Hotel);
+            Dispatcher.UIThread.RunJobs();
+            await register.EditTagsAsync();
+            await UiTestHelpers.WaitUntilAsync(() => register.Editor?.Attachments?.Items.Count == 1, "attachments listed");
+            await RenderAsync("Editor");
+            register.CancelEdit();
+
+            shell.NavigateToSettings("Tags");
+            var tags = _host.Get<Keel.Desktop.ViewModels.Settings.TagsSettingsViewModel>();
+            await UiTestHelpers.WaitUntilAsync(() => tags.Tags.Count == 3, "tags loaded");
+            await RenderAsync("SettingsTags");
+            var trip = tags.Tags.Single(t => t.Name == "Trip 2026");
+            await DialogAsync("RenameTag", () => tags.RenameCommand.ExecuteAsync(trip));
+            await DialogAsync("MergeTag", () => tags.MergeCommand.ExecuteAsync(trip));
+            await DialogAsync("DeleteTag", () => tags.DeleteCommand.ExecuteAsync(trip));
+
+            var payees = _host.Get<Keel.Desktop.ViewModels.Rules.PayeesViewModel>();
+            shell.NavigateToSettings("Payees");
+            await payees.EnsureLoadedAsync();
+            await payees.Loading;
+            foreach (var row in payees.Payees.Where(p => p.Name.StartsWith("am", StringComparison.OrdinalIgnoreCase)))
+            {
+                row.IsSelected = true;
+            }
+
+            await DialogAsync("MergePayees", () => payees.MergeCommand.ExecuteAsync(null));
+            payees.ClearSelectionCommand.Execute(null);
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+    }
 }

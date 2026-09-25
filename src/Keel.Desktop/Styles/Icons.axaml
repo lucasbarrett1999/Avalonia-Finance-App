@@ -51,4 +51,8 @@
   <StreamGeometry x:Key="Icon.List">M8 6 H21 M8 12 H21 M8 18 H21 M3 6 H3.01 M3 12 H3.01 M3 18 H3.01</StreamGeometry>
   <StreamGeometry x:Key="Icon.Info">M12 2 A10 10 0 1 0 12 22 A10 10 0 1 0 12 2 Z M12 16 V12 M12 8 H12.01</StreamGeometry>
   <StreamGeometry x:Key="Icon.Import">M21 15 V19 A2 2 0 0 1 19 21 H5 A2 2 0 0 1 3 19 V15 M7 10 L12 15 L17 10 M12 15 V3</StreamGeometry>
+  <!-- Tags, attachments and payee merge (M9c) -->
+  <StreamGeometry x:Key="Icon.Tag">M20.59 13.41 L13.42 20.58 A2 2 0 0 1 10.59 20.58 L2 12 V2 H12 L20.59 10.59 A2 2 0 0 1 20.59 13.41 Z M7 7 H7.01</StreamGeometry>
+  <StreamGeometry x:Key="Icon.Paperclip">M21.44 11.05 L12.25 20.24 A6 6 0 0 1 3.76 11.75 L12.95 2.56 A4 4 0 0 1 18.61 8.22 L9.41 17.41 A2 2 0 0 1 6.58 14.58 L15.07 6.1</StreamGeometry>
+  <StreamGeometry x:Key="Icon.Merge">M18 15 A3 3 0 1 0 18 21 A3 3 0 1 0 18 15 Z M6 3 A3 3 0 1 0 6 9 A3 3 0 1 0 6 3 Z M6 21 V9 A9 9 0 0 0 15 18</StreamGeometry>
 </ResourceDictionary>

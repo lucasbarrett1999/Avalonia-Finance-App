@@ -198,6 +198,23 @@ public enum LedgerAction
     /// <summary>Skip a scheduled instance.</summary>
     SkipScheduled,
 
+    /// <summary>Rename a tag (F-TXN-8).</summary>
+    RenameTag,
+
+    /// <summary>Merge two tags (F-TXN-8).</summary>
+    MergeTags,
+
+    /// <summary>Delete a tag (F-TXN-8).</summary>
+    DeleteTag,
+
+    /// <summary>Attach a file to a transaction (F-TXN-8).</summary>
+    AddAttachment,
+
+    /// <summary>Remove an attached file (F-TXN-8).</summary>
+    RemoveAttachment,
+
+    /// <summary>Merge payees (F-TXN-9).</summary>
+    MergePayees,
     /// <summary>Tag a category Fixed, Non-monthly or Flex (F-BUD-6).</summary>
     TagCategoryFlex,
 }

@@ -16,6 +16,11 @@ The data folder holds `settings.json` (theme, window size, the last file you ope
 `budgets/` (budget files and `backups/`) and, on Windows and when Linux has no keyring, `secrets/`
 (encrypted bank credentials). The budget file is not encrypted; keep it somewhere only you can read.
 
+Attached files ([Transactions, tags and attachments](transactions.md)) are copies in the
+`<name>.keel-attachments` folder, named by a hash of their content. They are not encrypted either.
+Keel removes files there that no transaction has referred to for about a month; it never touches other
+files you put in the folder.
+
 ## Files
 
 In **Settings → General** (and the File menu):

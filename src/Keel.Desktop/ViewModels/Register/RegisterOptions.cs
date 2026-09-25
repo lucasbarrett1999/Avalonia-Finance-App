@@ -24,6 +24,16 @@ public sealed record CategoryOption(Guid? Id, string Name, string Group)
     public override string ToString() => FullName;
 }
 
+/// <summary>A tag in the filter bar (F-TXN-8); a null id is "All tags".</summary>
+public sealed record TagOption(Guid? Id, string Name)
+{
+    /// <summary>The "All tags" filter entry.</summary>
+    public static TagOption All { get; } = new(null, Strings.Tag_FilterAll);
+
+    /// <inheritdoc />
+    public override string ToString() => Name;
+}
+
 /// <summary>An account in pickers (transfer targets, All Accounts entry, move).</summary>
 public sealed record AccountOption(Guid Id, string Name, bool IsOnBudget, bool IsClosed, string Currency)
 {

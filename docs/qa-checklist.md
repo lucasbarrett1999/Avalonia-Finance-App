@@ -102,6 +102,16 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
       Settings → Keyboard shortcuts; on macOS the menus show ⌘ glyphs.
 - [ ] Menus: Windows/Linux in-window File, Edit, View, Go, Help; macOS menu bar with the app menu
       holding About, Preferences and Quit.
+- [ ] Tags (F-TXN-8): `T` on a row, type a new and an existing tag with `Enter`, remove one with
+      `Backspace`, save; chips show in the row; the tag filter and `tag:`/`has:tag` find it; one undo
+      removes the new tag. Settings → Tags: rename, merge, delete (count in the confirmation), undo each;
+      "Flagged" cannot be renamed; a rule that adds a renamed tag uses the new name.
+- [ ] Attachments: attach a PDF and a photo from the picker and by dragging them from the file manager
+      onto the editor (a new and an existing transaction); the paperclip count shows; clicking opens the
+      file in the system's viewer (Windows, macOS, Linux); remove and undo; the files are in
+      `<name>.keel-attachments`, a backup zip contains them, Restore and Move budget file bring them along.
+- [ ] Payee merge (F-TXN-9): check three spellings of one payee in Settings → Payees, Merge into…, check
+      the counts, merge; the register, a scheduled transaction and a Bills item show the survivor; undo.
 
 ## 5. Appearance and accessibility (PRD 8, 9.11, 11)
 

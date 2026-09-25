@@ -6,11 +6,12 @@ namespace Keel.Domain.Ledger;
 /// <summary>
 /// A parsed register search (F-TXN-7), e.g.
 /// <c>amount:&gt;100 category:groceries date:2026-08 payee:"trader joe"</c>.
-/// Free words match payee, memo, category and account names. Keys: <c>payee</c>, <c>memo</c>,
+/// Free words match payee, memo, category, account and tag names. Keys: <c>payee</c>, <c>memo</c>,
 /// <c>category</c>, <c>account</c>, <c>tag</c> (contains, case-insensitive); <c>amount</c>
 /// (magnitude: <c>100</c>, <c>&gt;100</c>, <c>&gt;=100</c>, <c>&lt;100</c>, <c>&lt;=100</c>,
 /// <c>10..20</c>); <c>date</c> (<c>2026</c>, <c>2026-08</c>, <c>2026-08-15</c>, ranges with
-/// <c>..</c>, and <c>&gt;</c>/<c>&lt;</c> bounds). Amounts use the invariant decimal point.
+/// <c>..</c>, and <c>&gt;</c>/<c>&lt;</c> bounds); <c>has</c> (<c>has:tag</c>, <c>has:attachment</c>, F-TXN-8).
+/// Amounts use the invariant decimal point.
 /// </summary>
 public sealed record SearchQuery
 {
@@ -31,6 +32,12 @@ public sealed record SearchQuery
 
     /// <summary>Tag name contains any of these.</summary>
     public IReadOnlyList<string> Tags { get; init; } = [];
+
+    /// <summary>Only transactions with at least one tag (<c>has:tag</c>).</summary>
+    public bool HasTag { get; init; }
+
+    /// <summary>Only transactions with at least one attachment (<c>has:attachment</c>).</summary>
+    public bool HasAttachment { get; init; }
 
     /// <summary>Lower bound of the amount magnitude in major units.</summary>
     public decimal? AmountMin { get; init; }
@@ -55,7 +62,7 @@ public sealed record SearchQuery
 
     /// <summary>Whether the query has no criteria.</summary>
     public bool IsEmpty => Terms.Count == 0 && Payees.Count == 0 && Memos.Count == 0 && Categories.Count == 0
-        && Accounts.Count == 0 && Tags.Count == 0 && AmountMin is null && AmountMax is null && DateFrom is null && DateTo is null;
+        && Accounts.Count == 0 && Tags.Count == 0 && !HasTag && !HasAttachment && AmountMin is null && AmountMax is null && DateFrom is null && DateTo is null;
 
     /// <summary>An empty query.</summary>
     public static SearchQuery Empty { get; } = new();
@@ -111,6 +118,21 @@ public sealed record SearchQuery
                     if (!TryApplyAmount(value, ref query))
                     {
                         errors.Add(token.Raw);
+                    }
+
+                    break;
+                case "has":
+                    switch (value.ToLowerInvariant())
+                    {
+                        case "tag" or "tags":
+                            query = query with { HasTag = true };
+                            break;
+                        case "attachment" or "attachments" or "receipt" or "file":
+                            query = query with { HasAttachment = true };
+                            break;
+                        default:
+                            errors.Add(token.Raw);
+                            break;
                     }
 
                     break;
