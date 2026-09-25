@@ -6,8 +6,9 @@ every milestone (PRD 15.10).
 Keel is a local-first, cross-platform (Windows, macOS, Linux) personal-finance desktop app:
 envelope budgeting plus net worth, recurring bills and forecasts, on one user-owned SQLite
 file. The spec is `docs/PRD.md`; read it before changing behaviour. Section 6 (domain model
-and budget math) is normative. The build order is PRD section 12; M0–M8 are done (see
-`CHANGELOG.md`); the version is 1.0.0-rc.1 and the P1 backlog (M9) is next. User docs are in
+and budget math) is normative. The build order is PRD section 12; M0–M9 are done (see
+`CHANGELOG.md`); the version is 1.0.0. Post-v1 work is the PRD's P2 list (section 5) and D2's hosted
+Plaid relay for go-live. User docs are in
 `docs/user-guide/`, the release checklist in `docs/qa-checklist.md`.
 
 ## Environment

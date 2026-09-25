@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.0.0 — M9 P1 backlog complete
+
+Every P1 feature of PRD section 5 is built, so the version drops the release-candidate suffix. M9 was
+five parallel streams, each merged on green CI on Windows, macOS and Linux:
+
+| Stream | PR | Scope |
+|---|---|---|
+| M9d | #18 | Full CSV export, lossless JSON bundle export and import, YNAB and Monarch migration importers (F-REP-6, PRD 9.10) |
+| M9a | #20 | Flex mode and the three-month budget view (F-BUD-6, F-BUD-2 P1) |
+| M9b | #21 | Debt payoff planner, age of money and budget health, PNG chart export (F-GOAL-2, F-REP-5, PRD 9.8) |
+| M9c | #19 | Tags and attachments in the ledger, payee merge (F-TXN-8, F-TXN-9) |
+| M9e | #22 | Optional SQLCipher encryption, the local Stats page, command palette completeness (F-SET-4, PRD 4, F-SET-5) |
+
+The streams were merged in a chain (each later branch carried the earlier ones), so the sections below
+each describe one stream against the tree it was built on. Three test fixes came out of running the
+combined tree on all three operating systems: a control lookup that raced the editor's layout, an
+assertion on the import-statistics JSON that matched digits inside hashes, and desktop encryption
+tests that opened the live budget file without write sharing (Windows refuses that).
+
+### Verification (combined tree, after the last merge)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` (Linux) | Domain 1,101, Infrastructure 559 (+4 gated skips), Desktop 347 passed |
+| CI on PR #22 (the full tree) | green on windows-latest, macos-latest, ubuntu-latest |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+
+### Not done here
+
+- No release tag is created from an agent session; `v1.0.0` is pushed by the owner after the
+  `docs/qa-checklist.md` run on real Windows and macOS machines.
+- Post-v1 (PRD P2): the hosted Plaid relay and licensing for a no-keys, paid release (D2), household
+  features, investment holdings, the LLM assistant.
+
 ## M9e — Encryption, Stats page and palette completeness
 
 M9 stream E (PRD 12 P1 backlog): optional SQLCipher encryption of budget files (F-SET-4, PRD 6.7, 10), the

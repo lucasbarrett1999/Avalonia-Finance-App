@@ -52,7 +52,7 @@ Installers are published on the
 | Ubuntu 22.04+ / Debian 12+ | `keel_<version>_amd64.deb` |
 | Other Linux (x64) | `Keel-linux-x64.AppImage` |
 
-The current version is **1.0.0-rc.1**. Release candidates may be unsigned; the
+The current version is **1.0.0**. Builds may be unsigned; the
 [getting started guide](docs/user-guide/getting-started.md) explains the first-launch warnings.
 Automatic update checks are off by default (Settings → Updates).
 
