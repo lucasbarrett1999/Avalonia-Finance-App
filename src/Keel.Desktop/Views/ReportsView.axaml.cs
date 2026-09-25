@@ -14,7 +14,7 @@ public partial class ReportsView : UserControl
     {
         InitializeComponent();
 
-        // Registered in ShortcutRegistry: 1–5 choose a report, Ctrl/Cmd+E exports CSV.
+        // Registered in ShortcutRegistry: 1–4 choose a report, Ctrl/Cmd+E exports CSV.
         Services.PageKeys.Attach(this, e =>
         {
             if (DataContext is not ReportsViewModel vm)

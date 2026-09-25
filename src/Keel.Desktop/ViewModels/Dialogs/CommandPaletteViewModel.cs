@@ -74,7 +74,7 @@ public sealed partial class CommandPaletteViewModel : DialogViewModel
 
     partial void OnQueryChanged(string? value)
     {
-        Results = FuzzyMatch.Filter(_commands, value, c => c.Title + " " + c.Section).Take(MaxResults).ToList();
+        Results = FuzzyMatch.Filter(_commands, value, c => c.Title, c => c.Section).Take(MaxResults).ToList();
         Selected = Results.FirstOrDefault();
     }
 

@@ -60,6 +60,9 @@ public sealed class PlatformShortcuts
     /// <summary>Budget: quick-assign palette of the selected category.</summary>
     public KeyGesture QuickAssign { get; } = new(Key.Q);
 
+    /// <summary>Ctrl/Cmd+Shift+Z, which redoes everywhere in addition to the platform's own redo gesture.</summary>
+    public KeyGesture RedoAlternate => new(Key.Z, CommandModifiers | KeyModifiers.Shift);
+
     /// <summary>Command palette (Ctrl/Cmd+K, PRD 9.1).</summary>
     public KeyGesture CommandPalette => new(Key.K, CommandModifiers);
 

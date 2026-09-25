@@ -90,7 +90,12 @@ public sealed class BudgetSessions : IDisposable
                 window.Attach(host.Services.GetRequiredService<ShellViewModel>(), host.Services.GetRequiredService<WindowPlacementService>());
             }
 
-            App.Services = host.Services;
+            if (previous is not null && ReferenceEquals(App.Services, previous.Services))
+            {
+                // Only the real app publishes its container (tests leave App.Services unset).
+                App.Services = host.Services;
+            }
+
             Switched?.Invoke(this, EventArgs.Empty);
             if (previous is not null)
             {

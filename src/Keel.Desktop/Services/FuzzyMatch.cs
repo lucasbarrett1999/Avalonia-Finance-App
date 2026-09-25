@@ -2,7 +2,8 @@ namespace Keel.Desktop.Services;
 
 /// <summary>
 /// Fuzzy matching for the command palette: the query's characters must appear in order (case-insensitive);
-/// matches at word starts, consecutive runs and a prefix score higher.
+/// the whole query as a prefix or at a word start ranks first, then matches at word starts and
+/// consecutive runs, then shorter texts.
 /// </summary>
 public static class FuzzyMatch
 {
@@ -55,11 +56,27 @@ public static class FuzzyMatch
 
             if (found == previousMatch + 1)
             {
-                score += 4;
+                score += 5;
+            }
+            else if (previousMatch >= 0)
+            {
+                // Letters picked far apart match weakly.
+                score -= Math.Min(5, (found - previousMatch - 1) / 3);
             }
 
             previousMatch = found;
             t = found + 1;
+        }
+
+        // The query typed as it appears ("bud" in "Budget") beats letters picked from several words.
+        var whole = text.IndexOf(q, StringComparison.OrdinalIgnoreCase);
+        if (whole == 0)
+        {
+            score += 30;
+        }
+        else if (whole > 0)
+        {
+            score += char.IsLetterOrDigit(text[whole - 1]) ? 10 : 20;
         }
 
         // Prefer shorter texts among equal matches.
@@ -67,7 +84,13 @@ public static class FuzzyMatch
     }
 
     /// <summary>Filters and orders <paramref name="items"/> by score (stable for ties).</summary>
-    public static IReadOnlyList<T> Filter<T>(IEnumerable<T> items, string? query, Func<T, string> text)
+    public static IReadOnlyList<T> Filter<T>(IEnumerable<T> items, string? query, Func<T, string> text) => Filter(items, query, text, null);
+
+    /// <summary>
+    /// Filters and orders <paramref name="items"/> by the score of <paramref name="text"/>; items that match
+    /// only together with <paramref name="context"/> (e.g. the palette section) follow all direct matches.
+    /// </summary>
+    public static IReadOnlyList<T> Filter<T>(IEnumerable<T> items, string? query, Func<T, string> text, Func<T, string>? context)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(text);
@@ -76,8 +99,12 @@ public static class FuzzyMatch
             return items.ToList();
         }
 
+        int? Rank(T item) => Score(query, text(item)) is { } direct
+            ? direct + 1_000_000
+            : context is null ? null : Score(query, text(item) + " " + context(item));
+
         return items
-            .Select((item, index) => (Item: item, Index: index, Score: Score(query, text(item))))
+            .Select((item, index) => (Item: item, Index: index, Score: Rank(item)))
             .Where(x => x.Score is not null)
             .OrderByDescending(x => x.Score)
             .ThenBy(x => x.Index)

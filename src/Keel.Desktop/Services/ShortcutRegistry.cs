@@ -27,6 +27,9 @@ public enum ShortcutScope
     /// <summary>The Goals screen.</summary>
     Goals,
 
+    /// <summary>Bank connections (Settings → Connections, the top bar and linked registers).</summary>
+    Connections,
+
     /// <summary>Dialogs and editors.</summary>
     Dialogs,
 }
@@ -60,10 +63,13 @@ public sealed class ShortcutRegistry
         Add("search", ShortcutScope.General, Strings.Shortcut_Search, shortcuts.Search);
         Add("undo", ShortcutScope.General, Strings.Shortcut_Undo, shortcuts.Undo);
         Add("redo", ShortcutScope.General, Strings.Shortcut_Redo, shortcuts.Redo);
+        if (!shortcuts.RedoAlternate.Equals(shortcuts.Redo))
+        {
+            Add("redo-alt", ShortcutScope.General, Strings.Shortcut_RedoAlternate, shortcuts.RedoAlternate);
+        }
         Add("sidebar", ShortcutScope.General, Strings.Shortcut_ToggleSidebar, shortcuts.ToggleSidebar);
         Add("settings", ShortcutScope.General, Strings.Shortcut_Settings, shortcuts.Settings);
         Add("open-file", ShortcutScope.General, Strings.Shortcut_OpenFile, shortcuts.OpenFile);
-        Add("sync-all", ShortcutScope.General, Strings.Shortcut_SyncAll, shortcuts.SyncAll);
         string[] pages = [Strings.Nav_Home, Strings.Nav_Budget, Strings.Nav_Review, Strings.Nav_Bills, Strings.Nav_Goals, Strings.Nav_Reports, Strings.Nav_AllAccounts];
         for (var i = 0; i < pages.Length; i++)
         {
@@ -112,6 +118,8 @@ public sealed class ShortcutRegistry
         Add("reports-export", ShortcutScope.Reports, Strings.Shortcut_ReportsExport, new KeyGesture(Key.E, cmd));
 
         Add("goals-new", ShortcutScope.Goals, Strings.Shortcut_GoalsNew, new KeyGesture(Key.N));
+
+        Add("sync-all", ShortcutScope.Connections, Strings.Shortcut_SyncAll, shortcuts.SyncAll);
 
         Add("dialog-confirm", ShortcutScope.Dialogs, Strings.Shortcut_DialogConfirm, new KeyGesture(Key.Enter));
         Add("dialog-cancel", ShortcutScope.Dialogs, Strings.Shortcut_DialogCancel, new KeyGesture(Key.Escape));

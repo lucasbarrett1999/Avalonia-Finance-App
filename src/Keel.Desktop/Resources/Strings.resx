@@ -4788,4 +4788,10 @@
   <data name="Setup_Complete" xml:space="preserve">
     <value>You're set up. Keep assigning as money comes in.</value>
   </data>
+  <data name="ShortcutScope_Connections" xml:space="preserve">
+    <value>Bank connections</value>
+  </data>
+  <data name="Shortcut_RedoAlternate" xml:space="preserve">
+    <value>Redo (alternative)</value>
+  </data>
 </root>
