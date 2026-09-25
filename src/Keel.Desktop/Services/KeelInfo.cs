@@ -11,6 +11,9 @@ public static class KeelInfo
     /// <summary>The user guide.</summary>
     public static Uri UserGuide { get; } = new("https://github.com/lucasbarrett1999/Avalonia-Finance-App/blob/main/docs/user-guide/README.md");
 
+    /// <summary>The bank sync guide (keys, sandbox, security caveat).</summary>
+    public static Uri BankSyncGuide { get; } = new("https://github.com/lucasbarrett1999/Avalonia-Finance-App/blob/main/docs/user-guide/bank-sync.md");
+
     /// <summary>Downloads (GitHub releases; also the Velopack update feed).</summary>
     public static Uri Releases { get; } = new("https://github.com/lucasbarrett1999/Avalonia-Finance-App/releases");
 

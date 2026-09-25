@@ -29,11 +29,13 @@ public sealed partial class FirstRunViewModel : ViewModelBase
     private readonly IAppSettingsStore _settings;
     private readonly IDataDirectory _data;
     private readonly TimeProvider _time;
+    private readonly Sync.IBrowserLauncher? _browser;
     private ShellViewModel? _shell;
 
     /// <summary>Creates the setup.</summary>
-    public FirstRunViewModel(BudgetSessions sessions, IFileDialogs files, ICategoryService categories, IAccountService accounts, IAppSettingsStore settings, IDataDirectory data, TimeProvider time)
+    public FirstRunViewModel(BudgetSessions sessions, IFileDialogs files, ICategoryService categories, IAccountService accounts, IAppSettingsStore settings, IDataDirectory data, TimeProvider time, Sync.IBrowserLauncher? browser = null)
     {
+        _browser = browser;
         _sessions = sessions;
         _files = files;
         _categories = categories;
@@ -231,6 +233,10 @@ public sealed partial class FirstRunViewModel : ViewModelBase
         Finish(toBudget: false);
         _shell?.NavigateToSettings("Connections");
     }
+
+    /// <summary>Step 3: opens the bank sync guide in the browser.</summary>
+    [RelayCommand]
+    public Task OpenBankGuideAsync() => _browser?.OpenAsync(KeelInfo.BankSyncGuide) ?? Task.CompletedTask;
 
     /// <summary>Step 3: shows or hides the explanation of bank connections.</summary>
     [RelayCommand]

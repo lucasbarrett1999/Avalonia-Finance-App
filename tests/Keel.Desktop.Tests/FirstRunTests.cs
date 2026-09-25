@@ -25,9 +25,14 @@ namespace Keel.Desktop.Tests;
 public sealed class FirstRunTests(ITestOutputHelper output) : IDisposable
 {
     private readonly FakeFileDialogs _files = new();
+    private readonly FakeBrowser _browser = new();
     private TestHost? _host;
 
-    private TestHost Host => _host ??= TestHost.CreateFirstRun(services => services.AddSingleton<IFileDialogs>(_files));
+    private TestHost Host => _host ??= TestHost.CreateFirstRun(services =>
+    {
+        services.AddSingleton<IFileDialogs>(_files);
+        services.AddSingleton<Keel.Desktop.ViewModels.Sync.IBrowserLauncher>(_browser);
+    });
 
     public void Dispose() => _host?.Dispose();
 
@@ -97,6 +102,9 @@ public sealed class FirstRunTests(ITestOutputHelper output) : IDisposable
         view.Named<Button>("ConnectBankButton").IsEffectivelyVisible.ShouldBeTrue();
         ImportDialogTests.Click(window, view.Named<Button>("BankInfoButton"));
         view.Named<TextBlock>("BankInfoText").IsEffectivelyVisible.ShouldBeTrue();
+        ImportDialogTests.Click(window, view.Named<Button>("BankGuideButton"));
+        await UiTestHelpers.WaitUntilAsync(() => _browser.Opened.Count == 1, "guide opened");
+        _browser.Opened[0].ShouldBe(KeelInfo.BankSyncGuide);
         view.Named<TextBox>("AccountNameBox").Text = "Everyday checking";
         setup.Balance = 2_345_67;
         ImportDialogTests.Click(window, view.Named<Button>("AddAccountButton"));
@@ -135,6 +143,29 @@ public sealed class FirstRunTests(ITestOutputHelper output) : IDisposable
         ImportDialogTests.Click(window, window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "DismissChecklistButton"));
         home.ShowChecklist.ShouldBeFalse();
         output.WriteLine($"First-run flow completed headlessly in {clock.ElapsedMilliseconds} ms");
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task Tab_moves_through_the_account_step_in_reading_order()
+    {
+        var (window, welcomeShell) = await ShowAsync();
+        await welcomeShell.FirstRun!.CreateAsync();
+        var shell = await SwitchedAsync(window, welcomeShell);
+        await shell.FirstRun!.ApplyTemplateAsync();
+        var view = window.GetVisualDescendants().OfType<FirstRunView>().Single();
+        await UiTestHelpers.WaitUntilAsync(() => window.Focused() == view.Named<TextBox>("AccountNameBox"), "focus on the account name");
+
+        var order = new List<string>();
+        for (var i = 0; i < 6; i++)
+        {
+            window.Press(PhysicalKey.Tab);
+            var focused = window.Focused() as Avalonia.Visual;
+            var named = focused is Control { Name.Length: > 0 } c ? c : focused?.GetVisualAncestors().OfType<Control>().FirstOrDefault(a => !string.IsNullOrEmpty(a.Name));
+            order.Add(named?.Name ?? "?");
+        }
+
+        order.ShouldBe(["AccountTypeBox", "BalanceBox", "CurrencyBox", "BackButton", "SkipButton", "AddAccountButton"]);
         window.Close();
     }
 

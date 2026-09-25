@@ -104,7 +104,10 @@
                 </StackPanel>
               </Button>
               <TextBlock x:Name="BankInfoText" Text="{x:Static res:Strings.FirstRun_BankText}" TextWrapping="Wrap" IsVisible="{Binding ShowBankInfo}" LineHeight="20" />
-              <Button x:Name="ConnectBankButton" Command="{Binding ConnectBankCommand}" Content="{x:Static res:Strings.FirstRun_ConnectBank}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="ConnectBankButton" Command="{Binding ConnectBankCommand}" Content="{x:Static res:Strings.FirstRun_ConnectBank}" />
+                <Button x:Name="BankGuideButton" Command="{Binding OpenBankGuideCommand}" Content="{x:Static res:Strings.FirstRun_BankGuide}" />
+              </StackPanel>
             </StackPanel>
           </Border>
         </StackPanel>
