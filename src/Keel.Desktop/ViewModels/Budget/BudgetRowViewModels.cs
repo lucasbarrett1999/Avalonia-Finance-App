@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Keel.Application.Budget;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
+using Keel.Domain;
 using Keel.Domain.Budgeting;
 
 namespace Keel.Desktop.ViewModels.Budget;
@@ -53,7 +54,11 @@ public abstract partial class BudgetRowViewModel : ObservableObject
     {
         Id = id;
         Name = name;
+        Months = [new(this, 0), new(this, 1), new(this, 2)];
     }
+
+    /// <summary>The three months of the three-month view (ADR 0090).</summary>
+    public IReadOnlyList<BudgetMonthCellViewModel> Months { get; }
 
     /// <summary>Group or category id.</summary>
     public Guid Id { get; }
@@ -96,6 +101,17 @@ public abstract partial class BudgetRowViewModel : ObservableObject
 
     /// <summary>Available cell selected.</summary>
     public bool IsAvailableSelected => SelectedColumn == BudgetColumn.Available;
+
+    /// <summary>Tells the month cells that the cursor or the editor moved.</summary>
+    protected void NotifyMonthCells()
+    {
+        foreach (var cell in Months)
+        {
+            cell.NotifyCursor();
+        }
+    }
+
+    partial void OnSelectedColumnChanged(BudgetColumn? value) => NotifyMonthCells();
 }
 
 /// <summary>A group row: collapsible, with totals of its visible categories (6.4.3).</summary>
@@ -174,7 +190,7 @@ public sealed partial class BudgetCategoryRowViewModel : BudgetRowViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Assigned), nameof(Activity), nameof(Available), nameof(Carry), nameof(IsPositive), nameof(IsZero), nameof(IsCreditOverspent),
         nameof(IsCashOverspent), nameof(IsOverspent), nameof(Target), nameof(HasTarget), nameof(IsUnderfunded), nameof(IsFunded), nameof(TargetBadgeText),
-        nameof(TargetToolTip), nameof(CardPayment), nameof(HasCardDetail), nameof(CardDetailText), nameof(IsCardUncovered), nameof(AutomationName), nameof(AvailableStateText))]
+        nameof(TargetToolTip), nameof(CardPayment), nameof(HasCardDetail), nameof(CardDetailText), nameof(IsCardUncovered), nameof(AutomationName), nameof(AvailableStateText), nameof(FlexTag), nameof(Flex))]
     public partial BudgetCategoryDto? Data { get; private set; }
 
     /// <summary>Assigned in minor units.</summary>
@@ -256,6 +272,12 @@ public sealed partial class BudgetCategoryRowViewModel : BudgetRowViewModel
     [ObservableProperty]
     public partial bool IsEditing { get; set; }
 
+    /// <summary>The user's Flex-mode tag (Unset: automatic, F-BUD-6).</summary>
+    public FlexKind FlexTag => Data?.FlexTag ?? FlexKind.Unset;
+
+    /// <summary>The kind the category counts as in the Flex view.</summary>
+    public FlexKind Flex => Data?.Flex ?? FlexKind.Unset;
+
     /// <summary>Whether a drag is hovering this row (drop target highlight).</summary>
     [ObservableProperty]
     public partial bool IsDropTarget { get; set; }
@@ -287,7 +309,16 @@ public sealed partial class BudgetCategoryRowViewModel : BudgetRowViewModel
     public void ShowTransactions() => _page?.OpenActivity(this);
 
     /// <summary>Shows a just-committed Assigned value until the recomputed month arrives.</summary>
-    public void ShowPendingAssigned(long value) => AssignedText = LedgerText.Money(value, Currency);
+    public void ShowPendingAssigned(long value)
+    {
+        AssignedText = LedgerText.Money(value, Currency);
+        foreach (var cell in Months.Where(c => c.IsActive))
+        {
+            cell.ShowPendingAssigned(value, Currency);
+        }
+    }
+
+    partial void OnIsEditingChanged(bool value) => NotifyMonthCells();
 
     /// <summary>Takes the numbers of a month.</summary>
     public void Update(BudgetCategoryDto category)

@@ -108,6 +108,8 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         list.Add(Cmd("bills-new", Strings.Shortcut_BillsNew, actions, () => OnPage<BillsViewModel>(shell, b => _ = b.AddItemAsync())));
         list.Add(Cmd("goals-new", Strings.Shortcut_GoalsNew, actions, () => OnPage<GoalsViewModel>(shell, g => _ = g.NewGoalAsync())));
         list.Add(Cmd("reports-export", Strings.Shortcut_ReportsExport, actions, () => OnPage<ReportsViewModel>(shell, r => _ = r.ExportCsvAsync())));
+        list.Add(Cmd("budget-three-months", Strings.BudgetMonths_Shortcut, view, () => OnPage<BudgetViewModel>(shell, b => b.ToggleThreeMonths())));
+        list.Add(Cmd("budget-flex", Strings.Flex_Shortcut, view, () => OnPage<BudgetViewModel>(shell, b => b.ToggleFlexView())));
 
         list.Add(Cmd("shortcuts", Strings.Menu_KeyboardShortcuts, help, () => shell.NavigateToSettings("Keyboard")));
         list.Add(Cmd("guide", Strings.Menu_UserGuide, help, () => _ = services.GetRequiredService<IBrowserLauncher>().OpenAsync(KeelInfo.UserGuide)));
@@ -162,6 +164,8 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
                 Leaf("sidebar"), MenuNode.Separator,
                 new(Strings.Menu_Theme, Children: [Leaf("theme-system", Strings.Settings_ThemeSystem), Leaf("theme-light", Strings.Settings_ThemeLight), Leaf("theme-dark", Strings.Settings_ThemeDark)]),
                 new(Strings.Menu_Density, Children: [Leaf("density-comfortable", Strings.Settings_DensityComfortable), Leaf("density-compact", Strings.Settings_DensityCompact)]),
+                MenuNode.Separator,
+                Leaf("budget-three-months", Strings.BudgetMonths_Menu), Leaf("budget-flex", Strings.Flex_Menu),
             ]),
             new(Strings.Menu_Go, Children: goItems),
             new(Strings.Menu_Help, Children: helpItems),

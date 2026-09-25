@@ -6,6 +6,8 @@ using Keel.Application.Ledger;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
+using Keel.Desktop.ViewModels.Register;
+using Keel.Domain;
 
 namespace Keel.Desktop.ViewModels.Budget;
 
@@ -28,6 +30,9 @@ public sealed partial class ManageCategoriesDialogViewModel : DialogViewModel
 
     /// <inheritdoc />
     public override string Title => Strings.Manage_Title;
+
+    /// <inheritdoc />
+    public override double PreferredMaxWidth => 640;
 
     /// <summary>Groups in display order.</summary>
     public ObservableCollection<ManageGroupItem> Groups { get; } = [];
@@ -359,6 +364,35 @@ public sealed partial class ManageCategoryItem : ManageItem
         : base(owner, category.Id, category.Name, category.IsSystem || category.IsCreditCardPayment, category.IsHidden)
     {
         Group = group;
+        FlexChoices = new[] { FlexKind.Unset, FlexKind.Fixed, FlexKind.NonMonthly, FlexKind.Flex }
+            .Select(k => new Choice<FlexKind>(k, BudgetText.FlexKind(k))).ToList();
+        SelectedFlex = FlexChoices.First(c => c.Value == category.FlexKind);
+    }
+
+    /// <summary>Flex-mode tags: Automatic, Fixed, Non-monthly, Flex (F-BUD-6).</summary>
+    public IReadOnlyList<Choice<FlexKind>> FlexChoices { get; }
+
+    /// <summary>The saved tag; choosing another saves it at once (undoable).</summary>
+    [ObservableProperty]
+    public partial Choice<FlexKind> SelectedFlex { get; set; }
+
+    /// <summary>The last tag change (tests await it).</summary>
+    public Task FlexSaving { get; private set; } = Task.CompletedTask;
+
+    /// <summary>Accessible name of the tag picker.</summary>
+    public string FlexLabel => LedgerText.Format(Strings.Flex_ManageLabel, Name);
+
+    partial void OnSelectedFlexChanged(Choice<FlexKind> oldValue, Choice<FlexKind> newValue)
+    {
+        if (oldValue is not null && !IsSystem && oldValue.Value != newValue.Value)
+        {
+            var kind = newValue.Value;
+            FlexSaving = Owner.RunAsync(async () =>
+            {
+                await Owner.Service.SetFlexKindAsync(Id, kind, CancellationToken.None);
+                Owner.Status.Show(LedgerText.Format(Strings.Flex_Tagged, Name, BudgetText.FlexKind(kind)), offerUndo: true);
+            });
+        }
     }
 
     /// <summary>The group line.</summary>

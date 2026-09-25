@@ -16,6 +16,15 @@ public static class BudgetText
     /// <summary>"Sep".</summary>
     public static string ShortMonth(DateOnly month) => month.ToString("MMM", CultureInfo.CurrentCulture);
 
+    /// <summary>"Aug – Oct 2026", or "Dec 2026 – Feb 2027" across a year (three-month view).</summary>
+    public static string MonthRange(DateOnly first, DateOnly last) => LedgerText.Format(
+        Strings.BudgetMonths_Range,
+        first.ToString(first.Year == last.Year ? "MMM" : "MMM yyyy", CultureInfo.CurrentCulture),
+        last.ToString("MMM yyyy", CultureInfo.CurrentCulture));
+
+    /// <summary>Display name of a Flex-mode kind ("Automatic" for Unset).</summary>
+    public static string FlexKind(FlexKind kind) => Lookup("Flex_Kind_" + kind) ?? kind.ToString();
+
     /// <summary>Formats money.</summary>
     public static string Money(Money money) => LedgerText.Money(money.Amount, money.Currency);
 

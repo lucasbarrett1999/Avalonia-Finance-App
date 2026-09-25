@@ -83,6 +83,14 @@ internal sealed class BudgetBuilder
         _categories[index] = _categories[index] with { IsHidden = true };
     }
 
+    /// <summary>Sets the Flex-mode tag of a category (F-BUD-6).</summary>
+    public BudgetBuilder Tag(Guid category, FlexKind kind)
+    {
+        var index = _categories.FindIndex(c => c.Id == category);
+        _categories[index] = _categories[index] with { FlexTag = kind };
+        return this;
+    }
+
     /// <summary>A plain transaction; a null category means uncategorized.</summary>
     public BudgetBuilder Txn(string date, Guid account, long amount, Guid? category)
     {

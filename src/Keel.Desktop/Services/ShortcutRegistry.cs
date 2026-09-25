@@ -99,6 +99,8 @@ public sealed class ShortcutRegistry
         Add("budget-fund", ShortcutScope.Budget, Strings.Shortcut_BudgetFundTargets, shortcuts.FundTargets);
         Add("budget-inspector", ShortcutScope.Budget, Strings.Shortcut_BudgetInspector, shortcuts.ToggleInspector);
         Add("budget-quick-assign", ShortcutScope.Budget, Strings.Shortcut_BudgetQuickAssign, shortcuts.QuickAssign);
+        Add("budget-three-months", ShortcutScope.Budget, Strings.BudgetMonths_Shortcut, shortcuts.ToggleThreeMonths);
+        Add("budget-flex", ShortcutScope.Budget, Strings.Flex_Shortcut, shortcuts.ToggleFlexView);
 
         Add("review-approve", ShortcutScope.Review, Strings.Shortcut_ReviewApprove, new KeyGesture(Key.A));
         AddText("review-pick", ShortcutScope.Review, Strings.Shortcut_ReviewPick, "1–9");
