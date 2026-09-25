@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:rep="using:Keel.Desktop.ViewModels.Reports"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Keel.Desktop.Views.Reports.BudgetHealthReportView"
+             x:DataType="rep:BudgetHealthReportViewModel">
+  <Panel>
+    <StackPanel IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,48,0,0" MaxWidth="420" Spacing="8">
+      <TextBlock Text="{x:Static res:Strings.Health_EmptyHeading}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextAlignment="Center" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Health_EmptyMessage}" TextWrapping="Wrap" TextAlignment="Center" />
+    </StackPanel>
+
+    <ScrollViewer IsVisible="{Binding HasData}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <TextBlock x:Name="HealthMonthHeading" Classes="secondary" Text="{Binding MonthHeading}" TextWrapping="Wrap" />
+
+        <!-- The four metrics, each with the numbers behind it (principle: show the math) -->
+        <WrapPanel>
+          <Border x:Name="AgeOfMoneyTile" Classes="card healthTile" Margin="0,0,12,12">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_AgeOfMoney}" />
+              <TextBlock x:Name="AgeOfMoneyValue" Classes="heroNumber" Text="{Binding AgeOfMoneyText}" />
+              <TextBlock Classes="secondary" Text="{Binding AgeOfMoneyDetail}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="MonthsAheadTile" Classes="card healthTile" Margin="0,0,12,12">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_MonthsAhead}" />
+              <TextBlock x:Name="MonthsAheadValue" Classes="heroNumber" Text="{Binding MonthsAheadText}" />
+              <TextBlock Classes="secondary" Text="{Binding MonthsAheadDetail}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="TargetsTile" Classes="card healthTile" Margin="0,0,12,12">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_TargetsFunded}" />
+              <TextBlock x:Name="TargetsValue" Classes="heroNumber" Text="{Binding TargetsText}" />
+              <TextBlock Classes="secondary" Text="{Binding TargetsDetail}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="OverspentTile" Classes="card healthTile" Margin="0,0,12,12">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_Overspent}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="20" Height="20" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Keel.Negative}" IsVisible="{Binding HasOverspending}" />
+                <controls:Icon Data="{StaticResource Icon.CheckCircle}" Width="20" Height="20" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Keel.Positive}" IsVisible="{Binding !HasOverspending}" />
+                <TextBlock x:Name="OverspentValue" Classes="heroNumber" Text="{Binding OverspentText}" />
+              </StackPanel>
+              <TextBlock Classes="secondary" Text="{Binding OverspentDetail}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </WrapPanel>
+
+        <Border Classes="card" Padding="16">
+          <StackPanel Spacing="8">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <controls:ChartSwatch Slot="0" Kind="Line" Width="18" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static res:Strings.Health_AgeOfMoney}" />
+              </StackPanel>
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_HistoryTitle}" VerticalAlignment="Center" />
+            </DockPanel>
+            <lvc:CartesianChart x:Name="HealthChart" Height="240" AutomationProperties.Name="{x:Static res:Strings.Health_ChartName}" />
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Health_ChartHint}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" Padding="12">
+          <StackPanel Spacing="4">
+            <DockPanel Margin="8,0,8,6">
+              <Button DockPanel.Dock="Right" x:Name="HealthOpenBudgetButton" Classes="link" Command="{Binding OpenBudgetCommand}" Content="{x:Static res:Strings.Health_OpenBudget}" />
+              <TextBlock Classes="tableHeader" Text="{x:Static res:Strings.Health_Overspent}" VerticalAlignment="Center" />
+            </DockPanel>
+            <TextBlock Classes="secondary" Margin="8,0" Text="{x:Static res:Strings.Health_OverspentNone}" IsVisible="{Binding !HasOverspending}" />
+            <ItemsControl x:Name="HealthOverspentRows" ItemsSource="{Binding Overspent}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="rep:HealthOverspentRow">
+                  <Button Classes="chartRow" Command="{Binding Open}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Health_OpenCategoryTip}" AutomationProperties.Name="{Binding AutomationName}">
+                    <Grid ColumnDefinitions="*,Auto,130">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Keel.Negative}" IsVisible="{Binding IsCash}" />
+                        <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Keel.Warning}" IsVisible="{Binding !IsCash}" />
+                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding GroupName}" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding KindText}" VerticalAlignment="Center" Margin="12,0" />
+                      <TextBlock Grid.Column="2" Classes="amount negative" Text="{Binding AvailableText}" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" Padding="12">
+          <StackPanel>
+            <Grid ColumnDefinitions="*,130,130" Margin="8,0,8,6">
+              <TextBlock Classes="tableHeader" Text="{x:Static res:Strings.Reports_Csv_Date}" />
+              <TextBlock Grid.Column="1" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Health_AgeOfMoney}" />
+            </Grid>
+            <ItemsControl x:Name="HealthRows" ItemsSource="{Binding Rows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="rep:AgeOfMoneyRow">
+                  <Button Classes="chartRow" Command="{Binding Open}" CommandParameter="{Binding}"
+                          ToolTip.Tip="{x:Static res:Strings.Reports_OpenMonth}" AutomationProperties.Name="{Binding DateText}">
+                    <Grid ColumnDefinitions="*,130,130">
+                      <TextBlock Text="{Binding DateText}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1" Classes="amount" Text="{Binding DaysText}" />
+                      <TextBlock Grid.Column="2" Classes="secondary" HorizontalAlignment="Right" VerticalAlignment="Center" Text="{x:Static res:Strings.Reports_Transactions}" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card" Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_HowCalculated}" />
+            <TextBlock TextWrapping="Wrap"><Run FontWeight="SemiBold" Text="{x:Static res:Strings.Health_AgeOfMoney}" /><Run Text=": " /><Run Text="{x:Static res:Strings.Health_AgeOfMoneyExplain}" /></TextBlock>
+            <TextBlock TextWrapping="Wrap"><Run FontWeight="SemiBold" Text="{x:Static res:Strings.Health_MonthsAhead}" /><Run Text=": " /><Run Text="{x:Static res:Strings.Health_MonthsAheadExplain}" /></TextBlock>
+            <TextBlock TextWrapping="Wrap"><Run FontWeight="SemiBold" Text="{x:Static res:Strings.Health_TargetsFunded}" /><Run Text=": " /><Run Text="{x:Static res:Strings.Health_TargetsExplain}" /></TextBlock>
+            <TextBlock TextWrapping="Wrap"><Run FontWeight="SemiBold" Text="{x:Static res:Strings.Health_Overspent}" /><Run Text=": " /><Run Text="{x:Static res:Strings.Health_OverspentExplain}" /></TextBlock>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
+
+  <UserControl.Styles>
+    <Style Selector="Border.healthTile">
+      <Setter Property="Width" Value="232" />
+      <Setter Property="Padding" Value="16" />
+    </Style>
+  </UserControl.Styles>
+</UserControl>

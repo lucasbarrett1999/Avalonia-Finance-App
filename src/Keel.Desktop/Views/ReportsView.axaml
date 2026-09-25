@@ -38,6 +38,13 @@
           <!-- Shared toolbar (PRD 9.8) -->
           <Border DockPanel.Dock="Top" Classes="bar" Margin="0,0,0,8">
             <DockPanel>
+              <Button DockPanel.Dock="Right" x:Name="ExportPngButton" Classes="tool" Command="{Binding ExportPngCommand}" VerticalAlignment="Top" Margin="6,0,0,0"
+                      ToolTip.Tip="{x:Static res:Strings.ExportPng_Tip}" AutomationProperties.Name="{x:Static res:Strings.ExportPng_Button}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:Icon Data="{StaticResource Icon.Report.Image}" />
+                  <TextBlock Text="{x:Static res:Strings.ExportPng_Button}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
               <Button DockPanel.Dock="Right" x:Name="ExportCsvButton" Classes="tool" Command="{Binding ExportCsvCommand}" VerticalAlignment="Top"
                       ToolTip.Tip="{x:Static res:Strings.Reports_ExportTip}" AutomationProperties.Name="{x:Static res:Strings.Reports_ExportCsv}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -52,7 +59,7 @@
                                     AutomationProperties.Name="{x:Static res:Strings.Reports_CustomFrom}" />
                 <CalendarDatePicker Width="130" Margin="0,0,8,4" IsVisible="{Binding IsCustomRangeShown}" SelectedDate="{Binding CustomTo}"
                                     AutomationProperties.Name="{x:Static res:Strings.Reports_CustomTo}" />
-                <DropDownButton x:Name="AccountsFilterButton" Margin="0,0,8,4" MinWidth="140"
+                <DropDownButton x:Name="AccountsFilterButton" Margin="0,0,8,4" MinWidth="140" IsVisible="{Binding SelectedReport.SupportsAccounts}"
                                 AutomationProperties.Name="{x:Static res:Strings.Reports_AccountsFilterName}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <controls:Icon Data="{StaticResource Icon.Accounts}" Width="16" Height="16" />
