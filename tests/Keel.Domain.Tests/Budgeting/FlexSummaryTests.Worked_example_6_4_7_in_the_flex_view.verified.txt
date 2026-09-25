@@ -1,0 +1,16 @@
+﻿== 2026-08 ==
+Income 3,000.00
+Fixed      carry       0.00 assigned   1,500.00 activity  -1,500.00 available       0.00 budgeted   1,500.00 spent   1,500.00 share 1.000: Rent
+NonMonthly carry       0.00 assigned     100.00 activity       0.00 available     100.00 budgeted     100.00 spent       0.00 share 0.000: Car insurance
+Flex       carry       0.00 assigned     520.00 activity    -520.00 available       0.00 budgeted     520.00 spent     520.00 share 1.000: Groceries, Dining
+Card payments (no bucket): Pay_Visa
+Pace on 2026-09-18: 0 of 31 days left, safe per day 0.00, elapsed 1.000
+
+== 2026-09 ==
+Income 0.00
+Fixed      carry       0.00 assigned       0.00 activity       0.00 available       0.00 budgeted       0.00 spent       0.00 share 0.000: Rent
+NonMonthly carry     100.00 assigned     100.00 activity       0.00 available     200.00 budgeted     200.00 spent       0.00 share 0.000: Car insurance
+Flex       carry      50.00 assigned     100.00 activity     -30.00 available     120.00 budgeted     150.00 spent      30.00 share 0.200: Groceries, Dining
+Card payments (no bucket): Pay_Visa
+Pace on 2026-09-18: 13 of 30 days left, safe per day 9.23, elapsed 0.567
+

@@ -197,4 +197,7 @@ public enum LedgerAction
 
     /// <summary>Skip a scheduled instance.</summary>
     SkipScheduled,
+
+    /// <summary>Tag a category Fixed, Non-monthly or Flex (F-BUD-6).</summary>
+    TagCategoryFlex,
 }

@@ -106,6 +106,20 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
             await _host.Get<BudgetViewModel>().SettleAsync();
             await DialogAsync($"MoveMoney/{theme}", () => _host.Get<BudgetViewModel>().MoveMoneyAsync());
 
+            // M9a: the three-month grid, the Flex view, a Flex drill-down and the tag pickers.
+            var budget = _host.Get<BudgetViewModel>();
+            budget.SetThreeMonths(true);
+            await budget.SettleAsync();
+            await AuditAsync($"Budget.ThreeMonths/{theme}");
+            budget.SetFlexView(true);
+            await budget.SettleAsync();
+            await AuditAsync($"Budget.Flex/{theme}");
+            budget.Flex.ShowFlexCommand.Execute(null);
+            await budget.SettleAsync();
+            await AuditAsync($"Budget.FlexFiltered/{theme}");
+            budget.ClearFlexFilter();
+            await DialogAsync($"ManageCategories/{theme}", budget.ManageCategoriesAsync);
+
             shell.NavigateTo<GoalsViewModel>();
             await SettleAsync();
             await DialogAsync($"NewGoal/{theme}", () => _host.Get<GoalsViewModel>().NewGoalAsync());

@@ -4,6 +4,7 @@
              xmlns:b="using:Keel.Desktop.ViewModels.Budget"
              xmlns:controls="using:Keel.Desktop.Controls"
              xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:bv="using:Keel.Desktop.Views.Budget"
              x:Class="Keel.Desktop.Views.BudgetView"
              x:DataType="vm:BudgetViewModel">
   <UserControl.Styles>
@@ -32,6 +33,10 @@
       <Setter Property="Grid.Column" Value="0" />
       <Setter Property="Grid.ColumnSpan" Value="3" />
       <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+    <!-- With the view toggles the actions no longer fit next to the pill at 960 px: icons only (names and tooltips stay). -->
+    <Style Selector=":is(UserControl).compactActions StackPanel#BudgetActions TextBlock.toolLabel">
+      <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="ContentControl#InspectorHost">
       <Setter Property="Grid.Column" Value="1" />
@@ -121,14 +126,14 @@
                 IsEnabled="{Binding ShowGrid}" AutomationProperties.Name="{x:Static res:Strings.Budget_FundTargets}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <controls:Icon Data="{StaticResource Icon.Zap}" />
-            <TextBlock Text="{x:Static res:Strings.Budget_FundTargets}" VerticalAlignment="Center" />
+            <TextBlock Classes="toolLabel" Text="{x:Static res:Strings.Budget_FundTargets}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         <Button x:Name="MoveMoneyButton" Classes="tool" Command="{Binding MoveMoneyCommand}" ToolTip.Tip="{Binding MoveMoneyTip}"
                 IsEnabled="{Binding ShowGrid}" AutomationProperties.Name="{x:Static res:Strings.Budget_MoveMoney}">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <controls:Icon Data="{StaticResource Icon.Transfer}" />
-            <TextBlock Text="{x:Static res:Strings.Budget_MoveMoney}" VerticalAlignment="Center" />
+            <TextBlock Classes="toolLabel" Text="{x:Static res:Strings.Budget_MoveMoney}" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
         <Button x:Name="BudgetUndoButton" Classes="tool" Command="{Binding UndoCommand}" ToolTip.Tip="{Binding UndoTip}" ToolTip.ShowOnDisabled="True"
@@ -139,6 +144,16 @@
                 ToolTip.Tip="{x:Static res:Strings.Budget_ManageCategories}" AutomationProperties.Name="{x:Static res:Strings.Budget_ManageCategories}">
           <controls:Icon Data="{StaticResource Icon.List}" />
         </Button>
+        <ToggleButton x:Name="ThreeMonthsToggle" Classes="tool" IsChecked="{Binding IsThreeMonths, Mode=OneWay}" Command="{Binding ToggleThreeMonthsCommand}"
+                      ToolTip.Tip="{Binding ThreeMonthsTip}" MinHeight="32" Padding="10,6" IsEnabled="{Binding ShowGrid}"
+                      AutomationProperties.Name="{x:Static res:Strings.BudgetMonths_Toggle}">
+          <controls:Icon Data="{StaticResource Icon.Columns}" Width="16" Height="16" />
+        </ToggleButton>
+        <ToggleButton x:Name="FlexViewToggle" Classes="tool" IsChecked="{Binding IsFlexView, Mode=OneWay}" Command="{Binding ToggleFlexViewCommand}"
+                      ToolTip.Tip="{Binding FlexViewTip}" MinHeight="32" Padding="10,6" IsEnabled="{Binding ShowGrid}"
+                      AutomationProperties.Name="{x:Static res:Strings.Flex_Toggle}">
+          <controls:Icon Data="{StaticResource Icon.Gauge}" Width="16" Height="16" />
+        </ToggleButton>
         <ToggleButton x:Name="InspectorToggle" Classes="tool" IsChecked="{Binding IsInspectorOpen}" ToolTip.Tip="{Binding InspectorTip}"
                       MinHeight="32" Padding="10,6" AutomationProperties.Name="{x:Static res:Strings.Budget_Inspector}">
           <controls:Icon Data="{StaticResource Icon.Inspector}" Width="16" Height="16" />
@@ -213,112 +228,302 @@
         </StackPanel>
       </controls:EmptyState>
 
-      <!-- The grid: group rows and category rows (custom hierarchical grid, ADR 0040) -->
-      <Border x:Name="GridHost" Classes="budgetTable" IsVisible="{Binding ShowGrid}" Focusable="True" FocusAdorner="{x:Null}"
+      <!-- The grid: group rows and category rows (custom hierarchical grid, ADR 0040); one month, or three side by side (ADR 0090) -->
+      <Border x:Name="GridHost" Classes="budgetTable" IsVisible="{Binding ShowTable}" Focusable="True" FocusAdorner="{x:Null}"
               AutomationProperties.Name="{x:Static res:Strings.Budget_GridName}">
         <DockPanel>
-          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="0,0,0,1" Padding="0,8">
-            <Grid ColumnDefinitions="*,124,124,136" Margin="0,0,12,0">
-              <TextBlock Grid.Column="0" Classes="columnHeader" Margin="44,0,0,0" Text="{x:Static res:Strings.Budget_ColumnCategory}" />
-              <TextBlock Grid.Column="1" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnAssigned}" />
-              <TextBlock Grid.Column="2" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnActivity}" />
-              <TextBlock Grid.Column="3" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnAvailable}" />
-            </Grid>
+          <!-- Flex-view drill-down filter -->
+          <Border DockPanel.Dock="Top" x:Name="FlexFilterBanner" Classes="flexFilter" IsVisible="{Binding HasFlexFilter}">
+            <DockPanel>
+              <Button DockPanel.Dock="Right" x:Name="ClearFlexFilterButton" Classes="tool" Command="{Binding ClearFlexFilterCommand}"
+                      Content="{x:Static res:Strings.Flex_ClearFilter}" />
+              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <controls:Icon Data="{StaticResource Icon.Gauge}" Width="14" Height="14" />
+                <TextBlock x:Name="FlexFilterText" Text="{Binding FlexFilterText}" VerticalAlignment="Center" FontWeight="SemiBold" />
+              </StackPanel>
+            </DockPanel>
           </Border>
-          <ScrollViewer x:Name="GridScroller" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl x:Name="BudgetRows" ItemsSource="{Binding Rows}" Margin="0,0,12,0">
-              <ItemsControl.DataTemplates>
-                <DataTemplate DataType="b:BudgetGroupRowViewModel">
-                  <Border Classes="budgetGroupRow" AutomationProperties.Name="{Binding AutomationName}">
-                    <Grid ColumnDefinitions="*,124,124,136" MinHeight="34">
-                      <Border Grid.Column="0" Tag="Name" Classes="budgetCell" Classes.cursor="{Binding IsNameSelected}" Padding="2,0,6,0">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                          <Button Classes="expander small" Theme="{StaticResource IconButtonTheme}" AutomationProperties.Name="{Binding ExpandLabel}">
-                            <controls:Icon Data="{StaticResource Icon.ChevronDown}" Classes.collapsed="{Binding !IsExpanded}" />
-                          </Button>
-                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-                      </Border>
-                      <Border Grid.Column="1" Tag="Assigned" Classes="budgetCell" Classes.cursor="{Binding IsAssignedSelected}">
-                        <TextBlock Classes="groupAmount" Text="{Binding AssignedText}" />
-                      </Border>
-                      <Border Grid.Column="2" Tag="Activity" Classes="budgetCell" Classes.cursor="{Binding IsActivitySelected}">
-                        <TextBlock Classes="groupAmount" Text="{Binding ActivityText}" />
-                      </Border>
-                      <Border Grid.Column="3" Tag="Available" Classes="budgetCell" Classes.cursor="{Binding IsAvailableSelected}">
-                        <TextBlock Classes="groupAmount" Text="{Binding AvailableText}" Margin="0,0,10,0" />
-                      </Border>
-                    </Grid>
-                  </Border>
-                </DataTemplate>
-                <DataTemplate DataType="b:BudgetCategoryRowViewModel">
-                  <Border Classes="budgetRow" Classes.selected="{Binding IsSelected}" Classes.dropTarget="{Binding IsDropTarget}"
-                          DragDrop.AllowDrop="True" AutomationProperties.Name="{Binding AutomationName}">
-                    <Border.ContextMenu>
-                      <ContextMenu>
-                        <MenuItem Header="{x:Static res:Strings.Quick_AssignedLastMonth}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AssignedLastMonth}" />
-                        <MenuItem Header="{x:Static res:Strings.Quick_SpentLastMonth}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.SpentLastMonth}" />
-                        <MenuItem Header="{x:Static res:Strings.Quick_AverageAssigned}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AverageAssigned}" />
-                        <MenuItem Header="{x:Static res:Strings.Quick_AverageSpent}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AverageSpent}" />
-                        <MenuItem Header="{x:Static res:Strings.Quick_FundTarget}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.FundTarget}"
-                                  IsEnabled="{Binding HasTarget}" />
-                        <MenuItem Header="{x:Static res:Strings.Quick_ResetToZero}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.ResetToZero}" />
-                        <Separator />
-                        <MenuItem Header="{x:Static res:Strings.Budget_MoveMoneyMenu}" Command="{Binding MoveMoneyCommand}" InputGesture="M" />
-                        <MenuItem Header="{x:Static res:Strings.Budget_SetTargetMenu}" Command="{Binding EditTargetCommand}" InputGesture="T" />
-                        <MenuItem Header="{x:Static res:Strings.Budget_ActivityTip}" Command="{Binding ShowTransactionsCommand}" />
-                      </ContextMenu>
-                    </Border.ContextMenu>
-                    <Grid ColumnDefinitions="*,124,124,136" MinHeight="36">
-                      <Border Grid.Column="0" Tag="Name" Classes="budgetCell" Classes.cursor="{Binding IsNameSelected}" Padding="36,2,6,2">
-                        <StackPanel VerticalAlignment="Center" Spacing="1">
-                          <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                            <Border Classes="targetBadge" Classes.underfunded="{Binding IsUnderfunded}" IsVisible="{Binding HasTarget}"
-                                    ToolTip.Tip="{Binding TargetToolTip}">
-                              <StackPanel Orientation="Horizontal" Spacing="4">
-                                <controls:Icon Data="{StaticResource Icon.Flag}" Width="10" Height="10" VerticalAlignment="Center" />
-                                <TextBlock Text="{Binding TargetBadgeText}" VerticalAlignment="Center" />
-                              </StackPanel>
-                            </Border>
-                          </StackPanel>
-                          <TextBlock Classes="cardDetail" Classes.uncovered="{Binding IsCardUncovered}" Text="{Binding CardDetailText}"
-                                     IsVisible="{Binding HasCardDetail}" TextWrapping="Wrap" />
-                        </StackPanel>
-                      </Border>
-                      <Border Grid.Column="1" Tag="Assigned" Classes="budgetCell" Classes.cursor="{Binding IsAssignedSelected}">
-                        <Panel>
-                          <TextBlock Classes="cellAmount" Text="{Binding AssignedText}" IsVisible="{Binding !IsEditing}" Margin="0,0,4,0" />
-                          <controls:MoneyTextBox x:Name="AssignedEditor" Classes="assignedEditor" IsVisible="{Binding IsEditing}"
-                                                 Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
-                                                 AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
-                        </Panel>
-                      </Border>
-                      <Border Grid.Column="2" Tag="Activity" Classes="budgetCell" Classes.cursor="{Binding IsActivitySelected}">
-                        <Button Classes="activityLink" Content="{Binding ActivityText}" ToolTip.Tip="{x:Static res:Strings.Budget_ActivityTip}"
-                                AutomationProperties.Name="{x:Static res:Strings.Budget_ActivityTip}" />
-                      </Border>
-                      <Border Grid.Column="3" Tag="Available" Classes="budgetCell" Classes.cursor="{Binding IsAvailableSelected}">
-                        <Border x:Name="AvailablePill" Classes="pill" Classes.positive="{Binding IsPositive}"
-                                Classes.credit="{Binding IsCreditOverspent}" Classes.cash="{Binding IsCashOverspent}"
-                                ToolTip.Tip="{x:Static res:Strings.Budget_PillTip}">
-                          <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
-                            <controls:Icon Data="{StaticResource Icon.CreditCard}" Width="12" Height="12" VerticalAlignment="Center"
-                                           IsVisible="{Binding IsCreditOverspent}" />
-                            <controls:Icon Data="{StaticResource Icon.Alert}" Width="12" Height="12" VerticalAlignment="Center"
-                                           IsVisible="{Binding IsCashOverspent}" />
-                            <TextBlock Text="{Binding AvailableText}" />
+          <!-- Scrolls sideways in three-month mode when the window is narrow (960 × 540 at 200%) -->
+          <ScrollViewer x:Name="GridHScroller" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
+            <DockPanel x:Name="GridTable">
+              <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="0,0,0,1" Padding="0,8" IsVisible="{Binding !IsThreeMonths}">
+                <Grid ColumnDefinitions="*,124,124,136" Margin="0,0,12,0">
+                  <TextBlock Grid.Column="0" Classes="columnHeader" Margin="44,0,0,0" Text="{x:Static res:Strings.Budget_ColumnCategory}" />
+                  <TextBlock Grid.Column="1" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                  <TextBlock Grid.Column="2" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnActivity}" />
+                  <TextBlock Grid.Column="3" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnAvailable}" />
+                </Grid>
+              </Border>
+              <!-- Three-month header: each month with its Ready to Assign (6.4.1) -->
+              <Border DockPanel.Dock="Top" x:Name="MonthsHeader" BorderBrush="{DynamicResource Keel.BorderBrush}" BorderThickness="0,0,0,1" Padding="0,4"
+                      IsVisible="{Binding IsThreeMonths}">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,12,0">
+                  <TextBlock Grid.Column="0" Classes="columnHeader" Margin="44,0,0,6" VerticalAlignment="Bottom" Text="{x:Static res:Strings.Budget_ColumnCategory}" />
+                  <ItemsControl Grid.Column="1" x:Name="MonthHeaderList" ItemsSource="{Binding MonthHeaders}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="b:BudgetMonthHeaderViewModel">
+                        <Border Classes="monthColumn" Classes.active="{Binding IsActive}" Width="{x:Static bv:BudgetGridSizes.MonthWidth}">
+                          <StackPanel>
+                            <Button Classes="monthHeader" Command="{Binding ExplainCommand}" AutomationProperties.Name="{Binding AutomationName}"
+                                    ToolTip.Tip="{x:Static res:Strings.Budget_RtaTip}">
+                              <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Classes="monthName" Text="{Binding Title}" />
+                                <TextBlock DockPanel.Dock="Right" Classes="monthRta" Classes.negative="{Binding IsNegative}" Text="{Binding ReadyToAssignText}" />
+                                <TextBlock Classes="monthRtaLabel" Text="{x:Static res:Strings.Budget_ReadyToAssign}" />
+                              </DockPanel>
+                            </Button>
+                            <Grid ColumnDefinitions="92,92,*" Margin="0,4,0,0">
+                              <TextBlock Grid.Column="0" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                              <TextBlock Grid.Column="1" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnActivity}" />
+                              <TextBlock Grid.Column="2" Classes="columnHeader" HorizontalAlignment="Right" Margin="0,0,10,0" Text="{x:Static res:Strings.Budget_ColumnAvailable}" />
+                            </Grid>
                           </StackPanel>
                         </Border>
-                      </Border>
-                    </Grid>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.DataTemplates>
-            </ItemsControl>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Grid>
+              </Border>
+              <ScrollViewer x:Name="GridScroller" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="BudgetRows" ItemsSource="{Binding Rows}" Margin="0,0,12,0">
+                  <ItemsControl.ItemTemplate>
+                    <bv:BudgetRowTemplateSelector>
+                      <bv:BudgetRowTemplateSelector.Group>
+                        <DataTemplate x:DataType="b:BudgetGroupRowViewModel">
+                          <Border Classes="budgetGroupRow" AutomationProperties.Name="{Binding AutomationName}">
+                            <Grid ColumnDefinitions="*,124,124,136" MinHeight="34">
+                              <Border Grid.Column="0" Tag="Name" Classes="budgetCell" Classes.cursor="{Binding IsNameSelected}" Padding="2,0,6,0">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                  <Button Classes="expander small" Theme="{StaticResource IconButtonTheme}" AutomationProperties.Name="{Binding ExpandLabel}">
+                                    <controls:Icon Data="{StaticResource Icon.ChevronDown}" Classes.collapsed="{Binding !IsExpanded}" />
+                                  </Button>
+                                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                              </Border>
+                              <Border Grid.Column="1" Tag="Assigned" Classes="budgetCell" Classes.cursor="{Binding IsAssignedSelected}">
+                                <TextBlock Classes="groupAmount" Text="{Binding AssignedText}" />
+                              </Border>
+                              <Border Grid.Column="2" Tag="Activity" Classes="budgetCell" Classes.cursor="{Binding IsActivitySelected}">
+                                <TextBlock Classes="groupAmount" Text="{Binding ActivityText}" />
+                              </Border>
+                              <Border Grid.Column="3" Tag="Available" Classes="budgetCell" Classes.cursor="{Binding IsAvailableSelected}">
+                                <TextBlock Classes="groupAmount" Text="{Binding AvailableText}" Margin="0,0,10,0" />
+                              </Border>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </bv:BudgetRowTemplateSelector.Group>
+                      <bv:BudgetRowTemplateSelector.Category>
+                        <DataTemplate x:DataType="b:BudgetCategoryRowViewModel">
+                          <Border Classes="budgetRow" Classes.selected="{Binding IsSelected}" Classes.dropTarget="{Binding IsDropTarget}"
+                                  DragDrop.AllowDrop="True" AutomationProperties.Name="{Binding AutomationName}">
+                            <Border.ContextMenu>
+                              <ContextMenu>
+                                <MenuItem Header="{x:Static res:Strings.Quick_AssignedLastMonth}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AssignedLastMonth}" />
+                                <MenuItem Header="{x:Static res:Strings.Quick_SpentLastMonth}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.SpentLastMonth}" />
+                                <MenuItem Header="{x:Static res:Strings.Quick_AverageAssigned}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AverageAssigned}" />
+                                <MenuItem Header="{x:Static res:Strings.Quick_AverageSpent}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AverageSpent}" />
+                                <MenuItem Header="{x:Static res:Strings.Quick_FundTarget}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.FundTarget}"
+                                          IsEnabled="{Binding HasTarget}" />
+                                <MenuItem Header="{x:Static res:Strings.Quick_ResetToZero}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.ResetToZero}" />
+                                <Separator />
+                                <MenuItem Header="{x:Static res:Strings.Budget_MoveMoneyMenu}" Command="{Binding MoveMoneyCommand}" InputGesture="M" />
+                                <MenuItem Header="{x:Static res:Strings.Budget_SetTargetMenu}" Command="{Binding EditTargetCommand}" InputGesture="T" />
+                                <MenuItem Header="{x:Static res:Strings.Budget_ActivityTip}" Command="{Binding ShowTransactionsCommand}" />
+                              </ContextMenu>
+                            </Border.ContextMenu>
+                            <Grid ColumnDefinitions="*,124,124,136" MinHeight="36">
+                              <Border Grid.Column="0" Tag="Name" Classes="budgetCell" Classes.cursor="{Binding IsNameSelected}" Padding="36,2,6,2">
+                                <StackPanel VerticalAlignment="Center" Spacing="1">
+                                  <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <Border Classes="targetBadge" Classes.underfunded="{Binding IsUnderfunded}" IsVisible="{Binding HasTarget}"
+                                            ToolTip.Tip="{Binding TargetToolTip}">
+                                      <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <controls:Icon Data="{StaticResource Icon.Flag}" Width="10" Height="10" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding TargetBadgeText}" VerticalAlignment="Center" />
+                                      </StackPanel>
+                                    </Border>
+                                  </StackPanel>
+                                  <TextBlock Classes="cardDetail" Classes.uncovered="{Binding IsCardUncovered}" Text="{Binding CardDetailText}"
+                                             IsVisible="{Binding HasCardDetail}" TextWrapping="Wrap" />
+                                </StackPanel>
+                              </Border>
+                              <Border Grid.Column="1" Tag="Assigned" Classes="budgetCell" Classes.cursor="{Binding IsAssignedSelected}">
+                                <Panel>
+                                  <TextBlock Classes="cellAmount" Text="{Binding AssignedText}" IsVisible="{Binding !IsEditing}" Margin="0,0,4,0" />
+                                  <!-- Created only while the row edits, so building and rebuilding rows stays cheap -->
+                                  <ContentControl Content="{Binding EditorRow}">
+                                    <ContentControl.ContentTemplate>
+                                      <DataTemplate x:DataType="b:BudgetCategoryRowViewModel">
+                                        <controls:MoneyTextBox x:Name="AssignedEditor" Classes="assignedEditor"
+                                                               Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                                                               AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                                      </DataTemplate>
+                                    </ContentControl.ContentTemplate>
+                                  </ContentControl>
+                                </Panel>
+                              </Border>
+                              <Border Grid.Column="2" Tag="Activity" Classes="budgetCell" Classes.cursor="{Binding IsActivitySelected}">
+                                <Button Classes="activityLink" Content="{Binding ActivityText}" ToolTip.Tip="{x:Static res:Strings.Budget_ActivityTip}"
+                                        AutomationProperties.Name="{x:Static res:Strings.Budget_ActivityTip}" />
+                              </Border>
+                              <Border Grid.Column="3" Tag="Available" Classes="budgetCell" Classes.cursor="{Binding IsAvailableSelected}">
+                                <Border x:Name="AvailablePill" Classes="pill" Classes.positive="{Binding IsPositive}"
+                                        Classes.credit="{Binding IsCreditOverspent}" Classes.cash="{Binding IsCashOverspent}"
+                                        ToolTip.Tip="{x:Static res:Strings.Budget_PillTip}">
+                                  <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                    <controls:Icon Data="{StaticResource Icon.CreditCard}" Width="12" Height="12" VerticalAlignment="Center"
+                                                   IsVisible="{Binding IsCreditOverspent}" />
+                                    <controls:Icon Data="{StaticResource Icon.Alert}" Width="12" Height="12" VerticalAlignment="Center"
+                                                   IsVisible="{Binding IsCashOverspent}" />
+                                    <TextBlock Text="{Binding AvailableText}" />
+                                  </StackPanel>
+                                </Border>
+                              </Border>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </bv:BudgetRowTemplateSelector.Category>
+                      <bv:BudgetRowTemplateSelector.GroupMonths>
+                        <DataTemplate x:DataType="b:BudgetGroupRowViewModel">
+                          <Border Classes="budgetGroupRow" AutomationProperties.Name="{Binding AutomationName}">
+                            <Grid ColumnDefinitions="*,Auto" MinHeight="34">
+                              <Border Grid.Column="0" Tag="Name" Classes="budgetCell" Classes.cursor="{Binding IsNameSelected}" Padding="2,0,6,0">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                  <Button Classes="expander small" Theme="{StaticResource IconButtonTheme}" AutomationProperties.Name="{Binding ExpandLabel}">
+                                    <controls:Icon Data="{StaticResource Icon.ChevronDown}" Classes.collapsed="{Binding !IsExpanded}" />
+                                  </Button>
+                                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                              </Border>
+                              <ItemsControl Grid.Column="1" ItemsSource="{Binding Months}">
+                                <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                  </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="b:BudgetMonthCellViewModel">
+                                    <Grid Classes="monthCells" Classes.active="{Binding IsActive}" ColumnDefinitions="92,92,*" Width="{x:Static bv:BudgetGridSizes.MonthWidth}">
+                                      <Border Grid.Column="0" Tag="Assigned" Classes="budgetCell compact" Classes.cursor="{Binding IsAssignedSelected}">
+                                        <TextBlock Classes="groupAmount" Text="{Binding AssignedText}" />
+                                      </Border>
+                                      <Border Grid.Column="1" Tag="Activity" Classes="budgetCell compact" Classes.cursor="{Binding IsActivitySelected}">
+                                        <TextBlock Classes="groupAmount" Text="{Binding ActivityText}" />
+                                      </Border>
+                                      <Border Grid.Column="2" Tag="Available" Classes="budgetCell compact" Classes.cursor="{Binding IsAvailableSelected}">
+                                        <TextBlock Classes="groupAmount" Text="{Binding AvailableText}" Margin="0,0,6,0" />
+                                      </Border>
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </bv:BudgetRowTemplateSelector.GroupMonths>
+                      <bv:BudgetRowTemplateSelector.CategoryMonths>
+                        <DataTemplate x:DataType="b:BudgetCategoryRowViewModel">
+                          <Border Classes="budgetRow" Classes.selected="{Binding IsSelected}" Classes.dropTarget="{Binding IsDropTarget}"
+                                  DragDrop.AllowDrop="True" AutomationProperties.Name="{Binding AutomationName}">
+                            <Border.ContextMenu>
+                            <ContextMenu>
+                              <MenuItem Header="{x:Static res:Strings.Quick_AssignedLastMonth}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AssignedLastMonth}" />
+                              <MenuItem Header="{x:Static res:Strings.Quick_SpentLastMonth}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.SpentLastMonth}" />
+                              <MenuItem Header="{x:Static res:Strings.Quick_AverageAssigned}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AverageAssigned}" />
+                              <MenuItem Header="{x:Static res:Strings.Quick_AverageSpent}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.AverageSpent}" />
+                              <MenuItem Header="{x:Static res:Strings.Quick_FundTarget}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.FundTarget}"
+                                        IsEnabled="{Binding HasTarget}" />
+                              <MenuItem Header="{x:Static res:Strings.Quick_ResetToZero}" Command="{Binding QuickAssignCommand}" CommandParameter="{x:Static b:QuickAssignKind.ResetToZero}" />
+                              <Separator />
+                              <MenuItem Header="{x:Static res:Strings.Budget_MoveMoneyMenu}" Command="{Binding MoveMoneyCommand}" InputGesture="M" />
+                              <MenuItem Header="{x:Static res:Strings.Budget_SetTargetMenu}" Command="{Binding EditTargetCommand}" InputGesture="T" />
+                              <MenuItem Header="{x:Static res:Strings.Budget_ActivityTip}" Command="{Binding ShowTransactionsCommand}" />
+                            </ContextMenu>
+                          </Border.ContextMenu>
+                            <Grid ColumnDefinitions="*,Auto" MinHeight="36">
+                              <Border Grid.Column="0" Tag="Name" Classes="budgetCell" Classes.cursor="{Binding IsNameSelected}" Padding="36,2,6,2">
+                              <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                  <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                  <Border Classes="targetBadge" Classes.underfunded="{Binding IsUnderfunded}" IsVisible="{Binding HasTarget}"
+                                          ToolTip.Tip="{Binding TargetToolTip}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                      <controls:Icon Data="{StaticResource Icon.Flag}" Width="10" Height="10" VerticalAlignment="Center" />
+                                      <TextBlock Text="{Binding TargetBadgeText}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                  </Border>
+                                </StackPanel>
+                                <TextBlock Classes="cardDetail" Classes.uncovered="{Binding IsCardUncovered}" Text="{Binding CardDetailText}"
+                                           IsVisible="{Binding HasCardDetail}" TextWrapping="Wrap" />
+                              </StackPanel>
+                            </Border>
+                              <ItemsControl Grid.Column="1" ItemsSource="{Binding Months}">
+                                <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                  </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="b:BudgetMonthCellViewModel">
+                                    <Grid Classes="monthCells" Classes.active="{Binding IsActive}" ColumnDefinitions="92,92,*" Width="{x:Static bv:BudgetGridSizes.MonthWidth}">
+                                      <Border Grid.Column="0" Tag="Assigned" Classes="budgetCell compact" Classes.cursor="{Binding IsAssignedSelected}">
+                                        <Panel>
+                                          <TextBlock Classes="cellAmount" Text="{Binding AssignedText}" IsVisible="{Binding !IsEditing}" Margin="0,0,4,0" />
+                                          <!-- The editor exists only while this cell edits (three per row would slow the mode switch) -->
+                                          <ContentControl Content="{Binding EditorRow}">
+                                            <ContentControl.ContentTemplate>
+                                              <DataTemplate x:DataType="b:BudgetCategoryRowViewModel">
+                                                <controls:MoneyTextBox x:Name="AssignedEditor" Classes="assignedEditor"
+                                                                       Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                                                                       AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                                              </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                          </ContentControl>
+                                        </Panel>
+                                      </Border>
+                                      <Border Grid.Column="1" Tag="Activity" Classes="budgetCell compact" Classes.cursor="{Binding IsActivitySelected}">
+                                        <Button Classes="activityLink" Content="{Binding ActivityText}" ToolTip.Tip="{x:Static res:Strings.Budget_ActivityTip}"
+                                                AutomationProperties.Name="{x:Static res:Strings.Budget_ActivityTip}" />
+                                      </Border>
+                                      <Border Grid.Column="2" Tag="Available" Classes="budgetCell compact" Classes.cursor="{Binding IsAvailableSelected}">
+                                        <Border Classes="pill compact" Classes.positive="{Binding IsPositive}"
+                                                Classes.credit="{Binding IsCreditOverspent}" Classes.cash="{Binding IsCashOverspent}"
+                                                ToolTip.Tip="{x:Static res:Strings.Budget_PillTip}" AutomationProperties.Name="{Binding AutomationName}">
+                                          <StackPanel Orientation="Horizontal" Spacing="3" HorizontalAlignment="Right">
+                                            <controls:Icon Data="{StaticResource Icon.CreditCard}" Width="11" Height="11" VerticalAlignment="Center"
+                                                           IsVisible="{Binding IsCreditOverspent}" />
+                                            <controls:Icon Data="{StaticResource Icon.Alert}" Width="11" Height="11" VerticalAlignment="Center"
+                                                           IsVisible="{Binding IsCashOverspent}" />
+                                            <TextBlock Text="{Binding AvailableText}" />
+                                          </StackPanel>
+                                        </Border>
+                                      </Border>
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </Grid>
+                          </Border>
+                        </DataTemplate>
+                      </bv:BudgetRowTemplateSelector.CategoryMonths>
+                    </bv:BudgetRowTemplateSelector>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </DockPanel>
           </ScrollViewer>
         </DockPanel>
       </Border>
+
+      <!-- The Flex view (F-BUD-6, ADR 0091) -->
+      <ContentControl x:Name="FlexHost" Content="{Binding Flex}" IsVisible="{Binding ShowFlex}" />
     </Panel>
     </Grid>
   </DockPanel>
