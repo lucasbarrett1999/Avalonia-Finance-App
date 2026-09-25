@@ -32,7 +32,15 @@ public interface IBackupService
     /// The caller reopens the file afterwards so every screen reloads.
     /// </summary>
     /// <exception cref="BackupVerificationException">The backup is damaged or from a newer version of Keel.</exception>
+    /// <exception cref="Files.BudgetFileLockedException">The backup is encrypted with another passphrase than the open file.</exception>
     Task RestoreAsync(string backupPath, CancellationToken ct);
+
+    /// <summary>
+    /// Restores a backup that is encrypted with <paramref name="backupPassphrase"/> (F-SET-4). The restored file
+    /// keeps the open file's encryption: the backup's content is converted to it when the two differ.
+    /// </summary>
+    /// <exception cref="Files.BudgetFileLockedException">The passphrase does not open the backup.</exception>
+    Task RestoreAsync(string backupPath, string? backupPassphrase, CancellationToken ct) => RestoreAsync(backupPath, ct);
 
     /// <summary>Deletes all but the newest <paramref name="keep"/> automatic backups.</summary>
     Task PruneAsync(int keep, CancellationToken ct);
@@ -52,6 +60,12 @@ public enum BackupKind
 
     /// <summary>Taken before a restore replaced the file (<c>-before-restore</c>).</summary>
     BeforeRestore,
+
+    /// <summary>Taken before the file was encrypted (F-SET-4; <c>-before-encryption</c>, a plain copy).</summary>
+    BeforeEncryption,
+
+    /// <summary>Taken before the encryption was removed (<c>-before-decryption</c>, still encrypted).</summary>
+    BeforeDecryption,
 }
 
 /// <summary>A backup file.</summary>
