@@ -65,6 +65,11 @@ jobs:
       - name: Restore
         run: dotnet restore Keel.sln
 
+      - name: Check the packaging scripts (dry run)
+        run: |
+          bash -n build/package.sh
+          bash build/package.sh --dry-run --rid linux-x64 --rid win-x64
+
       - name: Verify formatting
         run: dotnet format Keel.sln --verify-no-changes --no-restore --verbosity diagnostic
 

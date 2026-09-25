@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.AppearanceSettingsView"
+             x:DataType="vm:AppearanceSettingsViewModel">
+  <StackPanel Spacing="12" Margin="0,4,0,0">
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Accent}" />
+    <ListBox x:Name="AccentList" ItemsSource="{Binding Accents}" SelectedItem="{Binding SelectedAccent}"
+             AutomationProperties.Name="{x:Static res:Strings.Settings_Accent}" Background="Transparent">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" ItemSpacing="4" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="vm:AccentOption">
+          <StackPanel Orientation="Horizontal" Spacing="6" AutomationProperties.Name="{Binding Name}">
+            <Ellipse Width="16" Height="16" Fill="{Binding LightBrush}" />
+            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Density}" />
+    <StackPanel Orientation="Horizontal" Spacing="24">
+      <RadioButton x:Name="DensityComfortable" GroupName="Density" IsChecked="{Binding IsComfortable}" Content="{x:Static res:Strings.Settings_DensityComfortable}" />
+      <RadioButton x:Name="DensityCompact" GroupName="Density" IsChecked="{Binding IsCompact}" Content="{x:Static res:Strings.Settings_DensityCompact}" />
+    </StackPanel>
+
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Motion}" />
+    <ComboBox x:Name="MotionBox" ItemsSource="{Binding MotionChoices}" SelectedIndex="{Binding MotionIndex}" MinWidth="220"
+              AutomationProperties.Name="{x:Static res:Strings.Settings_Motion}" />
+
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Format}" />
+    <ComboBox x:Name="FormatBox" ItemsSource="{Binding Cultures}" SelectedItem="{Binding SelectedCulture}" MinWidth="360" MaxWidth="560"
+              AutomationProperties.Name="{x:Static res:Strings.Settings_Format}">
+      <ComboBox.ItemTemplate>
+        <DataTemplate DataType="vm:CultureOption">
+          <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+        </DataTemplate>
+      </ComboBox.ItemTemplate>
+    </ComboBox>
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_FormatHint}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+  </StackPanel>
+</UserControl>

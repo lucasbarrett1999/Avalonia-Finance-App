@@ -66,6 +66,10 @@
     </DataTemplate>
   </UserControl.DataTemplates>
 
+  <Panel>
+  <DockPanel>
+  <!-- In-window menu bar (Windows, Linux; macOS uses the native menu, PRD 8). Built in code from AppCommands. -->
+  <Menu x:Name="MainMenu" DockPanel.Dock="Top" AutomationProperties.Name="{x:Static res:Strings.Menu_Bar}" />
   <Grid RowDefinitions="Auto,*,Auto">
     <!-- Top bar -->
     <Border Grid.Row="0" Background="{DynamicResource Keel.SurfaceBackground}"
@@ -233,4 +237,9 @@
       </DockPanel>
     </Border>
   </Grid>
+  </DockPanel>
+
+  <!-- First-run setup (PRD 9.10) over the whole window. -->
+  <ContentControl x:Name="FirstRunHost" Content="{Binding FirstRun}" IsVisible="{Binding IsFirstRunVisible}" />
+  </Panel>
 </UserControl>

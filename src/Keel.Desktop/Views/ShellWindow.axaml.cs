@@ -11,7 +11,8 @@ namespace Keel.Desktop.Views;
 /// <summary>The main window. Hosts the shell and persists its placement per display configuration.</summary>
 public partial class ShellWindow : Window
 {
-    private readonly WindowPlacementService? _placement;
+    private WindowPlacementService? _placement;
+    private AppearanceService? _appearance;
     private Size _normalSize;
     private PixelPoint? _normalPosition;
 
@@ -22,16 +23,20 @@ public partial class ShellWindow : Window
     }
 
     /// <summary>Creates the window for <paramref name="viewModel"/>.</summary>
-    public ShellWindow(ShellViewModel viewModel, WindowPlacementService placement)
+    public ShellWindow(ShellViewModel viewModel, WindowPlacementService placement, BudgetSessions? sessions = null, AppearanceService? appearance = null)
         : this()
     {
         ArgumentNullException.ThrowIfNull(viewModel);
         DataContext = viewModel;
         _placement = placement;
+        _appearance = appearance;
 
         AddKeyBindings(viewModel);
         RestorePlacement(viewModel);
         _normalSize = new Size(Width, Height);
+        appearance?.ApplySaved(this);
+        ApplyNativeMenu(viewModel);
+        sessions?.AttachWindow(this);
 
 #if DEBUG
         this.AttachDevTools();
@@ -99,18 +104,79 @@ public partial class ShellWindow : Window
         shell.IsSidebarCollapsed = saved.IsSidebarCollapsed;
     }
 
+    /// <summary>
+    /// Moves the window to a new budget-file session (ADR 0080): its shell, key bindings and menus. The
+    /// sidebar state and window placement carry over.
+    /// </summary>
+    public void Attach(ShellViewModel shell, WindowPlacementService placement)
+    {
+        ArgumentNullException.ThrowIfNull(shell);
+        if (DataContext is ShellViewModel previous)
+        {
+            shell.ResizeSidebar(previous.SidebarWidth);
+            shell.IsSidebarCollapsed = previous.IsSidebarCollapsed;
+        }
+
+        _placement = placement;
+        DataContext = shell;
+        KeyBindings.Clear();
+        AddKeyBindings(shell);
+        ApplyNativeMenu(shell);
+        _appearance?.ApplyWindowClasses(this);
+    }
+
+    private void ApplyNativeMenu(ShellViewModel shell)
+    {
+        if (!OperatingSystem.IsMacOS() || shell.Commands is not { } commands)
+        {
+            return;
+        }
+
+        NativeMenu.SetMenu(this, MenuBuilder.ToNativeMenu(commands.BuildMenu(shell, macOS: true)));
+        if (Avalonia.Application.Current is { } app)
+        {
+            NativeMenu.SetMenu(app, MenuBuilder.ToNativeMenu(commands.BuildAppMenu(shell)));
+        }
+    }
+
     private void AddKeyBindings(ShellViewModel shell)
     {
         var shortcuts = shell.Shortcuts;
+        KeyBindings.Add(new KeyBinding { Gesture = shortcuts.CommandPalette, Command = shell.OpenCommandPaletteCommand });
+        KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Settings, Command = new RelayCommand(() => shell.NavigateToSettings(null)) });
+        KeyBindings.Add(new KeyBinding { Gesture = shortcuts.SyncAll, Command = shell.SyncAllCommand });
+        if (shell.Commands is { } commands)
+        {
+            KeyBindings.Add(new KeyBinding { Gesture = shortcuts.OpenFile, Command = new RelayCommand(() => Run(commands, shell, "open-file")) });
+            if (shortcuts.Quit is { } quit)
+            {
+                KeyBindings.Add(new KeyBinding { Gesture = quit, Command = new RelayCommand(Close) });
+            }
+        }
+
+        var pages = shell.PrimaryItems.Concat(shell.AccountItems).ToList();
+        for (var i = 0; i < pages.Count; i++)
+        {
+            KeyBindings.Add(new KeyBinding { Gesture = shortcuts.GoTo(i), Command = pages[i].NavigateCommand });
+        }
+
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Search, Command = new RelayCommand(() => Shell.FocusSearch()) });
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Undo, Command = shell.UndoCommand });
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.Redo, Command = shell.RedoCommand });
-        var shiftRedo = new KeyGesture(Key.Z, shortcuts.CommandModifiers | KeyModifiers.Shift);
-        if (!shiftRedo.Equals(shortcuts.Redo))
+        if (!shortcuts.RedoAlternate.Equals(shortcuts.Redo))
         {
             // Ctrl/Cmd+Shift+Z redoes everywhere, in addition to the platform's own redo gesture.
-            KeyBindings.Add(new KeyBinding { Gesture = shiftRedo, Command = shell.RedoCommand });
+            KeyBindings.Add(new KeyBinding { Gesture = shortcuts.RedoAlternate, Command = shell.RedoCommand });
         }
+
         KeyBindings.Add(new KeyBinding { Gesture = shortcuts.ToggleSidebar, Command = shell.ToggleSidebarCommand });
+    }
+
+    private static void Run(AppCommands commands, ShellViewModel shell, string id)
+    {
+        if (shell.FirstRun is null)
+        {
+            commands.Build(shell).FirstOrDefault(c => c.Id == id)?.Execute();
+        }
     }
 }

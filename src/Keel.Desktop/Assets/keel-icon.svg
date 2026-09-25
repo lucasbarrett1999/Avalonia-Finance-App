@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <!-- Keel app icon: a sailboat whose keel reaches below the waterline. Source for every PNG/ICO/ICNS
+       (regenerate with build/icons/generate-icons.cs; the paths there must match these). -->
+  <rect width="96" height="96" rx="22" fill="#0B6477"/>
+  <path d="M50 14 L50 50 L74 50 Z" fill="#FFFFFF"/>
+  <path d="M46 22 L46 50 L27 50 Z" fill="#BFE7EF"/>
+  <path d="M17 56 L79 56 L68 69 L28 69 Z" fill="#FFFFFF"/>
+  <path d="M45 69 L51 69 L50 83 L46 83 Z" fill="#BFE7EF"/>
+</svg>

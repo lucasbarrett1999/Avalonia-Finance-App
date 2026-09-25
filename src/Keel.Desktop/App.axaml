@@ -32,5 +32,6 @@
     <StyleInclude Source="avares://Keel.Desktop/Styles/Charts.axaml" />
     <StyleInclude Source="avares://Keel.Desktop/Styles/Sync.axaml" />
     <StyleInclude Source="avares://Keel.Desktop/Styles/Bills.axaml" />
+    <StyleInclude Source="avares://Keel.Desktop/Styles/Density.axaml" />
   </Application.Styles>
 </Application>

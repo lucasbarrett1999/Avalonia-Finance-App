@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dlg="using:Keel.Desktop.ViewModels.Dialogs"
+             xmlns:services="using:Keel.Desktop.Services"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Dialogs.CommandPaletteView"
+             x:DataType="dlg:CommandPaletteViewModel">
+  <StackPanel Spacing="10" Width="600">
+    <TextBox x:Name="QueryBox" Text="{Binding Query}" Watermark="{x:Static res:Strings.Palette_Watermark}"
+             AutomationProperties.Name="{x:Static res:Strings.Palette_Title}" FontSize="15" Padding="10,8">
+      <TextBox.InnerLeftContent>
+        <controls:Icon Data="{StaticResource Icon.Search}" Width="16" Height="16" Margin="10,0,0,0"
+                       Foreground="{DynamicResource Keel.TextSecondary}" />
+      </TextBox.InnerLeftContent>
+    </TextBox>
+    <ListBox x:Name="ResultList" ItemsSource="{Binding Results}" SelectedItem="{Binding Selected}" MaxHeight="380"
+             AutomationProperties.Name="{x:Static res:Strings.Palette_Results}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="services:AppCommand">
+          <Grid ColumnDefinitions="*,Auto,Auto" AutomationProperties.Name="{Binding AutomationName}">
+            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Classes="secondary" Text="{Binding Section}" Margin="12,0"
+                       FontSize="{StaticResource Keel.FontSize.Small}" VerticalAlignment="Center" />
+            <Border Grid.Column="2" Classes="keycap" IsVisible="{Binding Keys, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <TextBlock Text="{Binding Keys}" FontSize="{StaticResource Keel.FontSize.Small}" />
+            </Border>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Palette_NoResults}" IsVisible="{Binding HasNoResults}" Margin="4,0" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Palette_Footer}" FontSize="{StaticResource Keel.FontSize.Small}" Margin="4,0" />
+  </StackPanel>
+</UserControl>

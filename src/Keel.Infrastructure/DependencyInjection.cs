@@ -76,6 +76,10 @@ public static class DependencyInjection
         services.AddSingleton<Keel.Infrastructure.Forecast.ForecastService>();
         services.AddSingleton<Keel.Application.Forecast.IForecastService>(sp => sp.GetRequiredService<Keel.Infrastructure.Forecast.ForecastService>());
         services.AddKeelSync();
+        services.AddSingleton<Keel.Application.Backup.IBackupService, BackupService>();
+        services.AddSingleton<IDataFileMaintenance, DataFileMaintenance>();
+        services.AddSingleton<Keel.Application.Setup.ISetupProgressService, Keel.Infrastructure.Setup.SetupProgressService>();
+        services.AddSingleton<Keel.Application.Tags.ITagService, Keel.Infrastructure.Tags.TagService>();
         return services;
     }
 }

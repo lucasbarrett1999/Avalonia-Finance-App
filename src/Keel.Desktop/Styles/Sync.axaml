@@ -18,8 +18,11 @@
     <Setter Property="Fill" Value="{DynamicResource Keel.Negative}" />
   </Style>
 
+  <!-- The syncing spinner turns only when motion is not reduced (PRD 9.11); the icon and its text stay. -->
   <Style Selector="controls|Icon.spin">
     <Setter Property="RenderTransform" Value="rotate(0deg)" />
+  </Style>
+  <Style Selector="Window:not(.reduceMotion) controls|Icon.spin">
     <Style.Animations>
       <Animation Duration="0:0:1.2" IterationCount="Infinite">
         <KeyFrame Cue="0%">

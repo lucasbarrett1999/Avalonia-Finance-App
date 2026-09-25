@@ -177,6 +177,30 @@ public sealed class KeelDbContextTests : IDisposable
     }
 
     [Fact]
+    public async Task Opens_a_file_in_rollback_journal_mode_and_switches_it_to_wal()
+    {
+        // A copy made with the SQLite backup API (Change location, restore, a file from elsewhere) is in
+        // DELETE mode; EF Core's read-only existence check must not fail on the journal-mode pragma.
+        var info = await OpenAsync();
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        var copy = Path.Combine(Path.GetDirectoryName(info.Path)!, "Copy.keel");
+        await using (var source = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={info.Path};Pooling=False"))
+        await using (var destination = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={copy};Pooling=False"))
+        {
+            await source.OpenAsync();
+            await destination.OpenAsync();
+            source.BackupDatabase(destination);
+            (await ScalarAsync(destination, "PRAGMA journal_mode = DELETE;")).ShouldBe("delete");
+        }
+
+        var reopened = await OpenAsync("Copy.keel");
+        reopened.Created.ShouldBeFalse();
+        await using var db = _factory.CreateDbContext();
+        await db.Database.OpenConnectionAsync();
+        (await ScalarAsync(db.Database.GetDbConnection(), "PRAGMA journal_mode;")).ShouldBe("wal");
+    }
+
+    [Fact]
     public async Task Enforces_foreign_keys()
     {
         await OpenAsync();

@@ -1,0 +1,43 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    Density (F-SET-2) and reduced motion (PRD 9.11). AppearanceService sets the classes on the main window:
+    "compact" tightens rows and padding on the 8-px grid (4-px steps); "reduceMotion" removes transitions.
+  -->
+  <Style Selector="Window.compact Button">
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="MinHeight" Value="26" />
+  </Style>
+  <Style Selector="Window.compact TextBox">
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="Padding" Value="8,3" />
+  </Style>
+  <Style Selector="Window.compact ComboBox">
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="Padding" Value="8,2" />
+  </Style>
+  <Style Selector="Window.compact DataGridRow">
+    <Setter Property="MinHeight" Value="26" />
+  </Style>
+  <Style Selector="Window.compact DataGridCell">
+    <Setter Property="MinHeight" Value="26" />
+  </Style>
+  <Style Selector="Window.compact ListBoxItem">
+    <Setter Property="Padding" Value="10,4" />
+    <Setter Property="MinHeight" Value="28" />
+  </Style>
+  <Style Selector="Window.compact RadioButton.navItem, Window.compact Border.sidebar RadioButton">
+    <Setter Property="Padding" Value="11,5" />
+  </Style>
+  <Style Selector="Window.compact Border.card">
+    <Setter Property="Padding" Value="16,12" />
+  </Style>
+  <Style Selector="Window.compact MenuItem">
+    <Setter Property="Padding" Value="10,4" />
+  </Style>
+
+  <!-- Reduce motion: no transitions anywhere (theme and Keel styles). -->
+  <Style Selector="Window.reduceMotion :is(Control)">
+    <Setter Property="Transitions" Value="{x:Null}" />
+  </Style>
+</Styles>
