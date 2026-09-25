@@ -295,10 +295,12 @@ public sealed class TagsAttachmentsTests : IDisposable
         var commands = _host.Get<AppCommands>();
         commands.Build(shell).Select(c => c.Id).ShouldContain("manage-tags");
         commands.Build(shell).Select(c => c.Id).ShouldContain("merge-payees");
-        commands.Build(shell).Select(c => c.Id).ShouldNotContain("attach-file");
+        commands.Build(shell).Single(c => c.Id == "attach-file").IsEnabled.ShouldBeFalse("nothing is selected yet");
+        commands.Build(shell).Single(c => c.Id == "register-tags").IsEnabled.ShouldBeFalse("nothing is selected yet");
         await SelectAsync(view, vm, ledger.Grocer);
         var tagCommand = commands.Build(shell).Single(c => c.Id == "register-tags");
         tagCommand.Keys.ShouldBe("T");
+        tagCommand.IsEnabled.ShouldBeTrue();
         commands.Build(shell).Single(c => c.Id == "attach-file").Execute();
         await UiTestHelpers.WaitUntilAsync(() => vm.IsEditing, "editor opened for attaching");
         commands.Build(shell).Single(c => c.Id == "manage-tags").Execute();

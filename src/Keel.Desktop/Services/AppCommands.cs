@@ -259,7 +259,7 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
                 "redo" => shell.RedoCommand.CanExecute(null),
                 "sync-all" => shell.SyncAllCommand.CanExecute(null),
                 _ when command.Id.StartsWith("go-", StringComparison.Ordinal) || command.Id.StartsWith("account-", StringComparison.Ordinal) => hasFile,
-                _ => !needFile.Contains(command.Id) || hasFile,
+                _ => command.IsEnabled && (!needFile.Contains(command.Id) || hasFile),
             };
             list[i] = command with { IsEnabled = enabled };
         }
