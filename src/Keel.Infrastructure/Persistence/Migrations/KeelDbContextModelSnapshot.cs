@@ -775,6 +775,9 @@ namespace Keel.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CategoryId", "Date");
 
+                    b.HasIndex("IsApproved", "Date", "Id")
+                        .HasDatabaseName("IX_Transactions_ReviewQueue");
+
                     b.HasIndex("Date", "Id", "IsDeleted", "Amount", "Status")
                         .HasDatabaseName("IX_Transactions_Register_All");
 

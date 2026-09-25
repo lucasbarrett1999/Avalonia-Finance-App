@@ -50,7 +50,8 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         IRegisterQuery register,
         SyncCoordinator sync,
         Alerts.NotificationCenterViewModel? notifications = null,
-        RecurringJobs? jobs = null)
+        RecurringJobs? jobs = null,
+        IServiceProvider? services = null)
     {
         ArgumentNullException.ThrowIfNull(sync);
         Sync = sync;
@@ -100,6 +101,7 @@ public sealed partial class ShellViewModel : ViewModelBase, IRecipient<LedgerCha
         Jobs = jobs;
         jobs?.Start();
         SyncStarting = session.BudgetFile is null ? Task.CompletedTask : Sync.StartAsync();
+        InitializeM8(session, services);
     }
 
     /// <summary>The notification center behind the top-bar bell (M5).</summary>

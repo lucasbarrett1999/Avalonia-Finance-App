@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dlg="using:Keel.Desktop.ViewModels.Dialogs"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Dialogs.AboutDialogView"
+             x:DataType="dlg:AboutDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+    <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" Width="420">
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <Image Source="avares://Keel.Desktop/Assets/keel-icon-64.png" Width="48" Height="48"
+             AutomationProperties.Name="{x:Static res:Strings.App_Name}" />
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock Text="{x:Static res:Strings.App_Name}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+        <TextBlock x:Name="VersionText" Classes="secondary" Text="{Binding VersionText}" />
+      </StackPanel>
+    </StackPanel>
+    <TextBlock Text="{x:Static res:Strings.About_Description}" TextWrapping="Wrap" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.About_License}" TextWrapping="Wrap" />
+    <TextBlock Classes="secondary" Text="{Binding RuntimeText}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding OpenGuideCommand}" Content="{x:Static res:Strings.Menu_UserGuide}" />
+      <Button Command="{Binding OpenRepositoryCommand}" Content="{x:Static res:Strings.About_Website}" />
+      <Button x:Name="CloseButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.About_Close}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

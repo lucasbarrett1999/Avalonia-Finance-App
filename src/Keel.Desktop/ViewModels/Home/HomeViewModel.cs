@@ -58,8 +58,10 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
         IMessenger messenger,
         IRecurringService? recurring = null,
         IScheduledTransactionService? scheduled = null,
-        IForecastService? forecast = null)
+        IForecastService? forecast = null,
+        Keel.Application.Setup.ISetupProgressService? setup = null)
     {
+        _setup = setup;
         _recurring = recurring;
         _scheduled = scheduled;
         _forecast = forecast;
@@ -106,8 +108,11 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
 
     /// <summary>Whether the first load finished.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowEmptyState), nameof(ShowDashboard))]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState), nameof(ShowDashboard), nameof(ShowLoading))]
     public partial bool IsInitialized { get; private set; }
+
+    /// <summary>The loading state before the first load finishes (not shown once an error is reported).</summary>
+    public bool ShowLoading => !IsInitialized && !HasError;
 
     /// <summary>Whether any account exists.</summary>
     [ObservableProperty]
@@ -122,7 +127,7 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
 
     /// <summary>Load error.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(HasError), nameof(ShowLoading))]
     public partial string? ErrorMessage { get; private set; }
 
     /// <summary>Whether loading failed.</summary>
@@ -296,6 +301,7 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
             }
 
             await LoadRecurringCardsAsync(today, version);
+            await LoadSetupAsync(version);
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbException)
         {

@@ -17,7 +17,7 @@ namespace Keel.Desktop.ViewModels.Sync;
 /// and unlink flows. Syncs run on the thread pool; progress and results go to the non-modal status
 /// strip, failures become connection states (never error dialogs).
 /// </summary>
-public sealed partial class SyncCoordinator : ObservableObject, IRecipient<SyncConnectionsChanged>
+public sealed partial class SyncCoordinator : ObservableObject, IRecipient<SyncConnectionsChanged>, IDisposable
 {
     private readonly ISyncService _sync;
     private readonly IBankCredentialsService _credentials;
@@ -137,6 +137,13 @@ public sealed partial class SyncCoordinator : ObservableObject, IRecipient<SyncC
             }
         };
         _timer.Start();
+    }
+
+    /// <summary>Stops the scheduled sync when the session closes (M8 file switching).</summary>
+    public void Dispose()
+    {
+        _timer?.Stop();
+        _timer = null;
     }
 
     /// <summary>The scheduled interval, or null when scheduled sync is off.</summary>

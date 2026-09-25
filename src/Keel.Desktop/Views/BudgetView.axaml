@@ -6,9 +6,50 @@
              xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.BudgetView"
              x:DataType="vm:BudgetViewModel">
+  <UserControl.Styles>
+    <!-- Narrow windows (a small screen, or 200% scaling on a 1080p display): the Ready to Assign pill moves
+         under the month, and the inspector floats over the grid instead of squeezing it (BudgetView.axaml.cs). -->
+    <Style Selector="Button#ReadyToAssignPill">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Grid.ColumnSpan" Value="1" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="16,0" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowHeader Button#ReadyToAssignPill">
+      <Setter Property="Grid.Row" Value="1" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+    <Style Selector="StackPanel#BudgetActions">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="2" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowHeader StackPanel#BudgetActions">
+      <Setter Property="Grid.Row" Value="1" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
+      <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+    <Style Selector="ContentControl#InspectorHost">
+      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Margin" Value="16,16,0,0" />
+    </Style>
+    <Style Selector=":is(UserControl).overlayInspector ContentControl#InspectorHost Border.inspector">
+      <Setter Property="BoxShadow" Value="0 4 16 0 #40000000" />
+    </Style>
+    <Style Selector=":is(UserControl).overlayInspector ContentControl#InspectorHost">
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0,16,0,0" />
+    </Style>
+  </UserControl.Styles>
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
     <!-- Header: month picker, Ready to Assign, quick actions (PRD 9.3) -->
-    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto">
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
       <StackPanel Grid.Column="0" VerticalAlignment="Center">
         <TextBlock Classes="pageTitle" Text="{Binding Title}" />
         <StackPanel Orientation="Horizontal" Spacing="2" Margin="-8,2,0,0">
@@ -64,8 +105,8 @@
         </StackPanel>
       </StackPanel>
 
-      <Button Grid.Column="1" x:Name="ReadyToAssignPill" Classes="rtaPill" Classes.negative="{Binding IsReadyToAssignNegative}"
-              VerticalAlignment="Center" HorizontalAlignment="Center" Margin="16,0" IsVisible="{Binding ShowHeader}" DragDrop.AllowDrop="True"
+      <Button x:Name="ReadyToAssignPill" Classes="rtaPill" Classes.negative="{Binding IsReadyToAssignNegative}"
+              VerticalAlignment="Center" IsVisible="{Binding ShowHeader}" DragDrop.AllowDrop="True"
               Command="{Binding ExplainReadyToAssignCommand}" ToolTip.Tip="{x:Static res:Strings.Budget_RtaTip}"
               AutomationProperties.Name="{x:Static res:Strings.Budget_ReadyToAssign}"
               AutomationProperties.HelpText="{Binding ReadyToAssignText}">
@@ -75,7 +116,7 @@
         </StackPanel>
       </Button>
 
-      <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
+      <StackPanel x:Name="BudgetActions" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
         <Button x:Name="FundTargetsButton" Classes="tool accent" Command="{Binding FundTargetsCommand}" ToolTip.Tip="{Binding FundTargetsTip}"
                 IsEnabled="{Binding ShowGrid}" AutomationProperties.Name="{x:Static res:Strings.Budget_FundTargets}">
           <StackPanel Orientation="Horizontal" Spacing="6">
@@ -128,11 +169,12 @@
       </StackPanel>
     </Border>
 
+    <Grid ColumnDefinitions="*,Auto">
     <!-- Inspector (I) -->
-    <ContentControl DockPanel.Dock="Right" x:Name="InspectorHost" Width="340" Margin="16,16,0,0"
+    <ContentControl x:Name="InspectorHost" Width="340" ZIndex="1"
                     Content="{Binding Inspector}" IsVisible="{Binding IsInspectorOpen}" />
 
-    <Panel Margin="0,16,0,0">
+    <Panel Grid.Column="0" Margin="0,16,0,0" MinWidth="520">
       <!-- Loading -->
       <StackPanel x:Name="LoadingState" IsVisible="{Binding ShowLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
         <ProgressBar IsIndeterminate="True" Width="220" />
@@ -278,5 +320,6 @@
         </DockPanel>
       </Border>
     </Panel>
+    </Grid>
   </DockPanel>
 </UserControl>

@@ -42,6 +42,10 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
             .HasDatabaseName("IX_Transactions_Register_Account");
         builder.HasIndex(t => new { t.Date, t.Id, t.IsDeleted, t.Amount, t.Status })
             .HasDatabaseName("IX_Transactions_Register_All");
+
+        // Review queue (M8): unapproved rows oldest first, counted and paged without a table scan.
+        builder.HasIndex(t => new { t.IsApproved, t.Date, t.Id })
+            .HasDatabaseName("IX_Transactions_ReviewQueue");
     }
 }
 

@@ -10,4 +10,7 @@ public sealed class AppSession
 
     /// <summary>Status-strip message describing how startup went.</summary>
     public string? StartupMessage { get; set; }
+
+    /// <summary>The first-run setup step to show, or null when the setup is not running (PRD 9.10).</summary>
+    public FirstRunStep? FirstRun { get; set; }
 }

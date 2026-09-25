@@ -16,7 +16,50 @@
       <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
     </Border>
 
+    <!-- Get started checklist (PRD 9.10 step 4) -->
+    <Border DockPanel.Dock="Top" x:Name="SetupChecklistCard" Classes="card" Margin="0,0,0,16" IsVisible="{Binding ShowChecklist}">
+      <StackPanel Spacing="10">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" x:Name="DismissChecklistButton" Theme="{StaticResource IconButtonTheme}" Command="{Binding DismissChecklistCommand}"
+                  AutomationProperties.Name="{x:Static res:Strings.Setup_DismissName}" ToolTip.Tip="{x:Static res:Strings.Setup_DismissName}">
+            <TextBlock Text="{x:Static res:Strings.Setup_Dismiss}" />
+          </Button>
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Setup_Title}" VerticalAlignment="Center" />
+            <TextBlock x:Name="SetupProgressText" Classes="secondary" Text="{Binding SetupProgressText}" VerticalAlignment="Center" />
+          </StackPanel>
+        </DockPanel>
+        <ProgressBar Minimum="0" Maximum="4" Value="{Binding SetupCompleted}" Height="6" AutomationProperties.Name="{Binding SetupProgressText}" />
+        <TextBlock Text="{x:Static res:Strings.Setup_Complete}" IsVisible="{Binding IsSetupComplete}" />
+        <ItemsControl x:Name="SetupStepList" ItemsSource="{Binding SetupSteps}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="4" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="home:SetupStepViewModel">
+              <StackPanel Spacing="4" Margin="0,0,12,0" AutomationProperties.Name="{Binding AutomationName}">
+                <DockPanel>
+                  <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Check}" Width="14" Height="14" Margin="0,2,6,0" VerticalAlignment="Top"
+                                 Foreground="{DynamicResource Keel.Positive}" IsVisible="{Binding IsDone}" />
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                </DockPanel>
+                <TextBlock Classes="secondary" Text="{Binding StateText}" FontSize="{StaticResource Keel.FontSize.Small}" />
+                <TextBlock Classes="secondary" Text="{Binding Hint}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+                <Button Content="{Binding ActionText}" Command="{Binding Command}" IsVisible="{Binding ShowAction}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
     <Panel>
+      <StackPanel x:Name="LoadingState" IsVisible="{Binding ShowLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+        <ProgressBar IsIndeterminate="True" Width="220" AutomationProperties.Name="{x:Static res:Strings.Home_Loading}" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Home_Loading}" HorizontalAlignment="Center" />
+      </StackPanel>
       <controls:EmptyState Icon="{StaticResource Icon.Home}" Heading="{Binding EmptyHeading}" Message="{Binding EmptyMessage}"
                            IsVisible="{Binding ShowEmptyState}">
         <StackPanel Spacing="16" HorizontalAlignment="Center">

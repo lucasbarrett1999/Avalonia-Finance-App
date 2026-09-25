@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.BillsSettingsView"
+             x:DataType="vm:BillsSettingsViewModel">
+  <StackPanel Spacing="10">
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_BillsHint}" TextWrapping="Wrap" />
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Height="4" AutomationProperties.Name="{x:Static res:Strings.Settings_BillsTitle}" />
+    <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" TextWrapping="Wrap" />
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.Settings_BillsGroups}" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_BillsNoGroups}" IsVisible="{Binding HasNoGroups}" />
+    <ItemsControl x:Name="GroupList" ItemsSource="{Binding Groups}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" ItemSpacing="16" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:DesignationOption">
+          <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Name}" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.Settings_BillsTags}" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_BillsNoTags}" IsVisible="{Binding HasNoTags}" />
+    <ItemsControl x:Name="TagList" ItemsSource="{Binding Tags}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal" ItemSpacing="16" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:DesignationOption">
+          <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Name}" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

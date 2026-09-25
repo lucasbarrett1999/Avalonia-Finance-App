@@ -44,7 +44,10 @@
                     <TextBlock Text="{Binding LevelTitle}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                   </StackPanel>
                 </DockPanel>
-                <TextBlock x:Name="SpendingTotal" Classes="heroNumber" Text="{Binding TotalText}" FontFeatures="+tnum" />
+                <!-- Shrinks rather than clips in narrow windows (200% scaling). -->
+                <Viewbox StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Left">
+                  <TextBlock x:Name="SpendingTotal" Classes="heroNumber" Text="{Binding TotalText}" FontFeatures="+tnum" />
+                </Viewbox>
                 <TextBlock Text="{Binding ChangeText}" FontWeight="SemiBold" />
                 <TextBlock Classes="secondary" Text="{Binding PreviousPeriodText}" TextWrapping="Wrap" />
                 <TextBlock Classes="secondary" TextWrapping="Wrap">

@@ -63,8 +63,11 @@ public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, I
 
     /// <summary>Whether the first load finished.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowEmptyState), nameof(ShowGoals))]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState), nameof(ShowGoals), nameof(ShowLoading))]
     public partial bool IsInitialized { get; private set; }
+
+    /// <summary>The loading state before the first load finishes (not shown once an error is reported).</summary>
+    public bool ShowLoading => !IsInitialized && !HasError;
 
     /// <summary>Whether any goal exists.</summary>
     [ObservableProperty]
@@ -83,7 +86,7 @@ public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, I
 
     /// <summary>Load error.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(HasError), nameof(ShowLoading))]
     public partial string? ErrorMessage { get; private set; }
 
     /// <summary>Whether loading failed.</summary>

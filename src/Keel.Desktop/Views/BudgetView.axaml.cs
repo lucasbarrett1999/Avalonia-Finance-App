@@ -47,6 +47,7 @@ public partial class BudgetView : UserControl
         ReadyToAssignPill.AddHandler(DragDrop.DragOverEvent, OnReadyToAssignDragOver);
         ReadyToAssignPill.AddHandler(DragDrop.DragLeaveEvent, (_, _) => ReadyToAssignPill.Classes.Set("dropTarget", false));
         ReadyToAssignPill.AddHandler(DragDrop.DropEvent, OnReadyToAssignDrop);
+        SizeChanged += (_, e) => ApplyWidth(e.NewSize.Width);
         ((PopupFlyoutBase)MonthPickerButton.Flyout!).Opening += (_, _) =>
         {
             if (_vm is not null)
@@ -54,6 +55,19 @@ public partial class BudgetView : UserControl
                 _vm.PickerYear = _vm.CurrentMonth.Year;
             }
         };
+    }
+
+    /// <summary>Below this width the Ready to Assign pill moves under the month title.</summary>
+    public const double NarrowHeaderWidth = 1120;
+
+    /// <summary>Below this width the inspector floats over the grid instead of taking a column.</summary>
+    public const double OverlayInspectorWidth = 980;
+
+    /// <summary>Applies the narrow layouts for <paramref name="width"/> (PRD 11: usable at 200% scaling).</summary>
+    public void ApplyWidth(double width)
+    {
+        Classes.Set("narrowHeader", width < NarrowHeaderWidth);
+        Classes.Set("overlayInspector", width < OverlayInspectorWidth);
     }
 
     /// <summary>The focusable grid host (tests drive it directly).</summary>

@@ -18,7 +18,8 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        // One messenger per session (M8, ADR 0080): screens of a closed budget file never receive the next file's messages.
+        services.AddSingleton<IMessenger>(_ => new WeakReferenceMessenger());
         services.AddSingleton<IMessageBus, MessengerBus>();
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<AppSession>();
@@ -52,6 +53,19 @@ public static class DependencyInjection
         services.AddTransient<Keel.Desktop.ViewModels.Bills.ScheduledGhostsViewModel>();
         services.AddSingleton<Keel.Desktop.ViewModels.Alerts.NotificationCenterViewModel>();
         services.AddSingleton<RecurringJobs>();
+        services.AddSingleton<ShortcutRegistry>();
+        services.AddSingleton<AppCommands>();
+        services.AddSingleton<AppearanceService>();
+        services.AddSingleton<LocaleService>();
+        services.AddSingleton<IFileDialogs, StorageFileDialogs>();
+        services.AddSingleton<Func<IUpdateSource>>(_ => () => new VelopackUpdateSource());
+        services.AddSingleton<UpdateService>();
+        services.AddSingleton<MaintenanceJobs>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.DataFileSettingsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.AppearanceSettingsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.BillsSettingsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.UpdatesSettingsViewModel>();
+        services.AddTransient<Keel.Desktop.ViewModels.FirstRun.FirstRunViewModel>();
         return services;
     }
 }
