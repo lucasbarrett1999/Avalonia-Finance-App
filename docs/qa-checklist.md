@@ -37,6 +37,13 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
 - [ ] Home shows "Get started" with 3 of 4 done; assign all the money; the fourth step ticks off.
 - [ ] Time from first launch to a fully assigned month is under 15 minutes (G1).
 - [ ] Restart: the setup does not show again; the same file opens.
+- [ ] (M9) On a fresh data folder, "Restore from a Keel export bundle…" with a bundle from another
+      machine: the details (source file, date, counts) show; "Restore and open" creates the named file
+      and opens it with every account, the Budget and Reports matching the source.
+- [ ] (M9) On a fresh data folder, "Import from YNAB or Monarch export…" with a real YNAB Register
+      export and a real Monarch export (each in turn): the preview lists every account with a sensible
+      type, categories and tags to create, and a result line; Import lands on Budget; balances match
+      the other app; transfers between the imported accounts are linked; Undo removes everything.
 
 ## 3. Budget file management (F-SET-1, PRD 8)
 
@@ -57,6 +64,15 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
       `schema-summary.json` with no payee names, amounts or notes (search it for a payee you entered).
 - [ ] Open a copy of a damaged file (truncate a copy): Keel reports the problem in the status strip
       and keeps running.
+- [ ] (M9) Export… as CSV zip, CSV folder and Keel bundle: the zip and folder hold the nine CSV files;
+      open `transactions.csv` in a spreadsheet (UTF-8, ISO dates, decimals, split lines with Parent Id);
+      the bundle is a single `.json`. The app stays responsive during a large export.
+- [ ] (M9) Import bundle into a new file… with that bundle: the new file opens with the same accounts,
+      balances, budget, rules, targets, schedules, bills and attachments; the original file is unchanged.
+      A bundle edited by hand to reference a missing account is refused with a clear message and no
+      file is left behind.
+- [ ] (M9) Import the YNAB Budget/Plan export after the register: Assigned per month matches YNAB;
+      importing it again changes nothing.
 
 ## 4. Everyday flows with the mouse and the keyboard
 
