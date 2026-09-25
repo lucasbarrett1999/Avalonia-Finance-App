@@ -46,6 +46,32 @@ Choose **Restore** next to a backup in the list, or **Restore from a file…** f
 asks first, saves the current state as a "before restore" backup, replaces the file and its attachments
 with the backup's, and reopens it. Damaged backups and backups from a newer Keel are refused.
 
+## Export and import
+
+**Settings → General → Export and import** (and the command palette) has three actions:
+
+- **Export…** writes everything in the budget file in one of three forms:
+  - **CSV files in a zip** or **in a folder**: nine files for spreadsheets and other tools:
+    `transactions.csv` (one line per transaction; a split transaction is one line per split, with the
+    transaction's id in `Parent Id`), `budget.csv` (assigned per category and month), `accounts.csv`
+    (with balances), `categories.csv`, `payees.csv`, `rules.csv` (conditions and actions as JSON),
+    `targets.csv`, `scheduled-transactions.csv` and `recurring-items.csv`. Dates are ISO (`2026-08-31`,
+    months `2026-08`), amounts are plain decimals in the account's currency (`-12.30`), text is UTF-8
+    without a byte-order mark, and the columns always come in the same order. Deleted transactions are
+    left out.
+  - **Keel export bundle (JSON)**: one file with every table of the budget file (ids included, deleted
+    transactions too) and the attachment files. It is the way to move a budget into a fresh file
+    exactly as it is.
+- **Import bundle into a new file…** reads a bundle, shows where it came from and what it holds, asks
+  for the new file's name, creates the file, imports the bundle into it (checking that every reference
+  and every split adds up before anything is saved) and opens it. A bundle never goes into a file that
+  already holds data, and one made by a newer Keel is refused. On the first-run Welcome step the same
+  thing is **Restore from a Keel export bundle…**.
+- **Import from YNAB or Monarch…**: see [Importing files](importing.md#moving-to-keel-from-ynab-or-monarch).
+
+Exports are not encrypted; keep them as private as the budget file. The history of changes behind Undo
+is not part of a bundle, and Keel rebuilds its category suggestions in the new file.
+
 ## The integrity check
 
 Once a day Keel runs SQLite's `integrity_check` on the open file. If it finds damage, the status strip

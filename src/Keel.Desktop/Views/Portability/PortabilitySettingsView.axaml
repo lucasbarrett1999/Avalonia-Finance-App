@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Portability"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Portability.PortabilitySettingsView"
+             x:DataType="vm:PortabilitySettingsViewModel">
+  <StackPanel Spacing="10">
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.Export_Section}" Margin="0,8,0,0" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Export_SectionHint}" TextWrapping="Wrap" />
+    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" AutomationProperties.Name="{x:Static res:Strings.Export_Section}">
+      <Button x:Name="ExportButton" Command="{Binding ExportCommand}" IsEnabled="{Binding HasFile}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <controls:Icon Data="{StaticResource Icon.File}" Width="14" Height="14" />
+          <TextBlock Text="{x:Static res:Strings.Export_Button}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+      <Button x:Name="ImportBundleButton" Command="{Binding ImportBundleCommand}" Content="{x:Static res:Strings.Bundle_Button}" />
+      <Button x:Name="ImportFromAppButton" Command="{Binding ImportFromAppCommand}" IsEnabled="{Binding HasFile}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <controls:Icon Data="{StaticResource Icon.Import}" Width="14" Height="14" />
+          <TextBlock Text="{x:Static res:Strings.Ynab_Button}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+    </WrapPanel>
+  </StackPanel>
+</UserControl>
