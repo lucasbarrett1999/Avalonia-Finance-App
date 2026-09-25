@@ -5083,10 +5083,10 @@
     <value>The payment doesn't cover the interest</value>
   </data>
   <data name="Debt_AtMinimum" xml:space="preserve">
-    <value>Minimum only: {0}</value>
+    <value>At the minimum alone: paid off {0} with {1} interest</value>
   </data>
   <data name="Debt_AtMinimumNever" xml:space="preserve">
-    <value>Minimum only: never</value>
+    <value>At the minimum alone: never paid off</value>
   </data>
   <data name="Debt_PaymentCategory" xml:space="preserve">
     <value>Budgeted in {0}</value>
@@ -5177,5 +5177,11 @@
   </data>
   <data name="Debt_Editor_RateInvalid" xml:space="preserve">
     <value>Enter an interest rate between 0 and 100, for example 19.99.</value>
+  </data>
+  <data name="Debt_PlanOutlay" xml:space="preserve">
+    <value>{0} a month</value>
+  </data>
+  <data name="Debt_ComparisonNeverPlan" xml:space="preserve">
+    <value>Raise the extra per month until every debt is paid off.</value>
   </data>
 </root>

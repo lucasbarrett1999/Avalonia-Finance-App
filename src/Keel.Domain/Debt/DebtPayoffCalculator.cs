@@ -77,17 +77,18 @@ public sealed record DebtPlan(
 /// then every unpaid debt receives its minimum (capped at what it owes) and the rest of the monthly
 /// outlay (the extra plus the minimums freed by debts already paid off, "rollover") goes to the debts
 /// in priority order: smallest balance first (snowball) or highest rate first (avalanche). A debt whose
-/// payment never outgrows its interest is reported as never paid off: the simulation stops when
-/// nothing changes from one month to the next, when the total owed passes
-/// <see cref="GrowthLimit"/> times the starting total, or after <see cref="MaxMonths"/> months.
+/// monthly interest reaches the whole monthly outlay can never shrink (no month pays it more than the
+/// outlay, and its interest only grows), so it is reported as never paid off; the plan runs until every
+/// other debt is paid off, or for at most <see cref="MaxMonths"/> months. Balances saturate at
+/// <see cref="BalanceCeiling"/>.
 /// </summary>
 public static class DebtPayoffCalculator
 {
     /// <summary>Longest plan simulated (100 years).</summary>
     public const int MaxMonths = 1200;
 
-    /// <summary>The plan stops as "never" once the total owed reaches this multiple of the starting total.</summary>
-    public const int GrowthLimit = 10;
+    /// <summary>A balance growing without end stops here (no overflow over a century of interest).</summary>
+    public const long BalanceCeiling = long.MaxValue / 1024;
 
     /// <summary>Largest accepted annual rate in basis points (100%).</summary>
     public const int MaxRateBps = 10_000;
@@ -176,17 +177,26 @@ public static class DebtPayoffCalculator
         }
 
         var outlay = checked(order.Where(d => d.Balance > 0).Sum(d => d.MinimumPayment) + extraPerMonth);
-        var startTotal = balance.Sum();
-        var totals = new List<long> { startTotal };
-        var stopped = false;
-        for (var month = 1; month <= MaxMonths && balance.Any(b => b > 0); month++)
+        var doomed = new bool[n];
+        var totals = new List<long> { Total(balance) };
+        for (var month = 1; month <= MaxMonths; month++)
         {
-            var before = (long[])balance.Clone();
+            // Never paid off: even the whole outlay would not cover this debt's interest.
+            for (var i = 0; i < n; i++)
+            {
+                doomed[i] |= balance[i] > 0 && MonthlyInterest(balance[i], order[i].AnnualRateBps) >= outlay;
+            }
+
+            if (Enumerable.Range(0, n).All(i => balance[i] == 0 || doomed[i]))
+            {
+                break;
+            }
+
             for (var i = 0; i < n; i++)
             {
                 var charge = MonthlyInterest(balance[i], order[i].AnnualRateBps);
-                balance[i] += charge;
-                interest[i] += charge;
+                balance[i] = Math.Min(BalanceCeiling, balance[i] + charge);
+                interest[i] = Math.Min(BalanceCeiling, interest[i] + charge);
             }
 
             var available = outlay;
@@ -227,15 +237,7 @@ public static class DebtPayoffCalculator
                 history[i].Add(balance[i]);
             }
 
-            var total = balance.Sum();
-            totals.Add(total);
-
-            // Never paid off: nothing moves any more, or the debt keeps growing.
-            if (total > 0 && (balance.AsSpan().SequenceEqual(before) || total > (Int128)startTotal * GrowthLimit))
-            {
-                stopped = true;
-                break;
-            }
+            totals.Add(Total(balance));
         }
 
         var length = totals.Count;
@@ -251,7 +253,7 @@ public static class DebtPayoffCalculator
             paid[i],
             first[i],
             Pad(history[i], length))).ToList();
-        var allPaid = !stopped && balance.All(b => b == 0);
+        var allPaid = balance.All(b => b == 0);
         return new DebtPlan(
             ordering,
             extraPerMonth,
@@ -260,6 +262,17 @@ public static class DebtPayoffCalculator
             allPaid ? schedules.Select(s => s.PayoffMonths!.Value).DefaultIfEmpty(0).Max() : null,
             interest.Sum(),
             totals);
+    }
+
+    private static long Total(long[] balances)
+    {
+        Int128 total = 0;
+        foreach (var balance in balances)
+        {
+            total += balance;
+        }
+
+        return (long)Int128.Min(total, long.MaxValue);
     }
 
     private static List<long> Pad(IReadOnlyList<long> values, int length)

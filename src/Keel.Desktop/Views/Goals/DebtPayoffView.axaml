@@ -1,0 +1,154 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:goals="using:Keel.Desktop.ViewModels.Goals"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="Keel.Desktop.Views.Goals.DebtPayoffView"
+             x:DataType="goals:DebtPayoffViewModel">
+  <Panel>
+    <StackPanel x:Name="DebtLoadingState" IsVisible="{Binding ShowLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+      <ProgressBar IsIndeterminate="True" Width="220" AutomationProperties.Name="{x:Static res:Strings.Debt_Loading}" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Debt_Loading}" HorizontalAlignment="Center" />
+    </StackPanel>
+
+    <Border Classes="warning" VerticalAlignment="Top" IsVisible="{Binding HasError}">
+      <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+    </Border>
+
+    <controls:EmptyState x:Name="DebtEmptyState" Icon="{StaticResource Icon.Debt}" Heading="{x:Static res:Strings.Debt_EmptyHeading}"
+                         Message="{x:Static res:Strings.Debt_EmptyMessage}" IsVisible="{Binding ShowEmptyState}">
+      <Button x:Name="DebtAddAccountButton" Classes="accent" Command="{Binding AddAccountCommand}" Content="{x:Static res:Strings.Debt_AddAccount}" />
+    </controls:EmptyState>
+
+    <ScrollViewer IsVisible="{Binding ShowContent}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="12" Margin="0,0,12,0">
+        <!-- Headline and the one-click targets -->
+        <DockPanel IsVisible="{Binding HasPlan}">
+          <StackPanel DockPanel.Dock="Right" Spacing="4" MaxWidth="260" VerticalAlignment="Top" Margin="16,0,0,0">
+            <Button x:Name="SetTargetsButton" Classes="accent" HorizontalAlignment="Right" Command="{Binding SetTargetsCommand}"
+                    ToolTip.Tip="{x:Static res:Strings.Debt_SetTargetsHint}" AutomationProperties.Name="{x:Static res:Strings.Debt_SetTargets}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <controls:Icon Data="{StaticResource Icon.Goals}" Width="16" Height="16" />
+                <TextBlock Text="{x:Static res:Strings.Debt_SetTargets}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Debt_SetTargetsHint}" TextWrapping="Wrap" TextAlignment="Right" />
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="20" Height="20" VerticalAlignment="Center"
+                             Foreground="{DynamicResource Keel.Warning}" IsVisible="{Binding IsNever}" />
+              <TextBlock x:Name="DebtHeadline" Text="{Binding HeadlineText}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" />
+            </StackPanel>
+            <TextBlock x:Name="DebtSummary" Text="{Binding SummaryText}" FontFeatures="+tnum" TextWrapping="Wrap" />
+            <TextBlock x:Name="DebtComparison" Classes="secondary" Text="{Binding ComparisonText}" TextWrapping="Wrap" />
+          </StackPanel>
+        </DockPanel>
+
+        <!-- Extra per month and ordering -->
+        <Border Classes="bar" IsVisible="{Binding HasPlan}">
+          <StackPanel Spacing="6">
+            <WrapPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,24,4">
+                <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Debt_Extra}" VerticalAlignment="Center" Margin="0" />
+                <controls:MoneyTextBox x:Name="ExtraPerMonthBox" Width="140" Value="{Binding ExtraPerMonth}" Currency="{Binding Currency}"
+                                       AutomationProperties.Name="{x:Static res:Strings.Debt_ExtraName}" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Debt_Ordering}" VerticalAlignment="Center" Margin="0" />
+                <ComboBox x:Name="OrderingBox" MinWidth="240" ItemsSource="{Binding Orderings}" SelectedItem="{Binding SelectedOrdering}"
+                          AutomationProperties.Name="{x:Static res:Strings.Debt_OrderingName}" />
+              </StackPanel>
+            </WrapPanel>
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{x:Static res:Strings.Debt_OrderingHint}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- The debts table (legend of the chart too) -->
+        <Border Classes="card" Padding="12" IsVisible="{Binding HasPlan}">
+          <StackPanel>
+            <Grid ColumnDefinitions="*,100,64,90,90,100,100" Margin="8,0,8,6">
+              <TextBlock Classes="tableHeader" Text="{x:Static res:Strings.Debt_Col_Debt}" />
+              <TextBlock Grid.Column="1" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Debt_Col_Balance}" />
+              <TextBlock Grid.Column="2" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Debt_Col_Rate}" />
+              <TextBlock Grid.Column="3" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Debt_Col_Minimum}" />
+              <TextBlock Grid.Column="4" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Debt_Col_Payment}" />
+              <TextBlock Grid.Column="5" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Debt_Col_Payoff}" />
+              <TextBlock Grid.Column="6" Classes="tableHeader" HorizontalAlignment="Right" Text="{x:Static res:Strings.Debt_Col_Interest}" />
+            </Grid>
+            <ItemsControl x:Name="DebtRows" ItemsSource="{Binding Rows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="goals:DebtRowViewModel">
+                  <Button Classes="chartRow" Command="{Binding Open}" CommandParameter="{Binding}" AutomationProperties.Name="{Binding AutomationName}">
+                    <Grid ColumnDefinitions="*,100,64,90,90,100,100" RowDefinitions="Auto,Auto">
+                      <DockPanel Margin="0,0,8,0">
+                        <controls:ChartSwatch DockPanel.Dock="Left" Slot="{Binding Slot}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
+                      </DockPanel>
+                      <TextBlock Grid.Column="1" Classes="amount" Text="{Binding OwedText}" />
+                      <TextBlock Grid.Column="2" Classes="amount" Text="{Binding RateText}" />
+                      <TextBlock Grid.Column="3" Classes="amount" Text="{Binding MinimumText}" />
+                      <TextBlock Grid.Column="4" Classes="amount" FontWeight="SemiBold" Text="{Binding PaymentText}" />
+                      <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                        <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="14" Height="14" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Keel.Warning}" IsVisible="{Binding IsNever}" ToolTip.Tip="{x:Static res:Strings.Debt_NeverHint}" />
+                        <TextBlock Classes="amount" Text="{Binding PayoffText}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="6" Classes="amount" Text="{Binding InterestText}" />
+                      <TextBlock Grid.Row="1" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Margin="18,2,12,0" Text="{Binding CategoryText}"
+                                 TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding CategoryText}" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="6" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Margin="0,2,0,0"
+                                 HorizontalAlignment="Right" Text="{Binding AtMinimumText}" FontFeatures="+tnum" TextTrimming="CharacterEllipsis" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Balances over time -->
+        <Border Classes="card" Padding="16" IsVisible="{Binding HasPlan}">
+          <StackPanel Spacing="8">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <controls:ChartSwatch Slot="-2" Kind="Line" Width="18" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static res:Strings.Debt_MinimumLine}" />
+              </StackPanel>
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Debt_ChartTitle}" VerticalAlignment="Center" />
+            </DockPanel>
+            <lvc:CartesianChart x:Name="DebtChart" Height="260" AutomationProperties.Name="{x:Static res:Strings.Debt_ChartName}" />
+            <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap" Text="{x:Static res:Strings.Debt_ChartHint}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Debts that need a rate or a minimum -->
+        <Border x:Name="DebtMissingCard" Classes="card" Padding="16" IsVisible="{Binding HasMissing}">
+          <StackPanel Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.Report.Alert}" Width="16" Height="16" Foreground="{DynamicResource Keel.Warning}" VerticalAlignment="Center" />
+              <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Debt_MissingTitle}" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Classes="secondary" Text="{x:Static res:Strings.Debt_MissingHint}" TextWrapping="Wrap" />
+            <ItemsControl x:Name="DebtMissingRows" ItemsSource="{Binding Missing}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="goals:DebtMissingRow">
+                  <Grid ColumnDefinitions="*,110,Auto" Margin="8,4">
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding MissingText}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Classes="amount" Text="{Binding OwedText}" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Margin="12,0,0,0" Command="{Binding Edit}" CommandParameter="{Binding}" VerticalAlignment="Center"
+                            AutomationProperties.Name="{Binding EditName}" Content="{x:Static res:Strings.Debt_EditAccount}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Panel>
+</UserControl>

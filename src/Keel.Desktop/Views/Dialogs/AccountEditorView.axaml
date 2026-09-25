@@ -47,6 +47,23 @@
       </StackPanel>
     </Grid>
 
+    <!-- Debt terms for the payoff planner (F-GOAL-2): liabilities only -->
+    <StackPanel x:Name="DebtTermsPanel" Spacing="4" IsVisible="{Binding ShowDebtTerms}">
+      <Grid ColumnDefinitions="*,12,*">
+        <StackPanel>
+          <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Debt_Editor_Rate}" />
+          <TextBox x:Name="InterestRateBox" Text="{Binding InterestRateText}" HorizontalContentAlignment="Right"
+                   AutomationProperties.Name="{x:Static res:Strings.Debt_Editor_Rate}" />
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Debt_Editor_Minimum}" />
+          <controls:MoneyTextBox x:Name="MinimumPaymentBox" Value="{Binding MinimumPayment}" Currency="{Binding Currency}"
+                                 AutomationProperties.Name="{x:Static res:Strings.Debt_Editor_Minimum}" />
+        </StackPanel>
+      </Grid>
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Debt_Editor_Hint}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+    </StackPanel>
+
     <CheckBox IsChecked="{Binding IsOnBudget}" IsEnabled="{Binding CanOverrideOnBudget}"
               Content="{x:Static res:Strings.AccountEditor_OnBudget}" />
 

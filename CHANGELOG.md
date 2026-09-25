@@ -3,6 +3,65 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M9b — Debt payoff, budget health and PNG export
+
+Milestone 9 (PRD 12, P1 backlog), stream B: the debt payoff planner (F-GOAL-2, PRD 9.7), age of money
+and budget health (F-REP-5) and PNG export of report charts (PRD 9.8).
+
+### Added
+
+- **Debt terms on accounts** (ADR 0093): `Account.InterestRateBps` (annual basis points) and
+  `MinimumPayment` (minor units), migration `DebtPayoffFields` (two nullable columns, no table rebuild);
+  the account editor shows "Interest rate (APR %)" and "Minimum payment" for cards, lines of credit,
+  loans/mortgages and other liabilities; edits are audited and undoable.
+- **`DebtPayoffCalculator`** (pure domain): monthly amortization with interest = balance × APR / 12
+  rounded half to even; snowball and avalanche priority with rollover of freed minimums and payoff-month
+  leftovers; the minimum-only baseline ("at current payment"); a debt whose interest reaches the whole
+  monthly outlay is reported as never paid off while the others still finish; balances saturate.
+- **Debt payoff tab on Goals** (`2`/`1` switch tabs; palette "Open the debt payoff planner"): headline
+  debt-free month, monthly outlay, total interest and the saving versus minimums; extra per month and
+  ordering; a table of balance, rate, minimum, this month's payment, payoff month and interest (with the
+  minimum-alone payoff and interest under each row); a stacked-area chart of balances with the
+  minimum-only total as a dashed line (rows and bands open the account); "Add details" list with Edit
+  account for debts missing a rate or minimum; designed loading, error and empty states.
+- **Set payment targets**: one click writes debt-payment targets (this month's planned payment) on each
+  debt's payment category through the new `IBudgetService.SetTargetsAsync`, one undo step; loans without
+  a payment category get "{name} payment" in "Debt payments".
+- **Age of money** (ADR 0094): FIFO over daily inflows and outflows of on-budget cash accounts (one SQL
+  `GROUP BY` day), average of the last 10 outflows; transfers between cash accounts left out, card
+  spending counted when the card is paid, unfunded spending left out.
+- **Budget health report** (Reports, fifth report; palette "Open the budget health report"): age of
+  money with its month-end history, months ahead, targets funded and overspent categories (cash vs
+  credit), each with the numbers behind it and a "How these are calculated" card; drill-down to the
+  register; CSV. `IReportService.GetAgeOfMoneyAsync` and `GetBudgetHealthAsync`.
+- **Home: age-of-money card** with a 12-month sparkline, linking to Budget health.
+- **Export PNG** (ADR 0095) on every report (`Ctrl/⌘+Shift+E`, palette): the chart rendered through
+  `RenderTargetBitmap` at 2x onto the theme's chart surface, saved through `IFileDialogs.SavePngAsync`.
+- Shortcut registry: `reports-export-png`, `goals-tabs`, report picker `1–5`; `ShortcutRegistry.All` is
+  now stably sorted by scope so entries can be appended. User guide (reports and goals, keyboard
+  shortcuts, index) and QA checklist updated.
+
+### Decisions and deviations
+
+- ADR 0093 (debt payoff rules, target write path, payment-category resolution), ADR 0094 (age of money
+  and budget-health definitions), ADR 0095 (PNG export).
+- Budget health's targets-funded, overspending and months-ahead buffer come from
+  `IBudgetService.GetMonthAsync` (so from `BudgetCalculator`) rather than new raw SQL, because budget math
+  lives only in the calculator; `ReportService` takes the budget service as an optional dependency.
+  Spending averages and age of money are raw SQL aggregates (no row loads).
+- Export PNG is a second toolbar button beside Export CSV (the toolbar had a button, not a menu).
+- Home gains an eighth card (age of money) after the PRD 9.2 cards.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+VERIFICATION_TABLE
+
+### Not done here
+
+- Interest is APR/12 on the balance at the start of each month: daily compounding, promotional rates,
+  fees and minimums that shrink with the balance are not modelled.
+- Age of money is aggregated per day, so outflows on one day share one age.
+
 ## M8 — Polish, first-run, backups and packaging
 
 Milestone 8 (PRD 12): the first-run experience (PRD 9.10), data-file management and backups (F-SET-1,

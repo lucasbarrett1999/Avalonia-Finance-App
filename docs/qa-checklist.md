@@ -66,6 +66,14 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
 - [ ] Budget: assign with typing and Tab, move money with `M` and by dragging a pill, `Alt+←/→`.
 - [ ] Bills: confirm a detected item; add a scheduled transaction; the bell shows alerts.
 - [ ] Reports: click a donut slice down to the register; Export CSV opens in a spreadsheet.
+- [ ] Export PNG (`Ctrl/⌘+Shift+E`) on every report: the image opens, is twice the chart's size and
+      matches the theme; cancelling the save dialog writes nothing.
+- [ ] Budget health: age of money, months ahead, targets funded and overspent categories show the
+      numbers behind them; a history row and an overspent row open the register; Home's age-of-money card
+      matches and opens the report.
+- [ ] Debt payoff (Goals, `2`): add a rate and minimum to a card and a loan in Edit account; change
+      the extra and Avalanche/Snowball and the dates move; a debt with a payment below its interest shows
+      Never; Set payment targets creates the targets (Budget shows them) and one Undo removes them all.
 - [ ] Command palette `Ctrl/⌘+K`: "backup", "budget", an account name, "dark" all work.
 - [ ] `Ctrl/⌘+1…7`, `Ctrl/⌘+,`, `Ctrl/⌘+O`, `Ctrl/⌘+F`, `Ctrl/⌘+Z` and redo behave as listed in
       Settings → Keyboard shortcuts; on macOS the menus show ⌘ glyphs.

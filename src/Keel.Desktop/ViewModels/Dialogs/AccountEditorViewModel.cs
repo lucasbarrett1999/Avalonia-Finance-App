@@ -11,7 +11,8 @@ namespace Keel.Desktop.ViewModels.Dialogs;
 
 /// <summary>
 /// "Add account" and "Edit account" (F-ACC-1): name, type, currency, on-budget flag (Savings and
-/// Cash only), opening balance and date, notes; editing also closes or reopens the account.
+/// Cash only), opening balance and date, notes, and for liabilities the interest rate and minimum
+/// payment of the debt payoff planner (F-GOAL-2); editing also closes or reopens the account.
 /// </summary>
 public sealed partial class AccountEditorViewModel : DialogViewModel
 {
@@ -35,6 +36,8 @@ public sealed partial class AccountEditorViewModel : DialogViewModel
             IsOnBudget = existing.IsOnBudget;
             Notes = existing.Notes;
             OpeningDate = existing.OpeningDate.ToDateTime(TimeOnly.MinValue);
+            InterestRateText = existing.InterestRateBps is { } bps ? FormatRate(bps) : null;
+            MinimumPayment = existing.MinimumPayment ?? 0;
         }
     }
 
@@ -59,8 +62,19 @@ public sealed partial class AccountEditorViewModel : DialogViewModel
 
     /// <summary>Type.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanOverrideOnBudget), nameof(BalanceLabel), nameof(TypeHint))]
+    [NotifyPropertyChangedFor(nameof(CanOverrideOnBudget), nameof(BalanceLabel), nameof(TypeHint), nameof(ShowDebtTerms))]
     public partial Choice<AccountType> SelectedType { get; set; }
+
+    /// <summary>Interest rate as typed, in percent (e.g. "19.99"); empty when unknown.</summary>
+    [ObservableProperty]
+    public partial string? InterestRateText { get; set; }
+
+    /// <summary>Minimum monthly payment in minor units; 0 means not entered.</summary>
+    [ObservableProperty]
+    public partial long MinimumPayment { get; set; }
+
+    /// <summary>Whether the debt fields show (cards, lines of credit, loans and mortgages).</summary>
+    public bool ShowDebtTerms => DebtTerms.AppliesTo(SelectedType.Value);
 
     /// <summary>ISO currency code.</summary>
     [ObservableProperty]
@@ -108,6 +122,18 @@ public sealed partial class AccountEditorViewModel : DialogViewModel
     /// <inheritdoc />
     protected override async Task<bool> ConfirmCoreAsync()
     {
+        DebtTerms? debt = null;
+        if (ShowDebtTerms)
+        {
+            if (!TryParseRate(InterestRateText, out var bps))
+            {
+                Error = Strings.Debt_Editor_RateInvalid;
+                return false;
+            }
+
+            debt = new DebtTerms(bps, MinimumPayment > 0 ? MinimumPayment : null);
+        }
+
         try
         {
             if (_existing is null)
@@ -121,13 +147,14 @@ public sealed partial class AccountEditorViewModel : DialogViewModel
                         DateOnly.FromDateTime(OpeningDate ?? DateTime.Today),
                         liability ? -Math.Abs(OpeningBalance) : OpeningBalance,
                         CanOverrideOnBudget ? IsOnBudget : null,
-                        Notes),
+                        Notes,
+                        debt),
                     CancellationToken.None);
             }
             else
             {
                 Result = await _accounts.UpdateAccountAsync(
-                    new UpdateAccountRequest(_existing.Id, Name ?? string.Empty, CanOverrideOnBudget ? IsOnBudget : _existing.IsOnBudget, Notes),
+                    new UpdateAccountRequest(_existing.Id, Name ?? string.Empty, CanOverrideOnBudget ? IsOnBudget : _existing.IsOnBudget, Notes, debt),
                     CancellationToken.None);
             }
 
@@ -139,6 +166,32 @@ public sealed partial class AccountEditorViewModel : DialogViewModel
             return false;
         }
     }
+
+    /// <summary>
+    /// Parses an annual rate in percent ("19.99", "19,99 %" in a comma locale) to basis points; empty is
+    /// "unknown" (null). Rates must be 0–100 with at most two decimals.
+    /// </summary>
+    public static bool TryParseRate(string? text, out int? bps)
+    {
+        bps = null;
+        var trimmed = text?.Trim().TrimEnd('%').Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            return true;
+        }
+
+        if (!decimal.TryParse(trimmed, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.CurrentCulture, out var percent)
+            || percent < 0 || percent > 100 || decimal.Round(percent, 2) != percent)
+        {
+            return false;
+        }
+
+        bps = (int)(percent * 100);
+        return true;
+    }
+
+    /// <summary>Basis points as a percent for the text box, e.g. 1999 → "19.99".</summary>
+    public static string FormatRate(int bps) => (bps / 100m).ToString("0.##", System.Globalization.CultureInfo.CurrentCulture);
 
     partial void OnSelectedTypeChanged(Choice<AccountType> value)
     {

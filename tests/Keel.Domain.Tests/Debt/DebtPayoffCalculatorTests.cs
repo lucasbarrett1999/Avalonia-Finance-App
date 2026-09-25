@@ -79,12 +79,11 @@ public sealed class DebtPayoffCalculatorTests
     [Fact]
     public void A_payment_below_the_interest_never_pays_off()
     {
-        // $10,000 at 24% charges $200 a month; $150 never catches up.
+        // $10,000 at 24% charges $200 a month; $150 never catches up, so the plan stops at once.
         var schedule = DebtPayoffCalculator.AtMinimum(Debt(IdA, "Loan", 10_000_00, 2400, 150_00));
         schedule.PaysOff.ShouldBeFalse();
         schedule.PayoffMonths.ShouldBeNull();
-        schedule.Balances[^1].ShouldBeGreaterThan(10_000_00 * (DebtPayoffCalculator.GrowthLimit - 1));
-        schedule.Balances.Count.ShouldBeLessThan(DebtPayoffCalculator.MaxMonths);
+        schedule.Balances.ShouldBe([10_000_00]);
 
         var plan = DebtPayoffCalculator.Plan([Debt(IdA, "Loan", 10_000_00, 2400, 150_00)], 0, DebtOrdering.Avalanche);
         plan.PaysOffAll.ShouldBeFalse();
@@ -95,12 +94,36 @@ public sealed class DebtPayoffCalculatorTests
     }
 
     [Fact]
-    public void A_payment_equal_to_the_interest_never_pays_off_and_stops_at_once()
+    public void A_payment_equal_to_the_interest_never_pays_off()
     {
         var schedule = DebtPayoffCalculator.AtMinimum(Debt(IdA, "Interest only", 10_000_00, 1200, 100_00));
         schedule.PayoffMonths.ShouldBeNull();
-        schedule.Balances.ShouldBe([10_000_00, 10_000_00]);
-        schedule.TotalInterest.ShouldBe(100_00);
+        schedule.Balances.ShouldBe([10_000_00]);
+        schedule.TotalInterest.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Other_debts_still_pay_off_next_to_one_that_never_does()
+    {
+        // The card's $200 interest exceeds the whole $150 outlay, so it never shrinks; the loan still pays off in 10 months.
+        var plan = DebtPayoffCalculator.Plan([Debt(IdA, "Card", 10_000_00, 2400, 50_00), Debt(IdB, "Loan", 1_000_00, 0, 100_00)], 0, DebtOrdering.Avalanche);
+        plan.Debts.Select(d => d.Name).ShouldBe(["Card", "Loan"]);
+        plan.Debts[0].PayoffMonths.ShouldBeNull();
+        plan.Debts[1].PayoffMonths.ShouldBe(10);
+        plan.PayoffMonths.ShouldBeNull();
+        plan.TotalBalances.Count.ShouldBe(11); // stops once only the hopeless debt is left
+        plan.Debts[0].Balances[^1].ShouldBeGreaterThan(10_000_00);
+    }
+
+    [Fact]
+    public void A_debt_that_outgrows_the_outlay_later_is_never_paid_off_and_balances_stay_bounded()
+    {
+        // At 100% a year the card grows until its interest passes the $1,100 outlay; the loan still finishes.
+        var plan = DebtPayoffCalculator.Plan([Debt(IdA, "Card", 10_000_00, 10_000, 800_00), Debt(IdB, "Loan", 30_000_00, 0, 300_00)], 0, DebtOrdering.Snowball);
+        plan.Debts.Single(d => d.Name == "Card").PayoffMonths.ShouldBeNull();
+        plan.Debts.Single(d => d.Name == "Loan").PayoffMonths.ShouldBe(100);
+        plan.Debts.ShouldAllBe(d => d.Balances.All(b => b >= 0 && b <= DebtPayoffCalculator.BalanceCeiling));
+        plan.TotalBalances.Count.ShouldBeLessThanOrEqualTo(DebtPayoffCalculator.MaxMonths + 1);
     }
 
     [Fact]

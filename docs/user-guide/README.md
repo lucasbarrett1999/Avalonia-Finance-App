@@ -11,7 +11,8 @@ needs no account; bank sync is optional.
 4. [Review and rules](review-and-rules.md): approving new transactions, suggestions, rules, payees.
 5. [Bills and scheduling](bills-and-scheduling.md): recurring bills and subscriptions, alerts,
    scheduled transactions, the forecast.
-6. [Reports and goals](reports-and-goals.md): spending, income vs expense, net worth, forecast, goals.
+6. [Reports and goals](reports-and-goals.md): spending, income vs expense, net worth, forecast, budget
+   health and age of money, goals, the debt payoff planner.
 7. [Bank sync](bank-sync.md): Plaid and SimpleFIN with your own keys.
 8. [Backups and the data file](backups-and-data.md): where your data is, backups, restore, moving
    the file, the integrity check, diagnostics, privacy.

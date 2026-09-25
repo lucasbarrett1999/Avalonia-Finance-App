@@ -224,4 +224,60 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
 
         problems.Distinct().ShouldBeEmpty();
     }
+
+    [AvaloniaFact]
+    public async Task Debt_payoff_budget_health_and_debt_terms_are_named_and_readable_in_both_themes()
+    {
+        var fixture = await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(1_200, Seed: 9, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
+        await DebtHealthRenderingTests.AddDebtTermsAsync(_host, fixture);
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var goals = _host.Get<GoalsViewModel>();
+        var problems = new List<string>();
+
+        void Audit(string screen)
+        {
+            problems.AddRange(AccessibilityAudit.UnnamedControls(window, screen));
+            problems.AddRange(AccessibilityAudit.LowContrastText(window, screen));
+            problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, screen));
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            shell.NavigateTo<GoalsViewModel>();
+            goals.SelectedTab = GoalsTab.DebtPayoff;
+            await UiTestHelpers.WaitUntilAsync(() => goals.DebtPayoff!.IsInitialized, "debt plan loaded");
+            await SettleAsync();
+            goals.DebtPayoff!.Rows.ShouldNotBeEmpty();
+            Audit($"DebtPayoff/{theme}");
+
+            var editing = goals.DebtPayoff.EditAccountCommand.ExecuteAsync(goals.DebtPayoff.Missing[0]);
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, "editor shown");
+            await SettleAsync();
+            Audit($"AccountEditor.DebtTerms/{theme}");
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await editing;
+            goals.SelectedTab = GoalsTab.Goals;
+
+            shell.NavigateTo<ReportsViewModel>();
+            var reports = _host.Get<ReportsViewModel>();
+            reports.SelectedReport = reports.Reports.Single(r => r.Kind == Keel.Desktop.ViewModels.Reports.ReportKind.BudgetHealth);
+            await UiTestHelpers.WaitUntilAsync(() => reports.Loading.IsCompleted, "health loaded");
+            await SettleAsync();
+            Audit($"BudgetHealth/{theme}");
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
 }

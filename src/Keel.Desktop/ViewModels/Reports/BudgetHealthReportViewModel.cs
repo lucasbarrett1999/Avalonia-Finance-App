@@ -248,7 +248,9 @@ public sealed partial class BudgetHealthReportViewModel : ReportViewModel
         Overspent = health.Overspent
             .Select(o => new HealthOverspentRow(o.CategoryId, o.Name, o.GroupName, o.Available, o.IsCash, currency) { Open = OpenOverspentCommand })
             .ToList();
-        Rows = history.Points.Select(p => new AgeOfMoneyRow(p.Date, p.Days, p.OutflowCount) { Open = OpenRowCommand }).ToList();
+        // Months before the first funded outflow have no age; the history starts with the first that has one.
+        Rows = history.Points.SkipWhile(p => p.Days is null)
+            .Select(p => new AgeOfMoneyRow(p.Date, p.Days, p.OutflowCount) { Open = OpenRowCommand }).ToList();
         HasData = Rows.Any(r => r.Days is not null) || targets.Count > 0 || health.OverspentCount > 0 || ahead.Tenths is not null;
     }
 }

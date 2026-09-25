@@ -18,9 +18,20 @@ using Keel.Domain.Budgeting;
 // The page view model stays in Keel.Desktop.ViewModels so the ViewLocator maps it to Views/GoalsView.
 namespace Keel.Desktop.ViewModels;
 
+/// <summary>The tabs of the Goals page (PRD 9.7); navigate with one to open it.</summary>
+public enum GoalsTab
+{
+    /// <summary>Goal cards (F-GOAL-1).</summary>
+    Goals,
+
+    /// <summary>The debt payoff planner (F-GOAL-2).</summary>
+    DebtPayoff,
+}
+
 /// <summary>
 /// Goals (PRD 9.7, F-GOAL-1): a card per category with a savings-balance-by-date target, and a
-/// "New goal" wizard. Refreshes on <see cref="LedgerChanged"/> and <see cref="BudgetChanged"/>.
+/// "New goal" wizard; the Debt payoff tab (F-GOAL-2) hosts <see cref="DebtPayoffViewModel"/>.
+/// Refreshes on <see cref="LedgerChanged"/> and <see cref="BudgetChanged"/>.
 /// </summary>
 public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, IRecipient<LedgerChanged>, IRecipient<BudgetChanged>
 {
@@ -33,8 +44,9 @@ public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, I
     private int _version;
 
     /// <summary>Creates the screen.</summary>
-    public GoalsViewModel(IGoalService goals, IAccountService accounts, INavigationService navigation, DialogService dialogs, StatusService status, TimeProvider time, IMessenger messenger)
+    public GoalsViewModel(IGoalService goals, IAccountService accounts, INavigationService navigation, DialogService dialogs, StatusService status, TimeProvider time, IMessenger messenger, DebtPayoffViewModel? debtPayoff = null)
     {
+        DebtPayoff = debtPayoff;
         ArgumentNullException.ThrowIfNull(messenger);
         _goals = goals;
         _accounts = accounts;
@@ -57,6 +69,27 @@ public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, I
 
     /// <inheritdoc />
     public override string EmptyMessage => Strings.Page_Goals_EmptyMessage;
+
+    /// <summary>The Debt payoff tab, when the planner is available.</summary>
+    public DebtPayoffViewModel? DebtPayoff { get; }
+
+    /// <summary>The tab shown.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGoalsTab), nameof(IsDebtTab), nameof(SelectedTabIndex))]
+    public partial GoalsTab SelectedTab { get; set; }
+
+    /// <summary>The tab strip's index (0 goals, 1 debt payoff).</summary>
+    public int SelectedTabIndex
+    {
+        get => (int)SelectedTab;
+        set => SelectedTab = value == 1 && DebtPayoff is not null ? GoalsTab.DebtPayoff : GoalsTab.Goals;
+    }
+
+    /// <summary>Whether the goal cards show.</summary>
+    public bool IsGoalsTab => SelectedTab == GoalsTab.Goals;
+
+    /// <summary>Whether the debt payoff planner shows.</summary>
+    public bool IsDebtTab => SelectedTab == GoalsTab.DebtPayoff;
 
     /// <summary>Goal cards.</summary>
     public ObservableCollection<GoalCardViewModel> Goals { get; } = [];
@@ -99,13 +132,25 @@ public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, I
     public NewGoalViewModel? Wizard { get; private set; }
 
     /// <inheritdoc />
-    public void OnNavigatedTo(object? parameter) => Loading = LoadAsync();
+    public void OnNavigatedTo(object? parameter)
+    {
+        if (parameter is GoalsTab tab)
+        {
+            SelectedTab = tab;
+        }
+
+        Loading = LoadAsync();
+        if (IsDebtTab)
+        {
+            DebtPayoff?.Refresh();
+        }
+    }
 
     /// <inheritdoc />
-    public void Receive(LedgerChanged message) => Dispatcher.UIThread.Post(Refresh);
+    public void Receive(LedgerChanged message) => Dispatcher.UIThread.Post(RefreshAll);
 
     /// <inheritdoc />
-    public void Receive(BudgetChanged message) => Dispatcher.UIThread.Post(Refresh);
+    public void Receive(BudgetChanged message) => Dispatcher.UIThread.Post(RefreshAll);
 
     /// <summary>Opens the "New goal" wizard.</summary>
     [RelayCommand]
@@ -142,6 +187,20 @@ public sealed partial class GoalsViewModel : PageViewModel, INavigationTarget, I
     /// <summary>Opens Budget (to assign to a goal).</summary>
     [RelayCommand]
     public void OpenBudget() => _navigation.NavigateTo<BudgetViewModel>();
+
+    partial void OnSelectedTabChanged(GoalsTab value)
+    {
+        if (value == GoalsTab.DebtPayoff)
+        {
+            DebtPayoff?.EnsureLoaded();
+        }
+    }
+
+    private void RefreshAll()
+    {
+        Refresh();
+        DebtPayoff?.Refresh();
+    }
 
     private void Refresh()
     {

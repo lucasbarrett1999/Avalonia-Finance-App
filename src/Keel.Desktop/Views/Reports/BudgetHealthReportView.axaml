@@ -137,8 +137,11 @@
 
   <UserControl.Styles>
     <Style Selector="Border.healthTile">
-      <Setter Property="Width" Value="232" />
+      <Setter Property="Width" Value="204" />
       <Setter Property="Padding" Value="16" />
+    </Style>
+    <Style Selector="Border.healthTile TextBlock.heroNumber">
+      <Setter Property="FontSize" Value="26" />
     </Style>
   </UserControl.Styles>
 </UserControl>
