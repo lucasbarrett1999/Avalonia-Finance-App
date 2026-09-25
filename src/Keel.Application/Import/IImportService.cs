@@ -74,6 +74,18 @@ public sealed record IncomingTransaction(
     /// <summary>The source's own category text (QIF <c>L</c>, a CSV category column); a hint for rules, never applied blindly.</summary>
     public string? CategoryHint { get; init; }
 
+    /// <summary>The cleared state the source states (a YNAB export's Cleared column); null keeps the pipeline
+    /// default (cleared, or uncleared for pending rows and manual entry).</summary>
+    public TransactionStatus? Status { get; init; }
+
+    /// <summary>Whether the source already reviewed the row (a migrated, categorized history); null keeps the
+    /// pipeline default (approved only for manual entry). A rule that marks rows approved still wins.</summary>
+    public bool? IsApproved { get; init; }
+
+    /// <summary>Tag names from the source (a Monarch export's Tags column); the import creates missing tags and
+    /// tags the inserted row. Matched and updated rows keep their own tags.</summary>
+    public IReadOnlyList<string> Tags { get; init; } = [];
+
     /// <inheritdoc />
     string? IImportRecord.PendingTransactionId => ProviderPendingId;
 }

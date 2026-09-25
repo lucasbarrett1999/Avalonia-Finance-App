@@ -65,15 +65,24 @@ public sealed partial class ImportService(
     public async Task<ImportSummary> ImportTransactionsAsync(TransactionSource source, ImportBatch batch, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(batch);
-        var summary = await writer.RunAsync(LedgerAction.ImportTransactions, session => ImportCoreAsync(session, source, batch, ct), ct).ConfigureAwait(false);
+        var summary = await writer.RunAsync(LedgerAction.ImportTransactions, session => ImportCoreAsync(session, source, batch, _hooks, ct), ct).ConfigureAwait(false);
         LogImported(logger, source, batch.Transactions.Count, summary.Added, summary.Updated, summary.DuplicatesSkipped, summary.MatchedToExisting, summary.TransfersMatched);
         return summary;
     }
 
-    private async Task<ImportSummary> ImportCoreAsync(LedgerSession session, TransactionSource source, ImportBatch batch, CancellationToken ct)
+    /// <summary>
+    /// The import of one batch inside an open unit of work (the migration importer runs several batches in one,
+    /// ADR 0099). Saves through <paramref name="session"/>; the caller commits.
+    /// </summary>
+    internal static async Task<ImportSummary> ImportCoreAsync(
+        LedgerSession session,
+        TransactionSource source,
+        ImportBatch batch,
+        IReadOnlyList<IImportCategorizationHook> hooks,
+        CancellationToken ct)
     {
         var db = session.Db;
-        var plan = await ImportPlanner.PlanAsync(db, source, batch, _hooks, isPreview: false, ct).ConfigureAwait(false);
+        var plan = await ImportPlanner.PlanAsync(db, source, batch, hooks, isPreview: false, ct).ConfigureAwait(false);
         var account = plan.Account;
         var warnings = plan.Warnings;
 
@@ -113,8 +122,8 @@ public sealed partial class ImportService(
                         PayeeId = row.PayeeId,
                         Memo = string.IsNullOrWhiteSpace(draft.Memo) ? null : draft.Memo.Trim(),
                         CategoryId = draft.CategoryId,
-                        Status = source == TransactionSource.Manual || incoming.IsPending ? TransactionStatus.Uncleared : TransactionStatus.Cleared,
-                        IsApproved = draft.IsApproved ?? source == TransactionSource.Manual,
+                        Status = incoming.Status ?? (source == TransactionSource.Manual || incoming.IsPending ? TransactionStatus.Uncleared : TransactionStatus.Cleared),
+                        IsApproved = draft.IsApproved ?? incoming.IsApproved ?? source == TransactionSource.Manual,
                         Source = source,
                         ProviderTransactionId = incoming.ProviderTransactionId,
                         ImportFingerprint = row.Dedup.Fingerprint,
@@ -182,6 +191,7 @@ public sealed partial class ImportService(
         // rows in bulk (ADR 0052): same transaction, audit rows and undo entry as a tracked insert.
         await session.SaveAsync(ct).ConfigureAwait(false);
         await BulkLedgerInsert.InsertAsync(session, inserts, ct).ConfigureAwait(false);
+        await TagInsertsAsync(session, plan, ct).ConfigureAwait(false);
 
         return new ImportSummary(
             added,
@@ -209,6 +219,41 @@ public sealed partial class ImportService(
 
             return payee;
         }
+    }
+
+    // Tags the source stated for new rows (a Monarch export's Tags; M9): existing tags by name, ignoring
+    // case, else new ones; written after the rows they reference, in the same unit of work.
+    private static async Task TagInsertsAsync(LedgerSession session, ImportPlan plan, CancellationToken ct)
+    {
+        var tagged = plan.Rows.Where(r => r.Action == ImportRowAction.Insert && r.Incoming.Tags.Count > 0).ToList();
+        if (tagged.Count == 0)
+        {
+            return;
+        }
+
+        var db = session.Db;
+        var tags = new Dictionary<string, Tag>(StringComparer.OrdinalIgnoreCase);
+        foreach (var tag in await db.Tags.ToListAsync(ct).ConfigureAwait(false))
+        {
+            tags.TryAdd(tag.Name, tag);
+        }
+
+        foreach (var row in tagged)
+        {
+            foreach (var name in row.Incoming.Tags.Select(PayeeNames.Clean).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (!tags.TryGetValue(name, out var tag))
+                {
+                    tag = new Tag { Name = name.Length > 100 ? name[..100] : name };
+                    db.Tags.Add(tag);
+                    tags[name] = tag;
+                }
+
+                db.TransactionTags.Add(new TransactionTag { TransactionId = row.NewId, TagId = tag.Id });
+            }
+        }
+
+        await session.SaveAsync(ct).ConfigureAwait(false);
     }
 
     // A transfer pair per ITransactionService: shared pair id, each side points at the other
