@@ -35,6 +35,30 @@ public sealed record AppSettings
     public IReadOnlyDictionary<string, WindowPlacement> WindowPlacements { get; init; } =
         new Dictionary<string, WindowPlacement>(StringComparer.Ordinal);
 
+    /// <summary>The first-run setup (PRD 9.10) finished or was skipped; it is never shown again.</summary>
+    public bool FirstRunCompleted { get; init; }
+
+    /// <summary>Accent colour (F-SET-2).</summary>
+    public AppAccent Accent { get; init; } = AppAccent.Teal;
+
+    /// <summary>Spacing density (F-SET-2).</summary>
+    public UiDensity Density { get; init; } = UiDensity.Comfortable;
+
+    /// <summary>Culture used for numbers, dates and currency, e.g. "en-GB"; null follows the OS (F-SET-2).</summary>
+    public string? FormatCulture { get; init; }
+
+    /// <summary>Reduce motion: null follows the OS where it can be read, otherwise the explicit choice (PRD 9.11).</summary>
+    public bool? ReduceMotion { get; init; }
+
+    /// <summary>Take an automatic backup of the open file once a day (F-SET-1).</summary>
+    public bool AutoBackupEnabled { get; init; } = true;
+
+    /// <summary>Number of automatic backups kept per budget file.</summary>
+    public int AutoBackupKeep { get; init; } = 10;
+
+    /// <summary>Check for updates on start (PRD 10: off by default until a release feed exists).</summary>
+    public bool CheckForUpdates { get; init; }
+
     /// <summary>Returns a copy with the placement for <paramref name="displayKey"/> replaced.</summary>
     public AppSettings WithWindowPlacement(string displayKey, WindowPlacement placement)
     {
@@ -62,3 +86,35 @@ public sealed record WindowPlacement(
     bool IsMaximized,
     double SidebarWidth,
     bool IsSidebarCollapsed);
+
+/// <summary>Accent colours offered in Settings → Appearance (each has AA-contrast light and dark variants).</summary>
+public enum AppAccent
+{
+    /// <summary>Keel's default teal.</summary>
+    Teal,
+
+    /// <summary>Blue.</summary>
+    Blue,
+
+    /// <summary>Violet.</summary>
+    Violet,
+
+    /// <summary>Green.</summary>
+    Green,
+
+    /// <summary>Orange.</summary>
+    Orange,
+
+    /// <summary>Rose.</summary>
+    Rose,
+}
+
+/// <summary>Spacing density (F-SET-2).</summary>
+public enum UiDensity
+{
+    /// <summary>Default spacing.</summary>
+    Comfortable,
+
+    /// <summary>Tighter rows and padding for more data on screen.</summary>
+    Compact,
+}

@@ -13,6 +13,30 @@ public partial class ReportsView : UserControl
     public ReportsView()
     {
         InitializeComponent();
+
+        // Registered in ShortcutRegistry: 1–5 choose a report, Ctrl/Cmd+E exports CSV.
+        Services.PageKeys.Attach(this, e =>
+        {
+            if (DataContext is not ReportsViewModel vm)
+            {
+                return false;
+            }
+
+            if (Services.PageKeys.Digit(e) is { } digit && digit <= vm.Reports.Count)
+            {
+                vm.SelectedReport = vm.Reports[digit - 1];
+                return true;
+            }
+
+            var command = Services.PlatformShortcuts.FromCurrentPlatform().CommandModifiers;
+            if (e.Key == Avalonia.Input.Key.E && e.KeyModifiers == command)
+            {
+                vm.ExportCsvCommand.Execute(null);
+                return true;
+            }
+
+            return false;
+        });
     }
 
     /// <inheritdoc />

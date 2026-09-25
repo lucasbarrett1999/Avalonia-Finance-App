@@ -4152,4 +4152,640 @@
   <data name="SyncError_SIMPLEFIN_BAD_RESPONSE" xml:space="preserve">
     <value>SimpleFIN returned an unreadable response; try again later</value>
   </data>
+  <data name="Shell_StatusOpenRequestedFailed" xml:space="preserve">
+    <value>{0} could not be opened: {1}</value>
+  </data>
+  <data name="FirstRun_Status" xml:space="preserve">
+    <value>Welcome to Keel. Create a budget file or open one you already have.</value>
+  </data>
+  <data name="Shortcut_CommandPalette" xml:space="preserve">
+    <value>Command palette: every action and screen</value>
+  </data>
+  <data name="Shortcut_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Shortcut_OpenFile" xml:space="preserve">
+    <value>Open a budget file</value>
+  </data>
+  <data name="Shortcut_SyncAll" xml:space="preserve">
+    <value>Sync all linked accounts</value>
+  </data>
+  <data name="Shortcut_GoTo" xml:space="preserve">
+    <value>Go to {0}</value>
+  </data>
+  <data name="Shortcut_Quit" xml:space="preserve">
+    <value>Quit Keel</value>
+  </data>
+  <data name="Shortcut_BillsTabs" xml:space="preserve">
+    <value>Calendar, list or subscriptions</value>
+  </data>
+  <data name="Shortcut_BillsNew" xml:space="preserve">
+    <value>Add a recurring bill or income</value>
+  </data>
+  <data name="Shortcut_BillsDetect" xml:space="preserve">
+    <value>Run detection now</value>
+  </data>
+  <data name="Shortcut_BillsClose" xml:space="preserve">
+    <value>Close the detail panel</value>
+  </data>
+  <data name="Shortcut_ReportsPick" xml:space="preserve">
+    <value>Choose a report</value>
+  </data>
+  <data name="Shortcut_ReportsExport" xml:space="preserve">
+    <value>Export the report as CSV</value>
+  </data>
+  <data name="Shortcut_GoalsNew" xml:space="preserve">
+    <value>New goal</value>
+  </data>
+  <data name="Shortcut_DialogConfirm" xml:space="preserve">
+    <value>Save or confirm</value>
+  </data>
+  <data name="Shortcut_DialogCancel" xml:space="preserve">
+    <value>Cancel or close</value>
+  </data>
+  <data name="Shortcut_MoneyMath" xml:space="preserve">
+    <value>Arithmetic in amount boxes (e.g. 12.50+3)</value>
+  </data>
+  <data name="ShortcutScope_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="ShortcutScope_Register" xml:space="preserve">
+    <value>Account register</value>
+  </data>
+  <data name="ShortcutScope_Budget" xml:space="preserve">
+    <value>Budget</value>
+  </data>
+  <data name="ShortcutScope_Review" xml:space="preserve">
+    <value>Review</value>
+  </data>
+  <data name="ShortcutScope_Bills" xml:space="preserve">
+    <value>Bills</value>
+  </data>
+  <data name="ShortcutScope_Reports" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="ShortcutScope_Goals" xml:space="preserve">
+    <value>Goals</value>
+  </data>
+  <data name="ShortcutScope_Dialogs" xml:space="preserve">
+    <value>Dialogs and amounts</value>
+  </data>
+  <data name="Palette_Title" xml:space="preserve">
+    <value>Command palette</value>
+  </data>
+  <data name="Palette_Watermark" xml:space="preserve">
+    <value>Type a command or a screen…</value>
+  </data>
+  <data name="Palette_Results" xml:space="preserve">
+    <value>Commands</value>
+  </data>
+  <data name="Palette_NoResults" xml:space="preserve">
+    <value>No command matches. Try fewer letters.</value>
+  </data>
+  <data name="Palette_Footer" xml:space="preserve">
+    <value>↑ ↓ to choose · Enter to run · Esc to close</value>
+  </data>
+  <data name="Palette_SectionGoTo" xml:space="preserve">
+    <value>Go to</value>
+  </data>
+  <data name="Palette_SectionFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Palette_SectionEdit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Palette_SectionView" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="Palette_SectionActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Palette_SectionHelp" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="Palette_Account" xml:space="preserve">
+    <value>Account: {0}</value>
+  </data>
+  <data name="Palette_SettingsSection" xml:space="preserve">
+    <value>Settings: {0}</value>
+  </data>
+  <data name="Palette_ThemeSystem" xml:space="preserve">
+    <value>Theme: follow the system</value>
+  </data>
+  <data name="Palette_ThemeLight" xml:space="preserve">
+    <value>Theme: light</value>
+  </data>
+  <data name="Palette_ThemeDark" xml:space="preserve">
+    <value>Theme: dark</value>
+  </data>
+  <data name="Palette_DensityComfortable" xml:space="preserve">
+    <value>Density: comfortable</value>
+  </data>
+  <data name="Palette_DensityCompact" xml:space="preserve">
+    <value>Density: compact</value>
+  </data>
+  <data name="Palette_AddTransaction" xml:space="preserve">
+    <value>Add a transaction</value>
+  </data>
+  <data name="Palette_StartReview" xml:space="preserve">
+    <value>Start review</value>
+  </data>
+  <data name="Palette_ChooseImportAccount" xml:space="preserve">
+    <value>Import into which account?</value>
+  </data>
+  <data name="Palette_ChooseImportPrompt" xml:space="preserve">
+    <value>The file's transactions go into the account you choose.</value>
+  </data>
+  <data name="Menu_File" xml:space="preserve">
+    <value>_File</value>
+  </data>
+  <data name="Menu_Edit" xml:space="preserve">
+    <value>_Edit</value>
+  </data>
+  <data name="Menu_View" xml:space="preserve">
+    <value>_View</value>
+  </data>
+  <data name="Menu_Go" xml:space="preserve">
+    <value>_Go</value>
+  </data>
+  <data name="Menu_Help" xml:space="preserve">
+    <value>_Help</value>
+  </data>
+  <data name="Menu_Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Menu_Density" xml:space="preserve">
+    <value>Density</value>
+  </data>
+  <data name="Menu_NewFile" xml:space="preserve">
+    <value>New budget file…</value>
+  </data>
+  <data name="Menu_OpenFile" xml:space="preserve">
+    <value>Open budget file…</value>
+  </data>
+  <data name="Menu_ChangeLocation" xml:space="preserve">
+    <value>Move budget file…</value>
+  </data>
+  <data name="Menu_ImportFile" xml:space="preserve">
+    <value>Import bank file…</value>
+  </data>
+  <data name="Menu_BackupNow" xml:space="preserve">
+    <value>Back up now</value>
+  </data>
+  <data name="Menu_Restore" xml:space="preserve">
+    <value>Restore from a backup…</value>
+  </data>
+  <data name="Menu_CheckIntegrity" xml:space="preserve">
+    <value>Check the budget file for damage</value>
+  </data>
+  <data name="Menu_DiagnosticBundle" xml:space="preserve">
+    <value>Copy diagnostic bundle</value>
+  </data>
+  <data name="Menu_Find" xml:space="preserve">
+    <value>Find transactions</value>
+  </data>
+  <data name="Menu_KeyboardShortcuts" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+  </data>
+  <data name="Menu_UserGuide" xml:space="preserve">
+    <value>User guide</value>
+  </data>
+  <data name="Menu_About" xml:space="preserve">
+    <value>About Keel</value>
+  </data>
+  <data name="Menu_Preferences" xml:space="preserve">
+    <value>Preferences…</value>
+  </data>
+  <data name="Menu_Bar" xml:space="preserve">
+    <value>Main menu</value>
+  </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>About Keel</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="About_Description" xml:space="preserve">
+    <value>Envelope budgeting and the full picture of your money, in one file you own. Works offline; bank sync is optional.</value>
+  </data>
+  <data name="About_License" xml:space="preserve">
+    <value>Open source under the MIT license. No telemetry, no account, no ads.</value>
+  </data>
+  <data name="About_Website" xml:space="preserve">
+    <value>Project website</value>
+  </data>
+  <data name="About_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="FileDialog_BudgetFiles" xml:space="preserve">
+    <value>Keel budget files</value>
+  </data>
+  <data name="FileDialog_Backups" xml:space="preserve">
+    <value>Keel backups</value>
+  </data>
+  <data name="FileDialog_OpenTitle" xml:space="preserve">
+    <value>Open a budget file</value>
+  </data>
+  <data name="FileDialog_NewTitle" xml:space="preserve">
+    <value>Create a budget file</value>
+  </data>
+  <data name="FileDialog_MoveTitle" xml:space="preserve">
+    <value>Move the budget file to…</value>
+  </data>
+  <data name="FileDialog_RestoreTitle" xml:space="preserve">
+    <value>Restore from a backup</value>
+  </data>
+  <data name="Maintenance_IntegrityFailed" xml:space="preserve">
+    <value>The budget file failed its daily integrity check. Restore a recent backup from Settings → General; your backups were left untouched.</value>
+  </data>
+  <data name="Maintenance_Failed" xml:space="preserve">
+    <value>Daily maintenance could not finish: {0}</value>
+  </data>
+  <data name="Updates_NotInstalled" xml:space="preserve">
+    <value>This copy of Keel was not installed by its installer, so it cannot update itself.</value>
+  </data>
+  <data name="Updates_UpToDate" xml:space="preserve">
+    <value>Keel {0} is up to date.</value>
+  </data>
+  <data name="Updates_Available" xml:space="preserve">
+    <value>Keel {0} is available. Install it from Settings → Updates.</value>
+  </data>
+  <data name="Updates_CheckFailed" xml:space="preserve">
+    <value>Could not check for updates. Keel keeps working offline.</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="DataFile_NewFileName" xml:space="preserve">
+    <value>My Budget</value>
+  </data>
+  <data name="DataFile_Exists" xml:space="preserve">
+    <value>{0} already exists. Choose another name: Keel never overwrites a budget file.</value>
+  </data>
+  <data name="DataFile_CreatedStatus" xml:space="preserve">
+    <value>Created {0}</value>
+  </data>
+  <data name="DataFile_MoveTitle" xml:space="preserve">
+    <value>Move the budget file?</value>
+  </data>
+  <data name="DataFile_MoveMessage" xml:space="preserve">
+    <value>Keel copies {0} and its attachments to {1}, checks the copy, opens it there, and then removes the old copy. Use this to keep the file in a synced or backed-up folder.</value>
+  </data>
+  <data name="DataFile_MoveConfirm" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="DataFile_MovedStatus" xml:space="preserve">
+    <value>The budget file now lives in {0}</value>
+  </data>
+  <data name="DataFile_OldCopyKept" xml:space="preserve">
+    <value>The file was moved, but the old copy at {0} could not be removed ({1}). You can delete it yourself.</value>
+  </data>
+  <data name="DataFile_MoveFailed" xml:space="preserve">
+    <value>The budget file was not moved: {0}</value>
+  </data>
+  <data name="DataFile_BackedUp" xml:space="preserve">
+    <value>Backed up and verified: {0}</value>
+  </data>
+  <data name="DataFile_BackupFailed" xml:space="preserve">
+    <value>The backup failed: {0}</value>
+  </data>
+  <data name="DataFile_RestoreTitle" xml:space="preserve">
+    <value>Restore this backup?</value>
+  </data>
+  <data name="DataFile_RestoreMessage" xml:space="preserve">
+    <value>Everything in {1} is replaced by the backup from {0}. Keel first saves a "before restore" backup of the current file, so you can go back.</value>
+  </data>
+  <data name="DataFile_RestoreConfirm" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="DataFile_RestoredStatus" xml:space="preserve">
+    <value>Restored the backup from {0}</value>
+  </data>
+  <data name="DataFile_RestoreFailed" xml:space="preserve">
+    <value>Nothing was restored: {0}</value>
+  </data>
+  <data name="DataFile_RestoreName" xml:space="preserve">
+    <value>Restore the backup from {0} ({1})</value>
+  </data>
+  <data name="DataFile_IntegrityOk" xml:space="preserve">
+    <value>No problems found (checked at {0}).</value>
+  </data>
+  <data name="DataFile_IntegrityFailed" xml:space="preserve">
+    <value>The budget file is damaged: {0}. Restore a recent backup.</value>
+  </data>
+  <data name="DataFile_DiagnosticsSaved" xml:space="preserve">
+    <value>Diagnostic bundle saved to {0} (path copied). It holds logs and a schema summary, never your transactions.</value>
+  </data>
+  <data name="DataFile_DiagnosticsFailed" xml:space="preserve">
+    <value>The diagnostic bundle could not be written: {0}</value>
+  </data>
+  <data name="DataFile_BackupsError" xml:space="preserve">
+    <value>The backups folder could not be read: {0}</value>
+  </data>
+  <data name="DataFile_Location" xml:space="preserve">
+    <value>Budget file</value>
+  </data>
+  <data name="DataFile_Backups" xml:space="preserve">
+    <value>Backups</value>
+  </data>
+  <data name="DataFile_BackupsFolder" xml:space="preserve">
+    <value>Backups folder</value>
+  </data>
+  <data name="DataFile_NoBackups" xml:space="preserve">
+    <value>No backups yet. Back up now, or leave automatic backups on and Keel makes one each day.</value>
+  </data>
+  <data name="DataFile_AutoBackup" xml:space="preserve">
+    <value>Back up automatically once a day</value>
+  </data>
+  <data name="DataFile_Keep" xml:space="preserve">
+    <value>Keep the newest</value>
+  </data>
+  <data name="DataFile_KeepSuffix" xml:space="preserve">
+    <value>automatic backups</value>
+  </data>
+  <data name="DataFile_RestoreFromFile" xml:space="preserve">
+    <value>Restore from a file…</value>
+  </data>
+  <data name="DataFile_Integrity" xml:space="preserve">
+    <value>File check</value>
+  </data>
+  <data name="DataFile_IntegrityHint" xml:space="preserve">
+    <value>Keel checks the file for damage once a day. You can also check now.</value>
+  </data>
+  <data name="DataFile_CheckNow" xml:space="preserve">
+    <value>Check now</value>
+  </data>
+  <data name="DataFile_Diagnostics" xml:space="preserve">
+    <value>Diagnostic bundle</value>
+  </data>
+  <data name="DataFile_DiagnosticsHint" xml:space="preserve">
+    <value>A zip of Keel's logs and a summary of the file's structure (table and column names, row counts). No transactions, payees or amounts. Attach it to a bug report.</value>
+  </data>
+  <data name="DataFile_FileActions" xml:space="preserve">
+    <value>Budget file actions</value>
+  </data>
+  <data name="DataFile_Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="DataFile_Unencrypted" xml:space="preserve">
+    <value>The budget file is a plain SQLite database; attachments are not encrypted. Keep it in a folder only you can read.</value>
+  </data>
+  <data name="BackupKind_Manual" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="BackupKind_Automatic" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="BackupKind_BeforeMigration" xml:space="preserve">
+    <value>Before update</value>
+  </data>
+  <data name="BackupKind_BeforeRestore" xml:space="preserve">
+    <value>Before restore</value>
+  </data>
+  <data name="Accent_Teal" xml:space="preserve">
+    <value>Teal</value>
+  </data>
+  <data name="Accent_Blue" xml:space="preserve">
+    <value>Blue</value>
+  </data>
+  <data name="Accent_Violet" xml:space="preserve">
+    <value>Violet</value>
+  </data>
+  <data name="Accent_Green" xml:space="preserve">
+    <value>Green</value>
+  </data>
+  <data name="Accent_Orange" xml:space="preserve">
+    <value>Orange</value>
+  </data>
+  <data name="Accent_Rose" xml:space="preserve">
+    <value>Rose</value>
+  </data>
+  <data name="Settings_Accent" xml:space="preserve">
+    <value>Accent colour</value>
+  </data>
+  <data name="Settings_Density" xml:space="preserve">
+    <value>Density</value>
+  </data>
+  <data name="Settings_DensityComfortable" xml:space="preserve">
+    <value>Comfortable</value>
+  </data>
+  <data name="Settings_DensityCompact" xml:space="preserve">
+    <value>Compact</value>
+  </data>
+  <data name="Settings_Motion" xml:space="preserve">
+    <value>Motion</value>
+  </data>
+  <data name="Settings_MotionSystem" xml:space="preserve">
+    <value>Follow the system</value>
+  </data>
+  <data name="Settings_MotionReduce" xml:space="preserve">
+    <value>Reduce motion</value>
+  </data>
+  <data name="Settings_MotionFull" xml:space="preserve">
+    <value>Allow motion</value>
+  </data>
+  <data name="Settings_Format" xml:space="preserve">
+    <value>Numbers, dates and currency</value>
+  </data>
+  <data name="Settings_FormatSystem" xml:space="preserve">
+    <value>System ({0})</value>
+  </data>
+  <data name="Settings_FormatHint" xml:space="preserve">
+    <value>Formats follow your system unless you choose another region here. Keel's text stays in English.</value>
+  </data>
+  <data name="Settings_FormatApplied" xml:space="preserve">
+    <value>Formats updated</value>
+  </data>
+  <data name="Settings_BillsTitle" xml:space="preserve">
+    <value>Bills and subscriptions</value>
+  </data>
+  <data name="Settings_BillsHint" xml:space="preserve">
+    <value>Recurring items in these category groups or with these tags count as subscriptions (Bills → Subscriptions); everything else is a bill.</value>
+  </data>
+  <data name="Settings_BillsGroups" xml:space="preserve">
+    <value>Category groups</value>
+  </data>
+  <data name="Settings_BillsTags" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="Settings_BillsNoTags" xml:space="preserve">
+    <value>This file has no tags yet.</value>
+  </data>
+  <data name="Settings_BillsNoGroups" xml:space="preserve">
+    <value>Add categories on the Budget screen first.</value>
+  </data>
+  <data name="Settings_BillsSaved" xml:space="preserve">
+    <value>Subscription groups and tags saved</value>
+  </data>
+  <data name="Settings_BillsLoadFailed" xml:space="preserve">
+    <value>The groups and tags could not be loaded: {0}</value>
+  </data>
+  <data name="Settings_UpdatesTitle" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="Settings_UpdatesToggle" xml:space="preserve">
+    <value>Check for updates when Keel starts</value>
+  </data>
+  <data name="Settings_UpdatesHint" xml:space="preserve">
+    <value>Off by default. When on, Keel asks the project's GitHub releases for a newer version; nothing else is sent. This and bank sync are the only times Keel uses the network.</value>
+  </data>
+  <data name="Settings_UpdatesCheckNow" xml:space="preserve">
+    <value>Check now</value>
+  </data>
+  <data name="Settings_UpdatesInstall" xml:space="preserve">
+    <value>Install and restart</value>
+  </data>
+  <data name="Settings_ConnectionsTitle" xml:space="preserve">
+    <value>Connections</value>
+  </data>
+  <data name="FirstRun_StepOf" xml:space="preserve">
+    <value>Step {0} of {1}</value>
+  </data>
+  <data name="FirstRun_WelcomeTitle" xml:space="preserve">
+    <value>Welcome to Keel</value>
+  </data>
+  <data name="FirstRun_WelcomeText" xml:space="preserve">
+    <value>Keel keeps your whole budget in one file on this computer. Nothing leaves it unless you connect a bank. Start a new budget or open a file you already have.</value>
+  </data>
+  <data name="FirstRun_CreateTitle" xml:space="preserve">
+    <value>Create a new budget file</value>
+  </data>
+  <data name="FirstRun_FileName" xml:space="preserve">
+    <value>File name</value>
+  </data>
+  <data name="FirstRun_CreatedAt" xml:space="preserve">
+    <value>It will be saved as</value>
+  </data>
+  <data name="FirstRun_ChooseLocation" xml:space="preserve">
+    <value>Choose another folder…</value>
+  </data>
+  <data name="FirstRun_Create" xml:space="preserve">
+    <value>Create budget file</value>
+  </data>
+  <data name="FirstRun_OpenTitle" xml:space="preserve">
+    <value>Already use Keel?</value>
+  </data>
+  <data name="FirstRun_OpenText" xml:space="preserve">
+    <value>Open a .keel file from another computer, a synced folder or a backup.</value>
+  </data>
+  <data name="FirstRun_OpenExisting" xml:space="preserve">
+    <value>Open existing file…</value>
+  </data>
+  <data name="FirstRun_TemplateTitle" xml:space="preserve">
+    <value>Choose starter categories</value>
+  </data>
+  <data name="FirstRun_TemplateText" xml:space="preserve">
+    <value>Categories are the jobs you give your money. Pick a starting set; you can rename, add, hide and reorder them any time on the Budget screen.</value>
+  </data>
+  <data name="FirstRun_EmptyTemplate" xml:space="preserve">
+    <value>Start empty</value>
+  </data>
+  <data name="FirstRun_EmptyTemplateHint" xml:space="preserve">
+    <value>No categories; add your own on the Budget screen.</value>
+  </data>
+  <data name="FirstRun_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="FirstRun_Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="FirstRun_AccountTitle" xml:space="preserve">
+    <value>Add your first account</value>
+  </data>
+  <data name="FirstRun_AccountText" xml:space="preserve">
+    <value>Enter an account's balance as it is today. Keel puts that money in Ready to Assign so you can give every dollar a job.</value>
+  </data>
+  <data name="FirstRun_DefaultAccountName" xml:space="preserve">
+    <value>Checking</value>
+  </data>
+  <data name="FirstRun_AccountName" xml:space="preserve">
+    <value>Account name</value>
+  </data>
+  <data name="FirstRun_AccountType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="FirstRun_Currency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="FirstRun_AddAccount" xml:space="preserve">
+    <value>Add account and open my budget</value>
+  </data>
+  <data name="FirstRun_Skip" xml:space="preserve">
+    <value>Skip for now</value>
+  </data>
+  <data name="FirstRun_BankTitle" xml:space="preserve">
+    <value>Prefer to connect your bank?</value>
+  </data>
+  <data name="FirstRun_BankToggle" xml:space="preserve">
+    <value>How bank connections work</value>
+  </data>
+  <data name="FirstRun_BankText" xml:space="preserve">
+    <value>Bank sync is optional. It needs your own provider keys (Plaid developer keys or a SimpleFIN token), because a shared secret must never ship inside an app. Set them up under Settings → Connections; the bank sync guide walks you through it. You can also import CSV, OFX, QFX or QIF files from any bank at any time.</value>
+  </data>
+  <data name="FirstRun_ConnectBank" xml:space="preserve">
+    <value>Open Settings → Connections</value>
+  </data>
+  <data name="FirstRun_Name" xml:space="preserve">
+    <value>First-run setup</value>
+  </data>
+  <data name="Palette_ImportNeedsAccount" xml:space="preserve">
+    <value>Add an account first; imported transactions go into an account.</value>
+  </data>
+  <data name="Setup_Title" xml:space="preserve">
+    <value>Get started</value>
+  </data>
+  <data name="Setup_Progress" xml:space="preserve">
+    <value>{0} of {1} done</value>
+  </data>
+  <data name="Setup_File" xml:space="preserve">
+    <value>Create your budget file</value>
+  </data>
+  <data name="Setup_FileHint" xml:space="preserve">
+    <value>One file on this computer holds everything.</value>
+  </data>
+  <data name="Setup_FileAction" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Setup_Categories" xml:space="preserve">
+    <value>Choose your categories</value>
+  </data>
+  <data name="Setup_CategoriesHint" xml:space="preserve">
+    <value>The jobs your money does: rent, groceries, savings.</value>
+  </data>
+  <data name="Setup_CategoriesAction" xml:space="preserve">
+    <value>Open Budget</value>
+  </data>
+  <data name="Setup_Account" xml:space="preserve">
+    <value>Add an account</value>
+  </data>
+  <data name="Setup_AccountHint" xml:space="preserve">
+    <value>Its balance becomes money to assign.</value>
+  </data>
+  <data name="Setup_AccountAction" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Setup_Assign" xml:space="preserve">
+    <value>Assign your money</value>
+  </data>
+  <data name="Setup_AssignHint" xml:space="preserve">
+    <value>Give every dollar a job until Ready to Assign is zero.</value>
+  </data>
+  <data name="Setup_AssignAction" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="Setup_Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Setup_ToDo" xml:space="preserve">
+    <value>To do</value>
+  </data>
+  <data name="Setup_Dismiss" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="Setup_DismissName" xml:space="preserve">
+    <value>Hide the Get started checklist</value>
+  </data>
+  <data name="Setup_Complete" xml:space="preserve">
+    <value>You're set up. Keep assigning as money comes in.</value>
+  </data>
 </root>

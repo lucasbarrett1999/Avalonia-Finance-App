@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.DataFileSettingsView"
+             x:DataType="vm:DataFileSettingsViewModel">
+  <StackPanel Spacing="14">
+    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+      <TextBlock Grid.Row="0" Classes="secondary" Text="{x:Static res:Strings.Settings_BudgetFile}" />
+      <SelectableTextBlock Grid.Row="0" Grid.Column="1" x:Name="BudgetFilePathText" Classes="path" Text="{Binding BudgetFilePath}" TextWrapping="Wrap" />
+      <TextBlock Grid.Row="1" Classes="secondary" Text="{x:Static res:Strings.Settings_DataFolder}" />
+      <SelectableTextBlock Grid.Row="1" Grid.Column="1" Classes="path" Text="{Binding DataFolderPath}" TextWrapping="Wrap" />
+      <TextBlock Grid.Row="2" Classes="secondary" Text="{x:Static res:Strings.DataFile_BackupsFolder}" />
+      <SelectableTextBlock Grid.Row="2" Grid.Column="1" Classes="path" Text="{Binding BackupsFolderPath}" TextWrapping="Wrap" />
+      <TextBlock Grid.Row="3" Classes="secondary" Text="{x:Static res:Strings.Settings_Logs}" />
+      <SelectableTextBlock Grid.Row="3" Grid.Column="1" Classes="path" Text="{Binding LogsFolderPath}" TextWrapping="Wrap" />
+    </Grid>
+
+    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" AutomationProperties.Name="{x:Static res:Strings.DataFile_FileActions}">
+      <Button x:Name="NewFileButton" Command="{Binding NewFileCommand}" Content="{x:Static res:Strings.Menu_NewFile}" IsEnabled="{Binding !IsBusy}" />
+      <Button x:Name="OpenFileButton" Command="{Binding OpenFileCommand}" Content="{x:Static res:Strings.Menu_OpenFile}" IsEnabled="{Binding !IsBusy}" />
+      <Button x:Name="MoveFileButton" Command="{Binding ChangeLocationCommand}" Content="{x:Static res:Strings.Menu_ChangeLocation}" IsEnabled="{Binding HasFile}" />
+    </WrapPanel>
+
+    <!-- Backups -->
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.DataFile_Backups}" Margin="0,8,0,0" />
+    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+      <Button x:Name="BackupNowButton" Classes="accent" Command="{Binding BackupNowCommand}" IsEnabled="{Binding HasFile}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14" />
+          <TextBlock Text="{x:Static res:Strings.Menu_BackupNow}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button>
+      <Button x:Name="RestoreFromFileButton" Command="{Binding RestoreFromFileCommand}" Content="{x:Static res:Strings.DataFile_RestoreFromFile}" IsEnabled="{Binding HasFile}" />
+    </WrapPanel>
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <CheckBox x:Name="AutoBackupCheck" IsChecked="{Binding AutoBackupEnabled}" Content="{x:Static res:Strings.DataFile_AutoBackup}" />
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Spacing="8" IsEnabled="{Binding AutoBackupEnabled}">
+      <TextBlock Text="{x:Static res:Strings.DataFile_Keep}" VerticalAlignment="Center" />
+      <NumericUpDown x:Name="KeepBox" Value="{Binding AutoBackupKeep}" Minimum="1" Maximum="365" Increment="1" FormatString="0" Width="120"
+                     AutomationProperties.Name="{x:Static res:Strings.DataFile_Keep}" />
+      <TextBlock Text="{x:Static res:Strings.DataFile_KeepSuffix}" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoadingBackups}" Height="4" AutomationProperties.Name="{x:Static res:Strings.DataFile_Backups}" />
+    <TextBlock Classes="error" Text="{Binding BackupsError}" IsVisible="{Binding BackupsError, Converter={x:Static ObjectConverters.IsNotNull}}" TextWrapping="Wrap" />
+    <TextBlock x:Name="NoBackupsText" Classes="secondary" Text="{x:Static res:Strings.DataFile_NoBackups}" IsVisible="{Binding ShowNoBackups}" TextWrapping="Wrap" />
+    <ItemsControl x:Name="BackupList" ItemsSource="{Binding Backups}" IsVisible="{Binding HasBackups}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:BackupRowViewModel">
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,2">
+            <TextBlock Text="{Binding DateText}" VerticalAlignment="Center" Classes="amount" />
+            <TextBlock Grid.Column="1" Classes="secondary" Text="{Binding KindText}" VerticalAlignment="Center" Margin="12,0" />
+            <TextBlock Grid.Column="2" Classes="secondary amount" Text="{Binding SizeText}" VerticalAlignment="Center" Margin="0,0,12,0" />
+            <Button Grid.Column="3" Content="{x:Static res:Strings.DataFile_Restore}" Command="{Binding Restore}" CommandParameter="{Binding}"
+                    AutomationProperties.Name="{Binding RestoreName}" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- Integrity -->
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.DataFile_Integrity}" Margin="0,8,0,0" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.DataFile_IntegrityHint}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <Button x:Name="CheckIntegrityButton" Command="{Binding CheckIntegrityCommand}" Content="{x:Static res:Strings.DataFile_CheckNow}" IsEnabled="{Binding HasFile}" />
+      <TextBlock x:Name="IntegrityText" Text="{Binding IntegrityText}" Classes.error="{Binding IntegrityFailed}" VerticalAlignment="Center" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <!-- Diagnostics -->
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.DataFile_Diagnostics}" Margin="0,8,0,0" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.DataFile_DiagnosticsHint}" TextWrapping="Wrap" />
+    <Button x:Name="DiagnosticsButton" Command="{Binding CopyDiagnosticBundleCommand}" Content="{x:Static res:Strings.Menu_DiagnosticBundle}" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.DataFile_Unencrypted}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+  </StackPanel>
+</UserControl>

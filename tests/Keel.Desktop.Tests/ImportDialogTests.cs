@@ -297,6 +297,9 @@ public sealed class ImportDialogTests : IDisposable
 
     internal static void Click(Window window, Control control)
     {
+        // A real user scrolls to the control first (Settings is one long scrolling page).
+        control.BringIntoView();
+        Dispatcher.UIThread.RunJobs();
         var center = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)!.Value;
         window.MouseDown(center, MouseButton.Left);
         window.MouseUp(center, MouseButton.Left);

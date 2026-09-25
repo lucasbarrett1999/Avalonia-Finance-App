@@ -40,16 +40,38 @@ public partial class ShellView : UserControl
         if (_shell is not null)
         {
             _shell.PropertyChanged -= OnShellPropertyChanged;
+            _shell.SearchFocusRequested -= OnSearchFocusRequested;
         }
 
         _shell = DataContext as ShellViewModel;
         if (_shell is not null)
         {
             _shell.PropertyChanged += OnShellPropertyChanged;
+            _shell.SearchFocusRequested += OnSearchFocusRequested;
         }
+
+        BuildMenu();
 
         ApplySidebarWidth();
     }
+
+    /// <summary>Fills the in-window menu bar (hidden on macOS, which shows the native menu instead).</summary>
+    public void BuildMenu()
+    {
+        MainMenu.Items.Clear();
+        MainMenu.IsVisible = !OperatingSystem.IsMacOS() && _shell?.Commands is not null;
+        if (!MainMenu.IsVisible || _shell?.Commands is not { } commands)
+        {
+            return;
+        }
+
+        foreach (var node in commands.BuildMenu(_shell, macOS: false))
+        {
+            MainMenu.Items.Add(Services.MenuBuilder.ToMenuItem(node));
+        }
+    }
+
+    private void OnSearchFocusRequested(object? sender, EventArgs e) => FocusSearch();
 
     private void OnShellPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

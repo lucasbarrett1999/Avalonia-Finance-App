@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.FirstRun"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.FirstRun.FirstRunView"
+             x:DataType="vm:FirstRunViewModel"
+             AutomationProperties.Name="{x:Static res:Strings.FirstRun_Name}">
+  <Border Background="{DynamicResource Keel.WindowBackground}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Width="620" HorizontalAlignment="Center" Margin="24,48,24,32" Spacing="20">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Image Source="avares://Keel.Desktop/Assets/keel-icon-64.png" Width="40" Height="40"
+                 AutomationProperties.Name="{x:Static res:Strings.App_Name}" />
+          <TextBlock Text="{x:Static res:Strings.App_Name}" FontSize="{StaticResource Keel.FontSize.PageTitle}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <TextBlock Classes="secondary" Text="{Binding StepText}" VerticalAlignment="Center" Margin="12,6,0,0" />
+        </StackPanel>
+
+        <!-- Step 1: welcome -->
+        <StackPanel x:Name="WelcomeStep" Spacing="16" IsVisible="{Binding IsWelcome}">
+          <TextBlock Text="{x:Static res:Strings.FirstRun_WelcomeTitle}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+          <TextBlock Text="{x:Static res:Strings.FirstRun_WelcomeText}" TextWrapping="Wrap" LineHeight="20" />
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{x:Static res:Strings.FirstRun_CreateTitle}" FontWeight="SemiBold" FontSize="15" />
+              <TextBlock Classes="secondary" Text="{x:Static res:Strings.FirstRun_FileName}" />
+              <TextBox x:Name="FileNameBox" Text="{Binding FileName}" AutomationProperties.Name="{x:Static res:Strings.FirstRun_FileName}" MaxWidth="360" HorizontalAlignment="Left" Width="360">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding CreateCommand}" />
+                </TextBox.KeyBindings>
+              </TextBox>
+              <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap">
+                <Run Text="{x:Static res:Strings.FirstRun_CreatedAt}" />
+                <Run Text=" " />
+                <Run Text="{Binding NewFilePath}" />
+              </TextBlock>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button x:Name="CreateButton" Classes="accent" Command="{Binding CreateCommand}" Content="{x:Static res:Strings.FirstRun_Create}" IsEnabled="{Binding !IsBusy}" />
+                <Button x:Name="ChooseLocationButton" Command="{Binding ChooseLocationCommand}" Content="{x:Static res:Strings.FirstRun_ChooseLocation}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{x:Static res:Strings.FirstRun_OpenTitle}" FontWeight="SemiBold" FontSize="15" />
+              <TextBlock Classes="secondary" Text="{x:Static res:Strings.FirstRun_OpenText}" TextWrapping="Wrap" />
+              <Button x:Name="OpenExistingButton" Command="{Binding OpenExistingCommand}" Content="{x:Static res:Strings.FirstRun_OpenExisting}" IsEnabled="{Binding !IsBusy}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Step 2: starter template -->
+        <StackPanel x:Name="TemplateStep" Spacing="16" IsVisible="{Binding IsTemplate}">
+          <TextBlock Text="{x:Static res:Strings.FirstRun_TemplateTitle}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+          <TextBlock Text="{x:Static res:Strings.FirstRun_TemplateText}" TextWrapping="Wrap" LineHeight="20" />
+          <ListBox x:Name="TemplateList" ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}"
+                   AutomationProperties.Name="{x:Static res:Strings.FirstRun_TemplateTitle}">
+            <ListBox.ItemTemplate>
+              <DataTemplate DataType="vm:TemplateChoice">
+                <StackPanel Spacing="2" Margin="0,4" AutomationProperties.Name="{Binding Name}">
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                  <TextBlock Classes="secondary" Text="{Binding Description}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button x:Name="TemplateContinueButton" Classes="accent" Command="{Binding ApplyTemplateCommand}" Content="{x:Static res:Strings.FirstRun_Continue}" IsEnabled="{Binding !IsBusy}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Step 3: first account -->
+        <StackPanel x:Name="AccountStep" Spacing="16" IsVisible="{Binding IsAccount}">
+          <TextBlock Text="{x:Static res:Strings.FirstRun_AccountTitle}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+          <TextBlock Text="{x:Static res:Strings.FirstRun_AccountText}" TextWrapping="Wrap" LineHeight="20" />
+          <Border Classes="card">
+            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+              <TextBlock Grid.Row="0" Text="{x:Static res:Strings.FirstRun_AccountName}" VerticalAlignment="Center" />
+              <TextBox Grid.Row="0" Grid.Column="1" x:Name="AccountNameBox" Text="{Binding AccountName}" AutomationProperties.Name="{x:Static res:Strings.FirstRun_AccountName}" />
+              <TextBlock Grid.Row="1" Text="{x:Static res:Strings.FirstRun_AccountType}" VerticalAlignment="Center" />
+              <ComboBox Grid.Row="1" Grid.Column="1" x:Name="AccountTypeBox" ItemsSource="{Binding AccountTypeNames}" SelectedIndex="{Binding AccountTypeIndex}" MinWidth="200"
+                        AutomationProperties.Name="{x:Static res:Strings.FirstRun_AccountType}" />
+              <TextBlock Grid.Row="2" Text="{Binding BalanceLabel}" VerticalAlignment="Center" />
+              <controls:MoneyTextBox Grid.Row="2" Grid.Column="1" x:Name="BalanceBox" Value="{Binding Balance}" Currency="{Binding Currency}" Width="200" HorizontalAlignment="Left"
+                                     AutomationProperties.Name="{Binding BalanceLabel}" />
+              <TextBlock Grid.Row="3" Text="{x:Static res:Strings.FirstRun_Currency}" VerticalAlignment="Center" />
+              <TextBox Grid.Row="3" Grid.Column="1" x:Name="CurrencyBox" Text="{Binding Currency}" Width="80" HorizontalAlignment="Left" MaxLength="3"
+                       AutomationProperties.Name="{x:Static res:Strings.FirstRun_Currency}" />
+            </Grid>
+          </Border>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button x:Name="BackButton" Command="{Binding BackCommand}" Content="{x:Static res:Strings.FirstRun_Back}" />
+            <Button x:Name="SkipButton" Command="{Binding SkipCommand}" Content="{x:Static res:Strings.FirstRun_Skip}" />
+            <Button x:Name="AddAccountButton" Classes="accent" Command="{Binding AddAccountCommand}" Content="{x:Static res:Strings.FirstRun_AddAccount}" IsEnabled="{Binding !IsBusy}" />
+          </StackPanel>
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{x:Static res:Strings.FirstRun_BankTitle}" FontWeight="SemiBold" />
+              <Button x:Name="BankInfoButton" Theme="{StaticResource IconButtonTheme}" Command="{Binding ToggleBankInfoCommand}" HorizontalAlignment="Left"
+                      AutomationProperties.Name="{x:Static res:Strings.FirstRun_BankToggle}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <controls:Icon Data="{StaticResource Icon.Sync}" Width="14" Height="14" />
+                  <TextBlock Text="{x:Static res:Strings.FirstRun_BankToggle}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <TextBlock x:Name="BankInfoText" Text="{x:Static res:Strings.FirstRun_BankText}" TextWrapping="Wrap" IsVisible="{Binding ShowBankInfo}" LineHeight="20" />
+              <Button x:Name="ConnectBankButton" Command="{Binding ConnectBankCommand}" Content="{x:Static res:Strings.FirstRun_ConnectBank}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <TextBlock x:Name="FirstRunError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" AutomationProperties.Name="{x:Static res:Strings.FirstRun_Name}" />
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</UserControl>

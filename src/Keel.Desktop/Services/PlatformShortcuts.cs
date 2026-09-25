@@ -60,6 +60,24 @@ public sealed class PlatformShortcuts
     /// <summary>Budget: quick-assign palette of the selected category.</summary>
     public KeyGesture QuickAssign { get; } = new(Key.Q);
 
+    /// <summary>Command palette (Ctrl/Cmd+K, PRD 9.1).</summary>
+    public KeyGesture CommandPalette => new(Key.K, CommandModifiers);
+
+    /// <summary>Settings / Preferences (Ctrl/Cmd+,).</summary>
+    public KeyGesture Settings => new(Key.OemComma, CommandModifiers);
+
+    /// <summary>Open a budget file (Ctrl/Cmd+O).</summary>
+    public KeyGesture OpenFile => new(Key.O, CommandModifiers);
+
+    /// <summary>Sync all linked accounts (Ctrl/Cmd+Shift+S).</summary>
+    public KeyGesture SyncAll => new(Key.S, CommandModifiers | KeyModifiers.Shift);
+
+    /// <summary>Quit (Ctrl/Cmd+Q; Windows uses Alt+F4 and shows no gesture).</summary>
+    public KeyGesture? Quit => OperatingSystem.IsWindows() ? null : new KeyGesture(Key.Q, CommandModifiers);
+
+    /// <summary>Go to the sidebar page at <paramref name="index"/> (0-based) with Ctrl/Cmd+1…7.</summary>
+    public KeyGesture GoTo(int index) => new(Key.D1 + index, CommandModifiers);
+
     /// <summary>Shortcuts for the running platform.</summary>
     public static PlatformShortcuts FromCurrentPlatform()
     {

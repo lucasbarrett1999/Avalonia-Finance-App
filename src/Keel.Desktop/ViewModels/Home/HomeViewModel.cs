@@ -58,8 +58,10 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
         IMessenger messenger,
         IRecurringService? recurring = null,
         IScheduledTransactionService? scheduled = null,
-        IForecastService? forecast = null)
+        IForecastService? forecast = null,
+        Keel.Application.Setup.ISetupProgressService? setup = null)
     {
+        _setup = setup;
         _recurring = recurring;
         _scheduled = scheduled;
         _forecast = forecast;
@@ -296,6 +298,7 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
             }
 
             await LoadRecurringCardsAsync(today, version);
+            await LoadSetupAsync(version);
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbException)
         {

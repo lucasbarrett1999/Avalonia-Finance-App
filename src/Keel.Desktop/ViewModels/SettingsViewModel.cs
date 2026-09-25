@@ -8,14 +8,34 @@ using Keel.Desktop.ViewModels.Sync;
 
 namespace Keel.Desktop.ViewModels;
 
-/// <summary>Settings (PRD 9.9): appearance, data locations, bank connections, the shortcut reference, rules and payees.</summary>
-public sealed class SettingsViewModel : PageViewModel
+/// <summary>
+/// Settings (PRD 9.9): General (budget file, backups, integrity, diagnostics), appearance (theme, accent,
+/// density, motion, formats), bank connections, bills and subscriptions, payees, rules, the keyboard
+/// shortcut reference generated from the <see cref="ShortcutRegistry"/>, and updates.
+/// </summary>
+public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigation.INavigationTarget
 {
     private readonly ThemeService _themes;
 
     /// <summary>Creates the view model.</summary>
-    public SettingsViewModel(ThemeService themes, AppSession session, IDataDirectory dataDirectory, PlatformShortcuts shortcuts, RulesViewModel rules, PayeesViewModel payees, ConnectionsSettingsViewModel connections)
+    public SettingsViewModel(
+        ThemeService themes,
+        AppSession session,
+        IDataDirectory dataDirectory,
+        PlatformShortcuts shortcuts,
+        RulesViewModel rules,
+        PayeesViewModel payees,
+        ConnectionsSettingsViewModel connections,
+        Settings.DataFileSettingsViewModel? dataFile = null,
+        Settings.AppearanceSettingsViewModel? appearance = null,
+        Settings.BillsSettingsViewModel? bills = null,
+        Settings.UpdatesSettingsViewModel? updates = null,
+        ShortcutRegistry? registry = null)
     {
+        DataFile = dataFile;
+        AppearanceExtras = appearance;
+        Bills = bills;
+        Updates = updates;
         Rules = rules;
         Payees = payees;
         Connections = connections;
@@ -25,38 +45,12 @@ public sealed class SettingsViewModel : PageViewModel
         BudgetFilePath = session?.BudgetFile?.Path ?? Strings.Shell_NoFile;
         DataFolderPath = dataDirectory.Root;
         LogsFolderPath = dataDirectory.LogsDirectory;
-        Shortcuts =
-        [
-            new ShortcutViewModel(Strings.Shortcut_Search, shortcuts.Format(shortcuts.Search)),
-            new ShortcutViewModel(Strings.Shortcut_Undo, shortcuts.Format(shortcuts.Undo)),
-            new ShortcutViewModel(Strings.Shortcut_Redo, shortcuts.Format(shortcuts.Redo)),
-            new ShortcutViewModel(Strings.Shortcut_ToggleSidebar, shortcuts.Format(shortcuts.ToggleSidebar)),
-            new ShortcutViewModel(Strings.Shortcut_NewTransaction, "N"),
-            new ShortcutViewModel(Strings.Shortcut_EditTransaction, shortcuts.Format(new KeyGesture(Key.Enter))),
-            new ShortcutViewModel(Strings.Shortcut_ToggleCleared, "C"),
-            new ShortcutViewModel(Strings.Shortcut_Approve, "A"),
-            new ShortcutViewModel(Strings.Shortcut_Delete, shortcuts.Format(new KeyGesture(Key.Delete))),
-            new ShortcutViewModel(Strings.Shortcut_SaveAndNew, shortcuts.Format(new KeyGesture(Key.Enter, shortcuts.CommandModifiers))),
-            new ShortcutViewModel(Strings.Shortcut_Cancel, shortcuts.Format(new KeyGesture(Key.Escape))),
-            new ShortcutViewModel(Strings.Shortcut_BudgetPreviousMonth, shortcuts.Format(shortcuts.PreviousMonth)),
-            new ShortcutViewModel(Strings.Shortcut_BudgetNextMonth, shortcuts.Format(shortcuts.NextMonth)),
-            new ShortcutViewModel(Strings.Shortcut_BudgetNavigate, "↑ ↓ ← →"),
-            new ShortcutViewModel(Strings.Shortcut_BudgetEdit, shortcuts.Format(new KeyGesture(Key.Enter))),
-            new ShortcutViewModel(Strings.Shortcut_BudgetNextAssigned, shortcuts.Format(new KeyGesture(Key.Tab))),
-            new ShortcutViewModel(Strings.Shortcut_BudgetMoveMoney, shortcuts.Format(shortcuts.MoveMoney)),
-            new ShortcutViewModel(Strings.Shortcut_BudgetSetTarget, shortcuts.Format(shortcuts.SetTarget)),
-            new ShortcutViewModel(Strings.Shortcut_BudgetFundTargets, shortcuts.Format(shortcuts.FundTargets)),
-            new ShortcutViewModel(Strings.Shortcut_BudgetInspector, shortcuts.Format(shortcuts.ToggleInspector)),
-            new ShortcutViewModel(Strings.Shortcut_BudgetQuickAssign, shortcuts.Format(shortcuts.QuickAssign)),
-            new ShortcutViewModel(Strings.Shortcut_ReviewApprove, "A"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewPick, "1–9"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewCategory, "C"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewSplit, "S"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewTransfer, "T"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewRule, "R"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewDelete, "D"),
-            new ShortcutViewModel(Strings.Shortcut_ReviewMove, "J / K"),
-        ];
+        registry ??= new ShortcutRegistry(shortcuts);
+        Shortcuts = registry.All.Select(e => new ShortcutViewModel(e.Action, e.Keys)).ToList();
+        ShortcutGroups = registry.All
+            .GroupBy(e => e.Scope)
+            .Select(g => new ShortcutGroupViewModel(ShortcutRegistry.ScopeTitle(g.Key), g.Select(e => new ShortcutViewModel(e.Action, e.Keys)).ToList()))
+            .ToList();
     }
 
     /// <inheritdoc />
@@ -147,6 +141,36 @@ public sealed class SettingsViewModel : PageViewModel
     /// <summary>Settings → Payees (F-TXN-9).</summary>
     public PayeesViewModel Payees { get; }
 
+    /// <summary>Settings → General: the budget file, backups, integrity check and diagnostics (F-SET-1).</summary>
+    public Settings.DataFileSettingsViewModel? DataFile { get; }
+
+    /// <summary>Accent, density, motion and formats (F-SET-2).</summary>
+    public Settings.AppearanceSettingsViewModel? AppearanceExtras { get; }
+
+    /// <summary>Settings → Bills and subscriptions.</summary>
+    public Settings.BillsSettingsViewModel? Bills { get; }
+
+    /// <summary>Settings → Updates.</summary>
+    public Settings.UpdatesSettingsViewModel? Updates { get; }
+
+    /// <summary>The shortcut reference grouped by screen.</summary>
+    public IReadOnlyList<ShortcutGroupViewModel> ShortcutGroups { get; }
+
+    /// <summary>The section a navigation asked for ("General", "Connections", "Keyboard"…), or null.</summary>
+    public string? RequestedSection { get; private set; }
+
+    /// <summary>Raised when <see cref="RequestedSection"/> is set by a navigation.</summary>
+    public event EventHandler? SectionRequested;
+
+    /// <inheritdoc />
+    public void OnNavigatedTo(object? parameter)
+    {
+        RequestedSection = parameter as string;
+        SectionRequested?.Invoke(this, EventArgs.Empty);
+        _ = DataFile?.LoadAsync();
+        _ = Bills?.LoadAsync();
+    }
+
     /// <summary>The Connections section (F-SET-3).</summary>
     public ConnectionsSettingsViewModel Connections { get; }
 }
@@ -155,3 +179,8 @@ public sealed class SettingsViewModel : PageViewModel
 /// <param name="Action">What the shortcut does.</param>
 /// <param name="Keys">Platform-specific key text, e.g. "Ctrl+F" or "⌘F".</param>
 public sealed record ShortcutViewModel(string Action, string Keys);
+
+/// <summary>A heading of the shortcut reference with its shortcuts.</summary>
+/// <param name="Title">Screen or area.</param>
+/// <param name="Items">Its shortcuts.</param>
+public sealed record ShortcutGroupViewModel(string Title, IReadOnlyList<ShortcutViewModel> Items);

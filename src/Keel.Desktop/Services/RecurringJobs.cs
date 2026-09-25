@@ -18,7 +18,7 @@ namespace Keel.Desktop.Services;
 /// rows. It also drops cached forecasts on <see cref="LedgerChanged"/> and <see cref="RecurringChanged"/>.
 /// All service calls run off the UI thread; failures go to the status strip and the log.
 /// </summary>
-public sealed partial class RecurringJobs : IRecipient<LedgerChanged>, IRecipient<RecurringChanged>
+public sealed partial class RecurringJobs : IRecipient<LedgerChanged>, IRecipient<RecurringChanged>, IDisposable
 {
     private readonly IRecurringService _recurring;
     private readonly IScheduledTransactionService _scheduled;
@@ -131,6 +131,15 @@ public sealed partial class RecurringJobs : IRecipient<LedgerChanged>, IRecipien
             LogJobFailed(_logger, ex);
             _status.Show(LedgerText.Format(Strings.Bills_JobsFailed, ex.Message), isError: true);
         }
+    }
+
+    /// <summary>Stops the day-change timer and message handlers (the session closed, M8 file switching).</summary>
+    public void Dispose()
+    {
+        _timer?.Stop();
+        _timer = null;
+        _messenger.UnregisterAll(this);
+        _importGate.Dispose();
     }
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Scheduled entry or recurring detection failed")]
