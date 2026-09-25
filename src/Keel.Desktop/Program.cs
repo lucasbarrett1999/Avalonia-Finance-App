@@ -26,7 +26,17 @@ internal static class Program
     [STAThread]
     public static int Main(string[] args)
     {
-        VelopackApp.Build().Run();
+        // Velopack install/update/uninstall hooks run and exit here; on Windows they (un)register .keel files.
+        var velopack = VelopackApp.Build();
+        if (OperatingSystem.IsWindows())
+        {
+            velopack = velopack
+                .OnAfterInstallFastCallback(_ => RegisterFileType())
+                .OnAfterUpdateFastCallback(_ => RegisterFileType())
+                .OnBeforeUninstallFastCallback(_ => UnregisterFileType());
+        }
+
+        velopack.Run();
 
         var dataDirectory = DataDirectory.ForCurrentUser();
         dataDirectory.EnsureCreated();
@@ -69,6 +79,22 @@ internal static class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+    private static void RegisterFileType()
+    {
+        if (OperatingSystem.IsWindows() && Environment.ProcessPath is { } executable)
+        {
+            Keel.Infrastructure.Platform.Windows.WindowsFileAssociation.Register(executable);
+        }
+    }
+
+    private static void UnregisterFileType()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            Keel.Infrastructure.Platform.Windows.WindowsFileAssociation.Unregister();
+        }
+    }
 
     /// <summary>
     /// Builds the generic host of one budget-file session with DI for infrastructure and desktop
