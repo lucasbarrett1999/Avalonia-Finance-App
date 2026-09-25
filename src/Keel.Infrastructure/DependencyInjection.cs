@@ -83,6 +83,7 @@ public static class DependencyInjection
         services.AddSingleton<IMigrationImportService, Keel.Infrastructure.Import.Migration.MigrationImportService>();
         services.AddSingleton<Keel.Application.Portability.IDataExportService, Keel.Infrastructure.Portability.DataExportService>();
         services.AddSingleton<Keel.Application.Portability.IBundleImportService, Keel.Infrastructure.Portability.BundleImportService>();
+        services.AddSingleton<Keel.Application.Debt.IDebtPayoffService, Keel.Infrastructure.Debt.DebtPayoffService>();
         return services;
     }
 }

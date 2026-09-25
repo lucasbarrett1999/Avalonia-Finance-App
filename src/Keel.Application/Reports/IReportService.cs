@@ -16,7 +16,86 @@ public interface IReportService
 
     /// <summary>Monthly end-of-month net worth with a per-account breakdown (F-REP-3, F-ACC-7).</summary>
     Task<NetWorthReport> GetNetWorthAsync(ReportQuery query, CancellationToken ct);
+
+    /// <summary>
+    /// Age of money (F-REP-5, ADR 0094) at the end of every month from <paramref name="from"/> to
+    /// <paramref name="to"/> (the last point is today when the range reaches it). One <c>GROUP BY</c>
+    /// day over on-budget cash accounts feeds <see cref="Keel.Domain.Reports.AgeOfMoney"/>.
+    /// </summary>
+    Task<AgeOfMoneyReport> GetAgeOfMoneyAsync(DateOnly from, DateOnly to, CancellationToken ct);
+
+    /// <summary>
+    /// Budget health for the month of <paramref name="month"/> (F-REP-5, ADR 0094): age of money over
+    /// the twelve months ending with it, months ahead, targets funded and overspent categories. Budget
+    /// numbers come from the budget service (and so from <c>BudgetCalculator</c>); spending from SQL.
+    /// </summary>
+    Task<BudgetHealthReport> GetBudgetHealthAsync(DateOnly month, CancellationToken ct);
 }
+
+/// <summary>Age of money over time (F-REP-5).</summary>
+/// <param name="Points">Month-end points, oldest first (the current month's point is today).</param>
+public sealed record AgeOfMoneyReport(IReadOnlyList<Keel.Domain.Reports.AgeOfMoneyPoint> Points)
+{
+    /// <summary>The latest point, or null for an empty range.</summary>
+    public Keel.Domain.Reports.AgeOfMoneyPoint? Latest => Points.Count == 0 ? null : Points[^1];
+}
+
+/// <summary>Budget health for a month (F-REP-5).</summary>
+/// <param name="Currency">Budget currency.</param>
+/// <param name="Month">The month (first day).</param>
+/// <param name="AsOf">The date the numbers describe: the month's last day, or today for the current month.</param>
+/// <param name="AgeOfMoney">Age of money at the month ends of the twelve months ending with <paramref name="Month"/>.</param>
+/// <param name="MonthsAhead">Months-ahead metric.</param>
+/// <param name="Targets">Targets funded this month.</param>
+/// <param name="Overspent">Overspent categories this month, most overspent first.</param>
+public sealed record BudgetHealthReport(
+    string Currency,
+    DateOnly Month,
+    DateOnly AsOf,
+    AgeOfMoneyReport AgeOfMoney,
+    MonthsAheadMetric MonthsAhead,
+    TargetsFundedMetric Targets,
+    IReadOnlyList<OverspentCategory> Overspent)
+{
+    /// <summary>Overspent categories.</summary>
+    public int OverspentCount => Overspent.Count;
+
+    /// <summary>Of which some cash was overspent (red, reduces next month's Ready to Assign).</summary>
+    public int CashOverspentCount => Overspent.Count(o => o.IsCash);
+}
+
+/// <summary>
+/// How many months of typical spending the money already in the budget covers: <see cref="Buffer"/> ÷
+/// <see cref="AverageSpending"/>, one decimal, rounded down (ADR 0094).
+/// </summary>
+/// <param name="Buffer">Ready to Assign plus every positive Available outside credit card payment categories.</param>
+/// <param name="ReadyToAssign">Ready to Assign (part of the buffer; may be negative).</param>
+/// <param name="AverageSpending">Average monthly spending of <paramref name="SpendingFrom"/>..<paramref name="SpendingTo"/> (as the Spending report counts it).</param>
+/// <param name="SpendingFrom">First month averaged.</param>
+/// <param name="SpendingTo">Last month averaged.</param>
+/// <param name="Tenths">Months ahead in tenths (21 = 2.1 months), or null without spending to compare with.</param>
+public sealed record MonthsAheadMetric(long Buffer, long ReadyToAssign, long AverageSpending, DateOnly SpendingFrom, DateOnly SpendingTo, int? Tenths);
+
+/// <summary>Targets funded this month (F-BUD-4 targets).</summary>
+/// <param name="Count">Visible categories with a target.</param>
+/// <param name="Funded">Of which nothing more is needed this month.</param>
+/// <param name="Needed">Σ what the targets ask to assign this month.</param>
+/// <param name="Underfunded">Σ still missing this month.</param>
+public sealed record TargetsFundedMetric(int Count, int Funded, long Needed, long Underfunded)
+{
+    /// <summary>Share of the money needed this month that is assigned, whole percent (half to even); 100 when nothing is needed; null without targets.</summary>
+    public int? Percent => Count == 0 ? null
+        : Needed <= 0 ? 100
+        : (int)Math.Round((decimal)(Needed - Underfunded) * 100 / Needed, MidpointRounding.ToEven);
+}
+
+/// <summary>An overspent category.</summary>
+/// <param name="CategoryId">Category.</param>
+/// <param name="Name">Name.</param>
+/// <param name="GroupName">Group name.</param>
+/// <param name="Available">Available (negative).</param>
+/// <param name="IsCash">Cash overspending (red) rather than credit only (yellow).</param>
+public sealed record OverspentCategory(Guid CategoryId, string Name, string GroupName, long Available, bool IsCash);
 
 /// <summary>What a report covers (the shared report toolbar, PRD 9.8).</summary>
 /// <param name="From">First date, inclusive.</param>

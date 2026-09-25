@@ -19,6 +19,9 @@ public interface IFileDialogs
 
     /// <summary>Asks for a backup zip; null when cancelled.</summary>
     Task<string?> OpenBackupAsync(string? startFolder);
+
+    /// <summary>Asks where to save a chart image (PRD 9.8, PNG export); null when cancelled.</summary>
+    Task<string?> SavePngAsync(string suggestedName);
 }
 
 /// <summary>The platform pickers of the main window.</summary>
@@ -98,6 +101,31 @@ public sealed class StorageFileDialogs : IFileDialogs
             SuggestedStartLocation = await StartAsync(storage, startFolder),
         });
         return files.Count == 0 ? null : files[0].TryGetLocalPath();
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> SavePngAsync(string suggestedName)
+    {
+        if (Storage() is not { CanSave: true } storage)
+        {
+            return null;
+        }
+
+        var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = Strings.ExportPng_Title,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = "png",
+            ShowOverwritePrompt = true,
+            FileTypeChoices = [FilePickerFileTypes.ImagePng],
+        });
+        var path = file?.TryGetLocalPath();
+        if (path is null)
+        {
+            return null;
+        }
+
+        return path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? path : path + ".png";
     }
 
     private static IStorageProvider? Storage() =>

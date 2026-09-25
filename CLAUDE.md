@@ -106,6 +106,11 @@ dotnet test tests/Keel.Infrastructure.Tests --filter BundleTimingTests --logger 
 KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter MigrationFixtureTests
 dotnet test tests/Keel.Desktop.Tests --filter "PortabilityTests|PortabilityRenderingTests"
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter PortabilityRenderingTests
+# M9b: debt payoff math, age of money, budget health (hand-built ledgers + 100k timing), desktop flows and PNGs
+dotnet test tests/Keel.Domain.Tests --filter "FullyQualifiedName~Debt|FullyQualifiedName~AgeOfMoney"
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Debt|BudgetHealthReportTests" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter "DebtHealthExportTests|DebtHealthRenderingTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter DebtHealthRenderingTests
 ```
 
 The app applies pending migrations itself when it opens a budget file (after a `-before-migration`
@@ -356,6 +361,21 @@ M9d export, bundle import, YNAB/Monarch importers (F-REP-6, PRD 9.10; ADR 0098-0
                               Import/Migration/ (fixtures in Import/Fixtures/Migration with .expected.json); Desktop
                               PortabilityTests (FakePortabilityDialogs, MigrationSamples), PortabilityRenderingTests
                               (PortabilityScenes), new methods in AccessibilityTests and HighDpiRenderingTests.
+M9b: debt payoff (F-GOAL-2), age of money and budget health (F-REP-5), PNG export of charts (PRD 9.8):
+  Keel.Domain/Debt/DebtPayoffCalculator  Amortization (APR/12, half-even interest), snowball/avalanche with rollover,
+                              MinimumOnly baseline, "never" when interest reaches the outlay (ADR 0093).
+  Keel.Domain/Reports/AgeOfMoney  FIFO over daily cash flows, last 10 outflows (ADR 0094).
+  Account.InterestRateBps/MinimumPayment (migration DebtPayoffFields); Application Accounts DebtTerms (+ requests, DTO).
+  Keel.Application/Debt/IDebtPayoffService (+ DTOs, NewPaymentCategory); IBudgetService.SetTargetsAsync (one undo step);
+                              IReportService.GetAgeOfMoneyAsync/GetBudgetHealthAsync (+ BudgetHealthReport DTOs).
+  Keel.Infrastructure/Debt/DebtPayoffService; ReportService daily cash-flow SQL + health (optional IBudgetService).
+  Keel.Desktop: ViewModels/Goals/DebtPayoffViewModel + Views/Goals/DebtPayoffView (Goals tab, GoalsTab enum, keys 1/2);
+                              ViewModels/Reports/BudgetHealthReportViewModel + Views/Reports/BudgetHealthReportView;
+                              HomeViewModel.Health (age-of-money card); Controls/ChartImage (2x PNG, ADR 0095),
+                              IFileDialogs.SavePngAsync, ReportsViewModel.ExportPngAsync/RenderChartPng; account editor debt fields.
+  ShortcutRegistry.All is stably sorted by scope, so new entries are appended at the end of the constructor.
+  Tests: Domain Debt/, Reports/AgeOfMoneyTests; Infrastructure Debt/, Reports/BudgetHealthReportTests (TimingCollection);
+                              Desktop DebtHealthExportTests, DebtHealthRenderingTests, additions to Accessibility/HighDpi tests.
 ```
 
 Dependency direction: `Desktop -> Application -> Domain`; `Infrastructure -> Application -> Domain`.

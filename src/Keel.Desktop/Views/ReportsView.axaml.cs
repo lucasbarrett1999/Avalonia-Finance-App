@@ -14,7 +14,7 @@ public partial class ReportsView : UserControl
     {
         InitializeComponent();
 
-        // Registered in ShortcutRegistry: 1–4 choose a report, Ctrl/Cmd+E exports CSV.
+        // Registered in ShortcutRegistry: digits choose a report, Ctrl/Cmd+E exports CSV, Ctrl/Cmd+Shift+E exports PNG.
         Services.PageKeys.Attach(this, e =>
         {
             if (DataContext is not ReportsViewModel vm)
@@ -35,6 +35,12 @@ public partial class ReportsView : UserControl
                 return true;
             }
 
+            if (e.Key == Avalonia.Input.Key.E && e.KeyModifiers == (command | Avalonia.Input.KeyModifiers.Shift))
+            {
+                vm.ExportPngCommand.Execute(null);
+                return true;
+            }
+
             return false;
         });
     }
@@ -47,6 +53,23 @@ public partial class ReportsView : UserControl
         {
             vm.SaveFile = SaveAsync;
         }
+
+        if (DataContext is ReportsViewModel png && png.RenderChartPng is null)
+        {
+            png.RenderChartPng = RenderChartPng;
+        }
+    }
+
+    // PNG export (PRD 9.8, ADR 0095): the selected report's chart at 2x.
+    private bool RenderChartPng(string path)
+    {
+        if (Controls.ChartImage.FindChart(ReportHost) is not { } chart)
+        {
+            return false;
+        }
+
+        Controls.ChartImage.Save(chart, path);
+        return true;
     }
 
     private async Task<string?> SaveAsync(string suggestedName, string content)

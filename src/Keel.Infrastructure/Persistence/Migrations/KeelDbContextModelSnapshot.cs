@@ -28,10 +28,16 @@ namespace Keel.Infrastructure.Persistence.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("InterestRateBps")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("IsClosed")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsOnBudget")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("MinimumPayment")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")

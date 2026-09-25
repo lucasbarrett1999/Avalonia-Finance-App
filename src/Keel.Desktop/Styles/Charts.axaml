@@ -65,6 +65,10 @@
       <StreamGeometry x:Key="Icon.Report.Pie">M21.21 15.89 A10 10 0 1 1 8 2.83 M22 12 A10 10 0 0 0 12 2 V12 Z</StreamGeometry>
       <StreamGeometry x:Key="Icon.Report.Calendar">M3 6 A2 2 0 0 1 5 4 H19 A2 2 0 0 1 21 6 V20 A2 2 0 0 1 19 22 H5 A2 2 0 0 1 3 20 Z M16 2 V6 M8 2 V6 M3 10 H21</StreamGeometry>
       <StreamGeometry x:Key="Icon.Report.Link">M5 12 H19 M12 5 L19 12 L12 19</StreamGeometry>
+      <!-- M9b: budget health (pulse), PNG export (picture) and debt payoff (card). -->
+      <StreamGeometry x:Key="Icon.Report.Health">M22 12 H18 L15 21 L9 3 L6 12 H2</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Report.Image">M5 3 H19 A2 2 0 0 1 21 5 V19 A2 2 0 0 1 19 21 H5 A2 2 0 0 1 3 19 V5 A2 2 0 0 1 5 3 Z M10 8.5 A1.5 1.5 0 1 1 7 8.5 A1.5 1.5 0 1 1 10 8.5 Z M21 15 L16 10 L5 21</StreamGeometry>
+      <StreamGeometry x:Key="Icon.Debt">M3 5 H21 A2 2 0 0 1 23 7 V17 A2 2 0 0 1 21 19 H3 A2 2 0 0 1 1 17 V7 A2 2 0 0 1 3 5 Z M1 10 H23 M5 15 H9</StreamGeometry>
     </ResourceDictionary>
   </Styles.Resources>
 
