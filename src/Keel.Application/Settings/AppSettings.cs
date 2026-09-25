@@ -59,6 +59,8 @@ public sealed record AppSettings
     /// <summary>Check for updates on start (PRD 10: off by default until a release feed exists).</summary>
     public bool CheckForUpdates { get; init; }
 
+    /// <summary>Local measurements for Settings → Privacy &amp; Stats (PRD 4); never transmitted.</summary>
+    public Stats.LocalStats Stats { get; init; } = new();
     /// <summary>The Budget screen shows three months side by side (F-BUD-2 P1).</summary>
     public bool BudgetThreeMonths { get; init; }
 

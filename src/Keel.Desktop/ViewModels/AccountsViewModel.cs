@@ -72,9 +72,11 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         Bills.ScheduledGhostsViewModel? scheduled = null,
         ITagService? tags = null,
         IAttachmentService? attachments = null,
-        IAttachmentFiles? attachmentFiles = null)
+        IAttachmentFiles? attachmentFiles = null,
+        StatsInstrumentation? stats = null)
     {
         Scheduled = scheduled;
+        Stats = stats;
         _tags = tags;
         _attachmentContext = attachments is not null && attachmentFiles is not null ? new AttachmentContext(attachments, attachmentFiles, status) : null;
         ArgumentNullException.ThrowIfNull(messenger);
@@ -104,6 +106,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         SelectedTagFilter = TagOption.All;
         messenger.Register(this);
     }
+
+    /// <summary>Stats page measurements (register scroll frame times, PRD 4); null in view-model-only tests.</summary>
+    public StatsInstrumentation? Stats { get; }
 
     /// <summary>Raised when the view should select and scroll to a row index.</summary>
     public event EventHandler<int>? SelectIndexRequested;

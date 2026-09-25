@@ -61,6 +61,12 @@ public sealed class RegisterSource : IList, IDataGridCollectionView, IReadOnlyLi
     /// <summary>Number of rows in the register.</summary>
     public int Count => _count;
 
+    /// <summary>
+    /// Called whenever the grid asks for a row (scrolling or paging); the register view points it at a
+    /// <see cref="Services.ScrollFrameMeter"/> for the Stats page's frame times (PRD 4). Null costs nothing.
+    /// </summary>
+    public Action? RowRequested { get; set; }
+
     /// <summary>Number of pages currently materialized (for tests).</summary>
     public int CachedPageCount => _pages.Count;
 
@@ -272,6 +278,7 @@ public sealed class RegisterSource : IList, IDataGridCollectionView, IReadOnlyLi
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, _count);
+        RowRequested?.Invoke();
         var pageIndex = index / IRegisterQuery.PageSize;
         if (!_pages.TryGetValue(pageIndex, out var page))
         {

@@ -122,5 +122,6 @@ public sealed partial class ShellViewModel
 
         Maintenance = services.GetService<MaintenanceJobs>();
         Maintenance?.Start();
+        InitializeM9e(session);
     }
 }

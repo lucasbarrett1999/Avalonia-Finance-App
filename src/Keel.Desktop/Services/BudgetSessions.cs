@@ -1,7 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Keel.Application.Files;
 using Keel.Application.Settings;
 using Keel.Desktop.ViewModels;
+using Keel.Desktop.ViewModels.Dialogs;
 using Keel.Desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,6 +33,23 @@ public sealed class BudgetSessions : IDisposable
 
     /// <summary>The settings store every session shares.</summary>
     public IAppSettingsStore Settings { get; }
+
+    /// <summary>Keys of encrypted files unlocked in this app run (F-SET-4), shared by every session.</summary>
+    public BudgetFileKeyRing KeyRing { get; } = new();
+
+    /// <summary>
+    /// When the process started (UTC), set by Program.Main so the first session can report its cold start to the
+    /// Stats page (PRD 4); consumed once by <see cref="TakeColdStart"/>.
+    /// </summary>
+    public DateTime? ColdStartedAt { get; set; }
+
+    /// <summary>Returns and clears <see cref="ColdStartedAt"/> (only one session measures a cold start).</summary>
+    public DateTime? TakeColdStart()
+    {
+        var value = ColdStartedAt;
+        ColdStartedAt = null;
+        return value;
+    }
 
     /// <summary>The running session's host.</summary>
     public IHost? Current { get; private set; }
@@ -71,32 +90,9 @@ public sealed class BudgetSessions : IDisposable
         await _gate.WaitAsync(ct).ConfigureAwait(true);
         try
         {
-            var host = _createHost((options ?? BudgetStartupOptions.Default) with { FilePath = path, Strict = true });
-            try
-            {
-                await host.StartAsync(ct).ConfigureAwait(true);
-                await Task.Run(() => host.Services.GetRequiredService<BudgetFileStartup>().OpenInitialFileAsync(ct), ct).ConfigureAwait(true);
-            }
-            catch
-            {
-                await StopAsync(host).ConfigureAwait(true);
-                throw;
-            }
-
+            var host = await StartAsync((options ?? BudgetStartupOptions.Default) with { FilePath = path, Strict = true }, ct).ConfigureAwait(true);
             var previous = Current;
-            Current = host;
-            if (Window is { } window)
-            {
-                window.Attach(host.Services.GetRequiredService<ShellViewModel>(), host.Services.GetRequiredService<WindowPlacementService>());
-            }
-
-            if (previous is not null && ReferenceEquals(App.Services, previous.Services))
-            {
-                // Only the real app publishes its container (tests leave App.Services unset).
-                App.Services = host.Services;
-            }
-
-            Switched?.Invoke(this, EventArgs.Empty);
+            Switch(previous, host);
             if (previous is not null)
             {
                 await StopAsync(previous).ConfigureAwait(true);
@@ -106,6 +102,41 @@ public sealed class BudgetSessions : IDisposable
         {
             _gate.Release();
         }
+    }
+
+    // Builds and starts a session host and opens its file; a host that fails is stopped and the error thrown.
+    private async Task<IHost> StartAsync(BudgetStartupOptions options, CancellationToken ct)
+    {
+        var host = _createHost(options);
+        try
+        {
+            await host.StartAsync(ct).ConfigureAwait(true);
+            await Task.Run(() => host.Services.GetRequiredService<BudgetFileStartup>().OpenInitialFileAsync(ct), ct).ConfigureAwait(true);
+            return host;
+        }
+        catch
+        {
+            await StopAsync(host).ConfigureAwait(true);
+            throw;
+        }
+    }
+
+    // Makes the started host current and moves the window to its shell.
+    private void Switch(IHost? previous, IHost host)
+    {
+        Current = host;
+        if (Window is { } window)
+        {
+            window.Attach(host.Services.GetRequiredService<ShellViewModel>(), host.Services.GetRequiredService<WindowPlacementService>());
+        }
+
+        if (previous is not null && ReferenceEquals(App.Services, previous.Services))
+        {
+            // Only the real app publishes its container (tests leave App.Services unset).
+            App.Services = host.Services;
+        }
+
+        Switched?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -131,12 +162,99 @@ public sealed class BudgetSessions : IDisposable
 
         try
         {
-            await OpenAsync(path).ConfigureAwait(true);
+            await OpenWithPromptAsync(path).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Current?.Services.GetService<StatusService>()?.Show(
                 LedgerText.Format(Resources.Strings.Shell_StatusOpenRequestedFailed, Path.GetFileName(path), ex.Message), isError: true);
+        }
+    }
+
+    /// <summary>
+    /// Opens <paramref name="path"/> like <see cref="OpenAsync"/>; when it is encrypted and no key is known, asks
+    /// for the passphrase in the current shell (F-SET-4) and keeps asking until it opens or the user cancels.
+    /// Returns false when cancelled. Other failures throw, leaving the current session untouched.
+    /// </summary>
+    public async Task<bool> OpenWithPromptAsync(string path, BudgetStartupOptions? options = null)
+    {
+        try
+        {
+            await OpenAsync(path, options).ConfigureAwait(true);
+            return true;
+        }
+        catch (BudgetFileLockedException) when (options?.Unlock is null && Current?.Services.GetService<DialogService>() is { } dialogs)
+        {
+            return await PromptUnlockAsync(dialogs, path, options).ConfigureAwait(true);
+        }
+    }
+
+    /// <summary>
+    /// Shows the passphrase prompt for the encrypted <paramref name="path"/> in <paramref name="dialogs"/>; each
+    /// attempt opens the file in a new session. A wrong passphrase keeps the prompt open with an error.
+    /// </summary>
+    public Task<bool> PromptUnlockAsync(DialogService dialogs, string path, BudgetStartupOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(dialogs);
+        var prompt = new UnlockFileViewModel(path, async (passphrase, remember) =>
+        {
+            await OpenAsync(path, (options ?? BudgetStartupOptions.Default) with { Unlock = new BudgetFileUnlock(passphrase, remember) }).ConfigureAwait(true);
+        });
+        return dialogs.ShowAsync(prompt);
+    }
+
+    /// <summary>
+    /// Encrypts or decrypts the open file <paramref name="path"/> (F-SET-4): stops the current session so nothing
+    /// holds the file, converts it in a new session (verified backup first) and opens it there. When the change
+    /// fails the file is reopened unchanged and its status strip says why; returns false then.
+    /// </summary>
+    public async Task<bool> ChangeEncryptionAsync(string path, BudgetFileEncryptionChange change, string message, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(change);
+        await _gate.WaitAsync(ct).ConfigureAwait(true);
+        var window = Window;
+        try
+        {
+            // The old shell stays on screen until the new one takes over, but its services are gone: no input.
+            if (window is not null)
+            {
+                window.IsEnabled = false;
+            }
+
+            var previous = Current;
+            if (previous is not null)
+            {
+                await StopAsync(previous).ConfigureAwait(true);
+            }
+
+            var options = new BudgetStartupOptions(path, Strict: true, Message: message, Encryption: change);
+            IHost host;
+            var succeeded = true;
+            try
+            {
+                host = await StartAsync(options, ct).ConfigureAwait(true);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // Reopen the file as it was (the conversion never touches it unless it succeeded).
+                succeeded = false;
+                var reason = LedgerText.Format(Resources.Strings.Encrypt_ChangeFailed, ex.Message).Replace("{", "{{", StringComparison.Ordinal).Replace("}", "}}", StringComparison.Ordinal);
+                var unlock = change.CurrentPassphrase is { } current ? new BudgetFileUnlock(current) : null;
+                host = await StartAsync(new BudgetStartupOptions(path, Message: reason, Unlock: unlock), ct).ConfigureAwait(true);
+            }
+
+            Switch(previous, host);
+            return succeeded;
+        }
+        finally
+        {
+            if (window is not null)
+            {
+                window.IsEnabled = true;
+            }
+
+            _gate.Release();
         }
     }
 

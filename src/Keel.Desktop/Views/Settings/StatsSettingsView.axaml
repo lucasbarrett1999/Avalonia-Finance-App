@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.StatsSettingsView"
+             x:DataType="vm:StatsSettingsViewModel">
+  <UserControl.Styles>
+    <Style Selector="Border.statCard">
+      <Setter Property="Background" Value="{DynamicResource Keel.WindowBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource Keel.BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+      <Setter Property="Padding" Value="12,10" />
+    </Style>
+    <Style Selector="StackPanel.met TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Positive}" />
+    </Style>
+    <Style Selector="StackPanel.met controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Positive}" />
+    </Style>
+    <Style Selector="StackPanel.missed TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+    </Style>
+    <Style Selector="StackPanel.missed controls|Icon">
+      <Setter Property="Foreground" Value="{DynamicResource Keel.Warning}" />
+    </Style>
+  </UserControl.Styles>
+  <StackPanel Spacing="12">
+    <TextBlock x:Name="StatsIntro" Classes="secondary" Text="{x:Static res:Strings.Stats_Intro}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <Button x:Name="StatsRefreshButton" Command="{Binding RefreshCommand}" Content="{x:Static res:Strings.Stats_Refresh}" IsEnabled="{Binding !IsLoading}" />
+      <TextBlock Classes="secondary" Text="{Binding ComputedText}" VerticalAlignment="Center" FontSize="{StaticResource Keel.FontSize.Small}" />
+    </StackPanel>
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Height="4" AutomationProperties.Name="{x:Static res:Strings.Stats_Loading}" />
+    <TextBlock x:Name="StatsNoFile" Classes="secondary" Text="{x:Static res:Strings.Stats_NoFile}" IsVisible="{Binding HasNoFile}" TextWrapping="Wrap" />
+    <Border Classes="warning" IsVisible="{Binding HasError}">
+      <TextBlock x:Name="StatsError" Text="{Binding Error}" TextWrapping="Wrap" />
+    </Border>
+    <ItemsControl x:Name="StatsList" ItemsSource="{Binding Metrics}" IsVisible="{Binding HasMetrics}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="vm:StatsMetricViewModel">
+          <Border Classes="statCard" Margin="0,0,0,10" AutomationProperties.Name="{Binding AutomationName}">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <TextBlock x:Name="StatValue" Text="{Binding ValueText}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" />
+              <WrapPanel Orientation="Horizontal" ItemSpacing="12" LineSpacing="4">
+                <TextBlock Classes="secondary" Text="{Binding TargetText}" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="4" Classes.met="{Binding IsMet}" Classes.missed="{Binding IsNotMet}">
+                  <controls:Icon Data="{Binding OutcomeIcon, Converter={x:Static controls:ReportIconConverter.Instance}}" Width="14" Height="14" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding OutcomeText}" VerticalAlignment="Center" FontWeight="SemiBold" />
+                </StackPanel>
+              </WrapPanel>
+              <TextBlock Classes="secondary" Text="{Binding Detail}" IsVisible="{Binding HasDetail}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+              <TextBlock Classes="secondary" Text="{Binding Explanation}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </StackPanel>
+</UserControl>

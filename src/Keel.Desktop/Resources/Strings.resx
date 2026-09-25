@@ -5895,4 +5895,388 @@
   <data name="PayeeMerge_Action_MergePayees" xml:space="preserve">
     <value>merge payees</value>
   </data>
+  <data name="Encrypt_LockedStatus" xml:space="preserve">
+    <value>{0} is encrypted. Enter its passphrase to open it.</value>
+  </data>
+  <data name="Encrypt_LockedCancelled" xml:space="preserve">
+    <value>{0} is still locked. Open the command palette and choose “Unlock budget file”, or go to Settings → General, to enter its passphrase.</value>
+  </data>
+  <data name="Encrypt_UnlockTitle" xml:space="preserve">
+    <value>Unlock budget file</value>
+  </data>
+  <data name="Encrypt_UnlockMessage" xml:space="preserve">
+    <value>{0} is encrypted. Enter its passphrase to open it.</value>
+  </data>
+  <data name="Encrypt_Passphrase" xml:space="preserve">
+    <value>Passphrase</value>
+  </data>
+  <data name="Encrypt_ConfirmPassphrase" xml:space="preserve">
+    <value>Confirm passphrase</value>
+  </data>
+  <data name="Encrypt_CurrentPassphrase" xml:space="preserve">
+    <value>Current passphrase</value>
+  </data>
+  <data name="Encrypt_ShowPassphrase" xml:space="preserve">
+    <value>Show passphrase</value>
+  </data>
+  <data name="Encrypt_RememberKey" xml:space="preserve">
+    <value>Remember the key on this computer (in the OS secret store)</value>
+  </data>
+  <data name="Encrypt_RememberHint" xml:space="preserve">
+    <value>Without this, Keel asks for the passphrase every time it opens the file.</value>
+  </data>
+  <data name="Encrypt_Unlock" xml:space="preserve">
+    <value>Unlock</value>
+  </data>
+  <data name="Encrypt_WrongPassphrase" xml:space="preserve">
+    <value>That passphrase does not open this file. Check for typos and Caps Lock.</value>
+  </data>
+  <data name="Encrypt_PassphraseRequired" xml:space="preserve">
+    <value>Enter the passphrase.</value>
+  </data>
+  <data name="Encrypt_UnlockFailed" xml:space="preserve">
+    <value>The file could not be opened: {0}</value>
+  </data>
+  <data name="Encrypt_ChangeFailed" xml:space="preserve">
+    <value>The encryption could not be changed, so the file was left as it was: {0}</value>
+  </data>
+  <data name="Encrypt_Section" xml:space="preserve">
+    <value>Encryption</value>
+  </data>
+  <data name="Encrypt_StatusPlain" xml:space="preserve">
+    <value>Not encrypted. The budget file is a plain SQLite database that anyone who can read your files can open.</value>
+  </data>
+  <data name="Encrypt_StatusEncrypted" xml:space="preserve">
+    <value>Encrypted with SQLCipher (AES-256). Keel needs the passphrase to open this file.</value>
+  </data>
+  <data name="Encrypt_StatusLocked" xml:space="preserve">
+    <value>This budget file is encrypted and locked.</value>
+  </data>
+  <data name="Encrypt_EncryptButton" xml:space="preserve">
+    <value>Encrypt this file…</value>
+  </data>
+  <data name="Encrypt_RemoveButton" xml:space="preserve">
+    <value>Remove encryption…</value>
+  </data>
+  <data name="Encrypt_UnlockButton" xml:space="preserve">
+    <value>Unlock budget file…</value>
+  </data>
+  <data name="Encrypt_RememberToggle" xml:space="preserve">
+    <value>Remember the key on this computer</value>
+  </data>
+  <data name="Encrypt_SecretStoreIn" xml:space="preserve">
+    <value>Remembered keys are kept in: {0}.</value>
+  </data>
+  <data name="Encrypt_SecretStoreWeaker" xml:space="preserve">
+    <value>This computer has no system keyring, so the key would be kept in Keel's encrypted fallback file, which is weaker: anyone who can read your files and knows this machine could decrypt it.</value>
+  </data>
+  <data name="Encrypt_LostWarning" xml:space="preserve">
+    <value>If you forget the passphrase, your data cannot be recovered. Nobody can reset it, not even from a backup: backups of an encrypted file are encrypted with the same passphrase.</value>
+  </data>
+  <data name="Encrypt_AttachmentsNote" xml:space="preserve">
+    <value>Attachments are stored next to the file and are not encrypted.</value>
+  </data>
+  <data name="Encrypt_EncryptTitle" xml:space="preserve">
+    <value>Encrypt this budget file</value>
+  </data>
+  <data name="Encrypt_EncryptIntro" xml:space="preserve">
+    <value>Keel copies {0} into an encrypted file, checks the copy, and replaces the file with it. A plain backup is kept in the backups folder first; delete it if the plain copy must not stay on this computer.</value>
+  </data>
+  <data name="Encrypt_Acknowledge" xml:space="preserve">
+    <value>I understand that a lost passphrase means lost data</value>
+  </data>
+  <data name="Encrypt_EncryptConfirm" xml:space="preserve">
+    <value>Encrypt</value>
+  </data>
+  <data name="Encrypt_Encrypting" xml:space="preserve">
+    <value>Encrypting… this can take a few seconds for a large file.</value>
+  </data>
+  <data name="Encrypt_TooShort" xml:space="preserve">
+    <value>Use at least 8 characters. A few unrelated words make a strong passphrase that is easy to remember.</value>
+  </data>
+  <data name="Encrypt_Mismatch" xml:space="preserve">
+    <value>The two passphrases do not match.</value>
+  </data>
+  <data name="Encrypt_AcknowledgeRequired" xml:space="preserve">
+    <value>Tick the box to confirm that you understand a lost passphrase cannot be recovered.</value>
+  </data>
+  <data name="Encrypt_EncryptedStatus" xml:space="preserve">
+    <value>Encrypted {0}. Keep the passphrase safe: without it the data cannot be recovered.</value>
+  </data>
+  <data name="Encrypt_RemoveTitle" xml:space="preserve">
+    <value>Remove encryption</value>
+  </data>
+  <data name="Encrypt_RemoveIntro" xml:space="preserve">
+    <value>Keel writes {0} back as a plain SQLite file that anyone who can read your files can open. An encrypted backup is kept in the backups folder first.</value>
+  </data>
+  <data name="Encrypt_RemoveConfirm" xml:space="preserve">
+    <value>Remove encryption</value>
+  </data>
+  <data name="Encrypt_Removing" xml:space="preserve">
+    <value>Removing the encryption…</value>
+  </data>
+  <data name="Encrypt_RemovedStatus" xml:space="preserve">
+    <value>Removed the encryption from {0}. It is a plain SQLite file again.</value>
+  </data>
+  <data name="Encrypt_RememberFailed" xml:space="preserve">
+    <value>The secret store did not accept the change: {0}</value>
+  </data>
+  <data name="Encrypt_RememberedStatus" xml:space="preserve">
+    <value>The key of this file is now remembered on this computer.</value>
+  </data>
+  <data name="Encrypt_ForgottenStatus" xml:space="preserve">
+    <value>The key of this file is no longer remembered; Keel will ask for the passphrase.</value>
+  </data>
+  <data name="Encrypt_Backend_WindowsDpapi" xml:space="preserve">
+    <value>Windows Data Protection (DPAPI) for your user account</value>
+  </data>
+  <data name="Encrypt_Backend_MacOSKeychain" xml:space="preserve">
+    <value>the macOS Keychain</value>
+  </data>
+  <data name="Encrypt_Backend_LinuxSecretService" xml:space="preserve">
+    <value>the system keyring (Secret Service)</value>
+  </data>
+  <data name="Encrypt_Backend_EncryptedFile" xml:space="preserve">
+    <value>Keel's encrypted fallback file</value>
+  </data>
+  <data name="Encrypt_Backend_InMemory" xml:space="preserve">
+    <value>memory only (nothing is kept)</value>
+  </data>
+  <data name="Stats_SectionTitle" xml:space="preserve">
+    <value>Privacy &amp; Stats</value>
+  </data>
+  <data name="Stats_Intro" xml:space="preserve">
+    <value>How Keel is doing against its goals (PRD section 4), computed on this computer from this budget file's change history and from Keel's settings. Nothing here is ever sent anywhere; Keel has no telemetry.</value>
+  </data>
+  <data name="Stats_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Stats_Loading" xml:space="preserve">
+    <value>Computing…</value>
+  </data>
+  <data name="Stats_Error" xml:space="preserve">
+    <value>The stats could not be computed: {0}</value>
+  </data>
+  <data name="Stats_NoFile" xml:space="preserve">
+    <value>Open a budget file to see its stats.</value>
+  </data>
+  <data name="Stats_ComputedAt" xml:space="preserve">
+    <value>Computed {0}.</value>
+  </data>
+  <data name="Stats_Target" xml:space="preserve">
+    <value>Target: {0}</value>
+  </data>
+  <data name="Stats_Met" xml:space="preserve">
+    <value>Meets the target</value>
+  </data>
+  <data name="Stats_NotMet" xml:space="preserve">
+    <value>Misses the target</value>
+  </data>
+  <data name="Stats_NotMeasured" xml:space="preserve">
+    <value>Not measured yet</value>
+  </data>
+  <data name="Stats_HowComputed" xml:space="preserve">
+    <value>How it is computed</value>
+  </data>
+  <data name="Stats_FirstBudget_Title" xml:space="preserve">
+    <value>Time from first launch to first assigned budget</value>
+  </data>
+  <data name="Stats_FirstBudget_Target" xml:space="preserve">
+    <value>under 15 minutes</value>
+  </data>
+  <data name="Stats_FirstBudget_Value" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="Stats_FirstBudget_Pending" xml:space="preserve">
+    <value>No money assigned yet ({0} since the start)</value>
+  </data>
+  <data name="Stats_FirstBudget_NoStart" xml:space="preserve">
+    <value>Nothing recorded in this file yet</value>
+  </data>
+  <data name="Stats_FirstBudget_FromLaunch" xml:space="preserve">
+    <value>Counted from the first launch of Keel on this computer, {0}.</value>
+  </data>
+  <data name="Stats_FirstBudget_FromFile" xml:space="preserve">
+    <value>Keel was installed before this measurement existed, so it counts from the first change recorded in this file, {0}.</value>
+  </data>
+  <data name="Stats_FirstBudget_Explain" xml:space="preserve">
+    <value>From the first time Keel started on this computer (for older installs, the first change recorded in this file) to the first time money was assigned to a category in this file. Read from the file's change history.</value>
+  </data>
+  <data name="Stats_Review_Title" xml:space="preserve">
+    <value>Imported transactions approved without a change (last 30 days)</value>
+  </data>
+  <data name="Stats_Review_Target" xml:space="preserve">
+    <value>above 85%</value>
+  </data>
+  <data name="Stats_Review_Value" xml:space="preserve">
+    <value>{0} ({1} of {2})</value>
+  </data>
+  <data name="Stats_Review_None" xml:space="preserve">
+    <value>No imported or synced transactions approved in the last 30 days</value>
+  </data>
+  <data name="Stats_Review_Explain" xml:space="preserve">
+    <value>Of the imported and synced transactions you approved in the last 30 days, the share whose category (or transfer account) at approval was still the one Keel gave them when they came in, by a rule, the learner or a payee default. Read from the file's change history.</value>
+  </data>
+  <data name="Stats_Reimport_Title" xml:space="preserve">
+    <value>Rows flagged as duplicates when a file is imported again</value>
+  </data>
+  <data name="Stats_Reimport_Target" xml:space="preserve">
+    <value>100%</value>
+  </data>
+  <data name="Stats_Reimport_Value" xml:space="preserve">
+    <value>{0} ({1} of {2} rows in {3} re-imports)</value>
+  </data>
+  <data name="Stats_Reimport_None" xml:space="preserve">
+    <value>No file has been imported twice yet</value>
+  </data>
+  <data name="Stats_Reimport_Explain" xml:space="preserve">
+    <value>When you import a file that was imported before, the share of its rows Keel flagged as duplicates and skipped. Keel keeps only a fingerprint (a one-way hash) of each imported file and the counts, never the file's contents.</value>
+  </data>
+  <data name="Stats_ColdStart_Title" xml:space="preserve">
+    <value>Cold start to interactive</value>
+  </data>
+  <data name="Stats_ColdStart_Target" xml:space="preserve">
+    <value>under 2 s with 100,000 transactions</value>
+  </data>
+  <data name="Stats_ColdStart_Value" xml:space="preserve">
+    <value>{0} with {1} transactions</value>
+  </data>
+  <data name="Stats_ColdStart_ValueEncrypted" xml:space="preserve">
+    <value>{0} with {1} transactions (encrypted file)</value>
+  </data>
+  <data name="Stats_ColdStart_None" xml:space="preserve">
+    <value>Not measured yet: Keel measures the next time it starts</value>
+  </data>
+  <data name="Stats_ColdStart_Explain" xml:space="preserve">
+    <value>From the moment the Keel process started to the first frame of the main window with the budget file loaded and the sidebar and Home filled in. Measured at every start and kept in settings.json; only the last start is shown.</value>
+  </data>
+  <data name="Stats_Scroll_Title" xml:space="preserve">
+    <value>Register scroll at 100,000 rows</value>
+  </data>
+  <data name="Stats_Scroll_Target" xml:space="preserve">
+    <value>60 frames per second (16.7 ms or less per frame)</value>
+  </data>
+  <data name="Stats_Scroll_Value" xml:space="preserve">
+    <value>{0} ms per frame on average, 95% within {1} ms ({2} frames over {3} rows)</value>
+  </data>
+  <data name="Stats_Scroll_None" xml:space="preserve">
+    <value>Not measured: scroll a register with 100,000 or more rows to measure it</value>
+  </data>
+  <data name="Stats_Scroll_Explain" xml:space="preserve">
+    <value>While you scroll a register of at least 100,000 rows, Keel times the frames the window draws. The last such session's average and 95th-percentile frame times are kept in settings.json.</value>
+  </data>
+  <data name="Stats_Measured" xml:space="preserve">
+    <value>Measured {0}.</value>
+  </data>
+  <data name="Stats_StatusName" xml:space="preserve">
+    <value>{0}: {1}. {2}. {3}</value>
+  </data>
+  <data name="Palette_Unavailable" xml:space="preserve">
+    <value>Unavailable here</value>
+  </data>
+  <data name="Palette_UnavailableError" xml:space="preserve">
+    <value>That action is not available right now. Open the screen or the budget file it needs first.</value>
+  </data>
+  <data name="Palette_UnavailableName" xml:space="preserve">
+    <value>{0}, unavailable</value>
+  </data>
+  <data name="Palette_GoRules" xml:space="preserve">
+    <value>Manage rules</value>
+  </data>
+  <data name="Palette_Report" xml:space="preserve">
+    <value>Report: {0}</value>
+  </data>
+  <data name="Palette_BillsTab" xml:space="preserve">
+    <value>Bills: {0}</value>
+  </data>
+  <data name="Palette_RestoreFromFile" xml:space="preserve">
+    <value>Restore from a backup file…</value>
+  </data>
+  <data name="Palette_ShowClosedAccounts" xml:space="preserve">
+    <value>Show closed accounts</value>
+  </data>
+  <data name="Palette_HideClosedAccounts" xml:space="preserve">
+    <value>Hide closed accounts</value>
+  </data>
+  <data name="Palette_ShowNotifications" xml:space="preserve">
+    <value>Show notifications</value>
+  </data>
+  <data name="Palette_Accent" xml:space="preserve">
+    <value>Accent color: {0}</value>
+  </data>
+  <data name="Palette_Motion" xml:space="preserve">
+    <value>Motion: {0}</value>
+  </data>
+  <data name="Palette_Reconcile" xml:space="preserve">
+    <value>Reconcile this account…</value>
+  </data>
+  <data name="Palette_EditAccount" xml:space="preserve">
+    <value>Edit this account…</value>
+  </data>
+  <data name="Palette_RecordBalance" xml:space="preserve">
+    <value>Record a balance for this account…</value>
+  </data>
+  <data name="Palette_ClearFilters" xml:space="preserve">
+    <value>Clear register filters</value>
+  </data>
+  <data name="Palette_SyncAccount" xml:space="preserve">
+    <value>Sync this account</value>
+  </data>
+  <data name="Palette_ReconnectAccount" xml:space="preserve">
+    <value>Reconnect this account…</value>
+  </data>
+  <data name="Palette_NewSchedule" xml:space="preserve">
+    <value>New scheduled transaction for this account…</value>
+  </data>
+  <data name="Palette_BudgetThisMonth" xml:space="preserve">
+    <value>Budget: go to this month</value>
+  </data>
+  <data name="Palette_ExplainReadyToAssign" xml:space="preserve">
+    <value>Explain Ready to Assign</value>
+  </data>
+  <data name="Palette_ManageCategories" xml:space="preserve">
+    <value>Manage categories…</value>
+  </data>
+  <data name="Palette_BatchApprove" xml:space="preserve">
+    <value>Review: approve all confident suggestions…</value>
+  </data>
+  <data name="Palette_NewRule" xml:space="preserve">
+    <value>New rule…</value>
+  </data>
+  <data name="Palette_ApplyAllRules" xml:space="preserve">
+    <value>Apply all rules to existing transactions…</value>
+  </data>
+  <data name="Palette_BillsPreviousMonth" xml:space="preserve">
+    <value>Bills: previous month</value>
+  </data>
+  <data name="Palette_BillsNextMonth" xml:space="preserve">
+    <value>Bills: next month</value>
+  </data>
+  <data name="Palette_BillsThisMonth" xml:space="preserve">
+    <value>Bills: this month</value>
+  </data>
+  <data name="Palette_RefreshReport" xml:space="preserve">
+    <value>Refresh the report</value>
+  </data>
+  <data name="Palette_ReportAllAccounts" xml:space="preserve">
+    <value>Report: include all accounts</value>
+  </data>
+  <data name="Palette_HideChecklist" xml:space="preserve">
+    <value>Hide the Get started checklist</value>
+  </data>
+  <data name="Palette_MarkNotificationsRead" xml:space="preserve">
+    <value>Mark all notifications as read</value>
+  </data>
+  <data name="Palette_AddConnection" xml:space="preserve">
+    <value>Add a bank connection…</value>
+  </data>
+  <data name="Palette_CheckUpdates" xml:space="preserve">
+    <value>Check for updates now</value>
+  </data>
+  <data name="Palette_InstallUpdate" xml:space="preserve">
+    <value>Install the downloaded update</value>
+  </data>
+  <data name="Palette_GoalsTab" xml:space="preserve">
+    <value>Goals: {0}</value>
+  </data>
 </root>

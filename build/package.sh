@@ -67,10 +67,27 @@ run dotnet tool restore
 
 publish() {
   local rid="$1" dir="$OUT/publish/$1"
-  if [[ $SKIP_PUBLISH -eq 1 && -d "$dir" ]]; then return; fi
+  if [[ $SKIP_PUBLISH -eq 1 && -d "$dir" ]]; then check_sqlcipher "$rid"; return; fi
   run rm -rf "$dir"
   run dotnet publish "$PROJECT" -c Release -r "$rid" --self-contained true \
     -p:DebugType=none -p:DebugSymbols=false -p:PublishReadyToRun=false -o "$dir"
+  check_sqlcipher "$rid"
+}
+
+# Budget files open through SQLCipher (ADR 0101): the RID's native library must be in the publish folder,
+# or the packaged app could not open any file.
+check_sqlcipher() {
+  local rid="$1" lib
+  case "$rid" in
+    win-*) lib="e_sqlcipher.dll" ;;
+    osx-*) lib="libe_sqlcipher.dylib" ;;
+    *) lib="libe_sqlcipher.so" ;;
+  esac
+  echo "+ check $OUT/publish/$rid/$lib (SQLCipher native library)"
+  if [[ $DRY_RUN -eq 0 && ! -f "$OUT/publish/$rid/$lib" ]]; then
+    echo "The SQLCipher native library $lib is missing from $OUT/publish/$rid" >&2
+    exit 1
+  fi
 }
 
 # A Debian package for apt-based distributions (Ubuntu 22.04+). It installs to /opt/keel, registers the

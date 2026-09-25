@@ -10,6 +10,7 @@ public sealed class KeelDbContextFactory : IDbContextFactory<KeelDbContext>
 {
     private readonly Lock _gate = new();
     private string? _path;
+    private string? _key;
     private DbContextOptions<KeelDbContext>? _options;
 
     /// <summary>Full path of the budget file contexts point at, or null when none is open.</summary>
@@ -24,15 +25,31 @@ public sealed class KeelDbContextFactory : IDbContextFactory<KeelDbContext>
         }
     }
 
-    /// <summary>Points future contexts at <paramref name="path"/>.</summary>
-    public void UseFile(string path)
+    /// <summary>
+    /// The SQLCipher key of the open file (F-SET-4), or null when it is plain. Infrastructure helpers that open
+    /// their own connections (backups, integrity check, copies) use it; it never leaves the process.
+    /// </summary>
+    internal string? CurrentKey
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _key;
+            }
+        }
+    }
+
+    /// <summary>Points future contexts at <paramref name="path"/>, opened with <paramref name="key"/> when it is encrypted.</summary>
+    public void UseFile(string path, string? key = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var fullPath = Path.GetFullPath(path);
         lock (_gate)
         {
             _path = fullPath;
-            _options = KeelDatabase.CreateOptions(fullPath);
+            _key = key;
+            _options = KeelDatabase.CreateOptions(fullPath, key);
         }
     }
 
@@ -49,6 +66,6 @@ public sealed class KeelDbContextFactory : IDbContextFactory<KeelDbContext>
         return new KeelDbContext(options ?? throw new InvalidOperationException("No budget file is open."));
     }
 
-    /// <summary>Creates a context for an explicit path (tools, tests, backup verification).</summary>
-    public static KeelDbContext CreateForFile(string path) => new(KeelDatabase.CreateOptions(path));
+    /// <summary>Creates a context for an explicit path (tools, tests, backup verification), keyed when <paramref name="key"/> is set.</summary>
+    public static KeelDbContext CreateForFile(string path, string? key = null) => new(KeelDatabase.CreateOptions(path, key));
 }

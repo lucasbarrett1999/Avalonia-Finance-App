@@ -66,6 +66,9 @@ public static class DependencyInjection
         services.AddSingleton<Keel.Desktop.ViewModels.Settings.BillsSettingsViewModel>();
         services.AddSingleton<Keel.Desktop.ViewModels.Settings.UpdatesSettingsViewModel>();
         services.AddTransient<Keel.Desktop.ViewModels.FirstRun.FirstRunViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.EncryptionSettingsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.StatsSettingsViewModel>();
+        services.AddSingleton<StatsInstrumentation>();
         services.AddSingleton<IPortabilityDialogs, StoragePortabilityDialogs>();
         services.AddSingleton<Keel.Desktop.ViewModels.Portability.MigrationWorkflow>();
         services.AddSingleton<Keel.Desktop.ViewModels.Portability.PortabilitySettingsViewModel>();

@@ -60,6 +60,11 @@ try {
                 '-p:DebugType=none', '-p:DebugSymbols=false', '-p:PublishReadyToRun=false', '-o', $publish)
         }
 
+        # Budget files open through SQLCipher (ADR 0101): the native library must ship with the app.
+        $sqlcipher = Join-Path $publish 'e_sqlcipher.dll'
+        Write-Host "+ check $sqlcipher (SQLCipher native library)"
+        if (-not $DryRun -and -not (Test-Path $sqlcipher)) { throw "The SQLCipher native library is missing from $publish" }
+
         $pack = @('tool', 'run', 'vpk', 'pack',
             '--packId', 'Keel', '--packVersion', $version, '--packDir', $publish,
             '--mainExe', 'Keel.Desktop.exe', '--packTitle', 'Keel', '--packAuthors', 'Keel contributors',

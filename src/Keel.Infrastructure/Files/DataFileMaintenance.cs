@@ -35,7 +35,7 @@ public sealed partial class DataFileMaintenance(
             IReadOnlyList<string> problems;
             try
             {
-                using var connection = new SqliteConnection(BackupArchive.UnpooledConnectionString(path, SqliteOpenMode.ReadWrite));
+                using var connection = new SqliteConnection(BackupArchive.UnpooledConnectionString(path, factory.CurrentKey, SqliteOpenMode.ReadWrite));
                 await connection.OpenAsync(ct).ConfigureAwait(false);
                 BackupArchive.SetBusyTimeout(connection);
                 problems = BackupArchive.IntegrityCheck(connection);
@@ -99,9 +99,11 @@ public sealed partial class DataFileMaintenance(
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
             try
             {
-                BackupArchive.CopyDatabase(source, destination);
+                // An encrypted file's copy keeps its key and salt, so the same passphrase opens it (F-SET-4).
+                var key = factory.CurrentKey;
+                BackupArchive.CopyDatabase(source, destination, key);
                 BackupArchive.CopyDirectory(dataDirectory.AttachmentsDirectoryFor(source), attachmentsTarget);
-                BackupArchive.VerifyDatabase(destination);
+                BackupArchive.VerifyDatabase(destination, key);
             }
             catch
             {
@@ -163,7 +165,8 @@ public sealed partial class DataFileMaintenance(
 
     /// <summary>
     /// The schema-only summary: SQLite settings, migrations, and for each table its columns, indexes and
-    /// row count. No row values are read, so no payees, amounts, notes or names leave the file.
+    /// row count. No row values are read, so no payees, amounts, notes or names leave the file. For an
+    /// encrypted file it says so and names the SQLCipher version; the key never appears.
     /// </summary>
     public DiagnosticSummary BuildSummary(string appVersion)
     {
@@ -175,13 +178,17 @@ public sealed partial class DataFileMaintenance(
         if (path is not null && File.Exists(path))
         {
             fileSize = new FileInfo(path).Length;
-            using var connection = new SqliteConnection(BackupArchive.UnpooledConnectionString(path, SqliteOpenMode.ReadWrite));
+            var key = factory.CurrentKey;
+            using var connection = new SqliteConnection(BackupArchive.UnpooledConnectionString(path, key, SqliteOpenMode.ReadWrite));
             connection.Open();
             BackupArchive.SetBusyTimeout(connection);
             foreach (var pragma in new[] { "page_size", "page_count", "freelist_count", "journal_mode", "user_version", "encoding", "foreign_keys" })
             {
                 pragmas[pragma] = Scalar(connection, $"PRAGMA {pragma};")?.ToString() ?? string.Empty;
             }
+
+            pragmas["encrypted"] = key is null ? "no" : "yes";
+            pragmas["cipher_version"] = Scalar(connection, "PRAGMA cipher_version;")?.ToString() ?? string.Empty;
 
             using (var command = connection.CreateCommand())
             {

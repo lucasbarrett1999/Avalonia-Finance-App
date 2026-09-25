@@ -16,8 +16,8 @@ needs no account; bank sync is optional.
    health and age of money, goals, the debt payoff planner.
 7. [Bank sync](bank-sync.md): Plaid and SimpleFIN with your own keys.
 8. [Backups and the data file](backups-and-data.md): where your data is, backups, restore, moving
-   the file, export to CSV or a Keel bundle and importing a bundle, the integrity check, diagnostics,
-   privacy.
+   the file, export to CSV or a Keel bundle and importing a bundle, encryption with a passphrase,
+   the integrity check, diagnostics, privacy and the local Stats page.
 9. [Keyboard shortcuts](keyboard-shortcuts.md) and the command palette.
 10. [Transactions, tags and attachments](transactions.md): the register, search, tags, receipts.
 

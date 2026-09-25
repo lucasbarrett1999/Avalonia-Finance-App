@@ -13,11 +13,11 @@ namespace Keel.Desktop.Tests;
 /// <summary>The app's real host and DI graph over a temporary data directory.</summary>
 public sealed class TestHost : IDisposable
 {
-    private TestHost(string root, Action<IServiceCollection>? configure = null, bool firstRun = false)
+    private TestHost(string root, Action<IServiceCollection>? configure = null, bool firstRun = false, bool reopen = false)
     {
         Root = root;
         DataDirectory = new DataDirectory(root);
-        if (!firstRun)
+        if (!firstRun && !reopen)
         {
             // Tests start in a budget file, as a returning user does; FirstRunTests opt into the setup.
             Directory.CreateDirectory(root);
@@ -67,6 +67,12 @@ public sealed class TestHost : IDisposable
     public static TestHost Create(Action<IServiceCollection> configure) =>
         new(Path.Combine(Path.GetTempPath(), "keel-desktop-tests", Guid.NewGuid().ToString("N")), configure);
 
+    /// <summary>A new app run over the data directory of an earlier host (which was disposed with <see cref="KeepFiles"/>).</summary>
+    public static TestHost Reopen(string root, Action<IServiceCollection>? configure = null) => new(root, configure, reopen: true);
+
+    /// <summary>Keep the data directory on dispose (for <see cref="Reopen"/>).</summary>
+    public bool KeepFiles { get; set; }
+
     /// <summary>A true first launch: no settings.json, so the first-run setup shows (PRD 9.10).</summary>
     public static TestHost CreateFirstRun(Action<IServiceCollection>? configure = null) =>
         new(Path.Combine(Path.GetTempPath(), "keel-desktop-tests", Guid.NewGuid().ToString("N")), configure, firstRun: true);
@@ -93,6 +99,11 @@ public sealed class TestHost : IDisposable
         }
 
         SqliteConnection.ClearAllPools();
+        if (KeepFiles)
+        {
+            return;
+        }
+
         try
         {
             Directory.Delete(Root, recursive: true);

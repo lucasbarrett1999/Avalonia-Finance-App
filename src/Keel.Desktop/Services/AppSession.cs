@@ -13,4 +13,7 @@ public sealed class AppSession
 
     /// <summary>The first-run setup step to show, or null when the setup is not running (PRD 9.10).</summary>
     public FirstRunStep? FirstRun { get; set; }
+
+    /// <summary>An encrypted budget file waiting for its passphrase (F-SET-4); no file is open meanwhile.</summary>
+    public string? LockedFile { get; set; }
 }

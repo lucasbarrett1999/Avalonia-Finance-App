@@ -1,5 +1,6 @@
 using Keel.Application.Backup;
 using Keel.Application.Files;
+
 using Keel.Infrastructure.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,7 @@ namespace Keel.Infrastructure.Files;
 /// Backups of the open budget file (F-SET-1): zips in <c>budgets/backups</c> named after the file and
 /// the local time, verified by reopening the copy (PRD 10). Restore copies the database back with the
 /// SQLite backup API, so it works while the app holds connections; the app reopens the file afterwards.
+/// Backups of an encrypted file stay encrypted with its key (F-SET-4, ADR 0101).
 /// </summary>
 public sealed partial class BackupService(
     KeelDbContextFactory factory,
@@ -76,10 +78,10 @@ public sealed partial class BackupService(
             var work = WorkDirectory();
             try
             {
-                BackupArchive.ExtractAndVerify(backupPath, work);
+                BackupArchive.ExtractAndVerify(backupPath, work, factory.CurrentKey);
                 return true;
             }
-            catch (BackupVerificationException ex)
+            catch (Exception ex) when (ex is BackupVerificationException or BudgetFileLockedException)
             {
                 LogVerifyFailed(logger, ex);
                 return false;
@@ -92,7 +94,10 @@ public sealed partial class BackupService(
         ct);
 
     /// <inheritdoc />
-    public async Task RestoreAsync(string backupPath, CancellationToken ct)
+    public Task RestoreAsync(string backupPath, CancellationToken ct) => RestoreAsync(backupPath, null, ct);
+
+    /// <inheritdoc />
+    public async Task RestoreAsync(string backupPath, string? backupPassphrase, CancellationToken ct)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(backupPath);
         await _gate.WaitAsync(ct).ConfigureAwait(false);
@@ -102,14 +107,24 @@ public sealed partial class BackupService(
                 () =>
                 {
                     var target = CurrentFile();
+                    var targetKey = factory.CurrentKey;
                     var work = WorkDirectory();
                     try
                     {
-                        var extracted = BackupArchive.ExtractAndVerify(backupPath, work);
+                        var (extracted, backupKey) = BackupArchive.ExtractAndVerifyWithKey(backupPath, work, [targetKey], backupPassphrase);
                         Create(target, BackupKind.BeforeRestore);
 
-                        using (var source = new SqliteConnection(BackupArchive.UnpooledConnectionString(extracted, SqliteOpenMode.ReadOnly)))
-                        using (var destination = new SqliteConnection(BackupArchive.UnpooledConnectionString(target, SqliteOpenMode.ReadWrite)))
+                        // The restored file keeps the open file's encryption: the SQLite backup API cannot copy
+                        // between a plain and an encrypted database or across keys, so convert the copy first.
+                        if (!string.Equals(backupKey, targetKey, StringComparison.Ordinal))
+                        {
+                            var converted = Path.Combine(work, "converted" + Path.GetExtension(extracted));
+                            SqlCipher.Export(extracted, backupKey, converted, targetKey);
+                            extracted = converted;
+                        }
+
+                        using (var source = new SqliteConnection(BackupArchive.UnpooledConnectionString(extracted, targetKey, SqliteOpenMode.ReadOnly)))
+                        using (var destination = new SqliteConnection(BackupArchive.UnpooledConnectionString(target, targetKey, SqliteOpenMode.ReadWrite)))
                         {
                             source.Open();
                             destination.Open();
@@ -156,14 +171,15 @@ public sealed partial class BackupService(
     {
         var now = time.GetLocalNow().DateTime;
         var zip = BackupPaths.UniqueZipPath(dataDirectory, budgetFile, kind, now);
-        BackupArchive.Write(budgetFile, dataDirectory.AttachmentsDirectoryFor(budgetFile), zip, kind, time.GetUtcNow().UtcDateTime);
+        var key = factory.CurrentKey;
+        BackupArchive.Write(budgetFile, dataDirectory.AttachmentsDirectoryFor(budgetFile), zip, kind, time.GetUtcNow().UtcDateTime, key);
 
         var work = WorkDirectory();
         try
         {
-            BackupArchive.ExtractAndVerify(zip, work);
+            BackupArchive.ExtractAndVerify(zip, work, key);
         }
-        catch (BackupVerificationException)
+        catch (Exception ex) when (ex is BackupVerificationException or BudgetFileLockedException)
         {
             File.Delete(zip);
             throw;

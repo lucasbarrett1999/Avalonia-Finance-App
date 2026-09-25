@@ -20,6 +20,8 @@ public static class SecretKeys
 
     private const string ConnectionPrefix = "connection/";
 
+    private const string BudgetFilePrefix = "budget-file/";
+
     /// <summary>The secret of one connection (its access token or access URL, with the environment).</summary>
     public static string Connection(string connectionId)
     {
@@ -29,4 +31,14 @@ public static class SecretKeys
 
     /// <summary>The secret of one connection.</summary>
     public static string Connection(Guid connectionId) => ConnectionPrefix + connectionId.ToString("N");
+
+    /// <summary>
+    /// The remembered SQLCipher key of one encrypted budget file (F-SET-4); <paramref name="fileId"/> is the
+    /// file's salt in hex, readable without the key, so moved copies and backups share it.
+    /// </summary>
+    public static string BudgetFile(string fileId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileId);
+        return BudgetFilePrefix + fileId.Trim().ToLowerInvariant();
+    }
 }

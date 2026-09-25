@@ -413,4 +413,36 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
 
         problems.Distinct().ShouldBeEmpty();
     }
+
+    [AvaloniaFact]
+    public async Task Encryption_stats_and_the_palette_with_unavailable_commands_are_named_and_readable_in_both_themes()
+    {
+        await M9eScreens.SeedAsync(_host);
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var problems = new List<string>();
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            await M9eScreens.VisitAsync(_host, shell, screen =>
+            {
+                problems.AddRange(AccessibilityAudit.UnnamedControls(window, $"{screen}/{theme}"));
+                problems.AddRange(AccessibilityAudit.LowContrastText(window, $"{screen}/{theme}"));
+                problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, $"{screen}/{theme}"));
+                return Task.CompletedTask;
+            });
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
 }

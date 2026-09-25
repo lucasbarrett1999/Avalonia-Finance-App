@@ -14,7 +14,8 @@ namespace Keel.Infrastructure.Files;
 /// The backup zip format and the SQLite copy helpers shared by backups, restore, "Change location" and
 /// the pre-migration backup. A backup zip holds <c>backup.json</c>, the database as <c>Name.keel</c>
 /// (a consistent copy made with the SQLite backup API, in rollback-journal mode so it is one file) and
-/// the attachments folder under <c>Name.keel-attachments/</c>.
+/// the attachments folder under <c>Name.keel-attachments/</c>. A backup of an encrypted file (F-SET-4) stays
+/// encrypted with the same key and salt, so the file's passphrase opens it (ADR 0101); the manifest says so.
 /// </summary>
 public static partial class BackupArchive
 {
@@ -27,12 +28,10 @@ public static partial class BackupArchive
     private const string TimestampFormat = "yyyyMMdd-HHmmss";
 
     /// <summary>Connection string for helper connections: no pooling, so files are released on dispose.</summary>
-    public static string UnpooledConnectionString(string path, SqliteOpenMode mode = SqliteOpenMode.ReadWriteCreate) => new SqliteConnectionStringBuilder
-    {
-        DataSource = path,
-        Mode = mode,
-        Pooling = false,
-    }.ToString();
+    public static string UnpooledConnectionString(string path, SqliteOpenMode mode = SqliteOpenMode.ReadWriteCreate) => SqlCipher.ConnectionString(path, null, mode);
+
+    /// <summary>Unpooled connection string keyed with <paramref name="key"/> when the file is encrypted (F-SET-4).</summary>
+    public static string UnpooledConnectionString(string path, string? key, SqliteOpenMode mode = SqliteOpenMode.ReadWriteCreate) => SqlCipher.ConnectionString(path, key, mode);
 
     /// <summary>File name of a backup: <c>Name-YYYYMMDD-HHMMSS[-kind].zip</c>.</summary>
     public static string FileNameFor(string budgetFile, BackupKind kind, DateTime localTime)
@@ -62,6 +61,8 @@ public static partial class BackupArchive
             "auto" => BackupKind.Automatic,
             "before-migration" => BackupKind.BeforeMigration,
             "before-restore" => BackupKind.BeforeRestore,
+            "before-encryption" => BackupKind.BeforeEncryption,
+            "before-decryption" => BackupKind.BeforeDecryption,
             _ => BackupKind.Manual,
         };
         return (time, kind);
@@ -70,12 +71,13 @@ public static partial class BackupArchive
     /// <summary>
     /// Copies the database at <paramref name="sourcePath"/> to <paramref name="destinationPath"/> with the
     /// SQLite online backup API (consistent even while other connections write) and switches the copy to
-    /// rollback-journal mode so it is a single self-contained file.
+    /// rollback-journal mode so it is a single self-contained file. With a <paramref name="key"/> both sides use
+    /// it, so the copy of an encrypted file is encrypted with the same key and salt.
     /// </summary>
-    public static void CopyDatabase(string sourcePath, string destinationPath)
+    public static void CopyDatabase(string sourcePath, string destinationPath, string? key = null)
     {
-        using (var source = new SqliteConnection(UnpooledConnectionString(sourcePath, SqliteOpenMode.ReadWrite)))
-        using (var destination = new SqliteConnection(UnpooledConnectionString(destinationPath)))
+        using (var source = new SqliteConnection(UnpooledConnectionString(sourcePath, key, SqliteOpenMode.ReadWrite)))
+        using (var destination = new SqliteConnection(UnpooledConnectionString(destinationPath, key)))
         {
             source.Open();
             destination.Open();
@@ -101,7 +103,8 @@ public static partial class BackupArchive
     /// <param name="zipPath">Destination zip (must not exist).</param>
     /// <param name="kind">Why the backup is taken.</param>
     /// <param name="createdAtUtc">Time stamp for the manifest.</param>
-    public static void Write(string budgetFile, string attachmentsDirectory, string zipPath, BackupKind kind, DateTime createdAtUtc)
+    /// <param name="key">SQLCipher key of an encrypted file; the copy keeps it.</param>
+    public static void Write(string budgetFile, string attachmentsDirectory, string zipPath, BackupKind kind, DateTime createdAtUtc, string? key = null)
     {
         var fileName = Path.GetFileName(budgetFile);
         var work = Path.Combine(Path.GetDirectoryName(zipPath)!, ".tmp-" + Guid.NewGuid().ToString("N"));
@@ -109,14 +112,14 @@ public static partial class BackupArchive
         try
         {
             var copy = Path.Combine(work, fileName);
-            CopyDatabase(budgetFile, copy);
+            CopyDatabase(budgetFile, copy, key);
             var partial = zipPath + ".partial";
             using (var zip = ZipFile.Open(partial, ZipArchiveMode.Create))
             {
                 var manifest = zip.CreateEntry(ManifestEntry, CompressionLevel.Optimal);
                 using (var stream = manifest.Open())
                 {
-                    JsonSerializer.Serialize(stream, new BackupManifest(FormatVersion, fileName, kind.ToString(), createdAtUtc, LastMigration(copy)));
+                    JsonSerializer.Serialize(stream, new BackupManifest(FormatVersion, fileName, kind.ToString(), createdAtUtc, LastMigration(copy, key)) { Encrypted = key is not null });
                 }
 
                 zip.CreateEntryFromFile(copy, fileName, CompressionLevel.Optimal);
@@ -142,11 +145,20 @@ public static partial class BackupArchive
     /// <summary>
     /// Extracts the database of a backup zip into <paramref name="workDirectory"/> and checks it: a Keel
     /// manifest, <c>PRAGMA integrity_check</c> = ok, a known schema, and the ledger tables. Returns the
-    /// extracted database path.
+    /// extracted database path. An encrypted backup is opened with the first of <paramref name="keys"/> that
+    /// works (null stands for "plain").
     /// </summary>
     /// <exception cref="BackupVerificationException">Any check failed.</exception>
-    public static string ExtractAndVerify(string zipPath, string workDirectory)
+    /// <exception cref="BudgetFileLockedException">The backup is encrypted and none of <paramref name="keys"/> opens it.</exception>
+    public static string ExtractAndVerify(string zipPath, string workDirectory, params string?[] keys) => ExtractAndVerifyWithKey(zipPath, workDirectory, keys).Path;
+
+    /// <summary>
+    /// Like <see cref="ExtractAndVerify"/>; also returns the key that opened the backup (null when plain). A
+    /// <paramref name="passphrase"/> the user typed for the backup is tried after <paramref name="keys"/>.
+    /// </summary>
+    public static (string Path, string? Key) ExtractAndVerifyWithKey(string zipPath, string workDirectory, IReadOnlyList<string?> keys, string? passphrase = null)
     {
+        ArgumentNullException.ThrowIfNull(keys);
         Directory.CreateDirectory(workDirectory);
         try
         {
@@ -166,8 +178,21 @@ public static partial class BackupArchive
             var dbEntry = zip.GetEntry(manifest.FileName) ?? throw new BackupVerificationException("The backup has no budget file.");
             var extracted = Path.Combine(workDirectory, Path.GetFileName(manifest.FileName));
             dbEntry.ExtractToFile(extracted, overwrite: true);
-            VerifyDatabase(extracted);
-            return extracted;
+            string? key = null;
+            if (SqlCipher.IsEncrypted(extracted))
+            {
+                var candidates = keys.Where(k => k is not null).ToList();
+                if (!string.IsNullOrEmpty(passphrase))
+                {
+                    candidates.Add(SqlCipher.KeyForFile(extracted, passphrase));
+                }
+
+                key = candidates.FirstOrDefault(k => SqlCipher.CanOpen(extracted, k))
+                    ?? throw new BudgetFileLockedException(zipPath, wrongPassphrase: !string.IsNullOrEmpty(passphrase));
+            }
+
+            VerifyDatabase(extracted, key);
+            return (extracted, key);
         }
         catch (Exception ex) when (ex is InvalidDataException or JsonException or IOException or SqliteException)
         {
@@ -195,11 +220,11 @@ public static partial class BackupArchive
         }
     }
 
-    /// <summary>Checks a database file: integrity, known migrations, and the ledger tables.</summary>
+    /// <summary>Checks a database file (opened with <paramref name="key"/> when encrypted): integrity, known migrations, and the ledger tables.</summary>
     /// <exception cref="BackupVerificationException">A check failed.</exception>
-    public static void VerifyDatabase(string path)
+    public static void VerifyDatabase(string path, string? key = null)
     {
-        using var connection = new SqliteConnection(UnpooledConnectionString(path, SqliteOpenMode.ReadOnly));
+        using var connection = new SqliteConnection(UnpooledConnectionString(path, key, SqliteOpenMode.ReadOnly));
         connection.Open();
         var problems = IntegrityCheck(connection);
         if (problems.Count > 0)
@@ -218,7 +243,7 @@ public static partial class BackupArchive
             }
         }
 
-        using (var db = KeelDbContextFactory.CreateForFile(path))
+        using (var db = KeelDbContextFactory.CreateForFile(path, key))
         {
             var known = db.Database.GetMigrations().ToHashSet(StringComparer.Ordinal);
             if (applied.Count == 0)
@@ -295,9 +320,9 @@ public static partial class BackupArchive
         }
     }
 
-    private static string? LastMigration(string path)
+    private static string? LastMigration(string path, string? key)
     {
-        using var connection = new SqliteConnection(UnpooledConnectionString(path, SqliteOpenMode.ReadOnly));
+        using var connection = new SqliteConnection(UnpooledConnectionString(path, key, SqliteOpenMode.ReadOnly));
         connection.Open();
         using var command = connection.CreateCommand();
         command.CommandText = """SELECT MAX("MigrationId") FROM "__EFMigrationsHistory";""";
@@ -309,10 +334,12 @@ public static partial class BackupArchive
         BackupKind.Automatic => "-auto",
         BackupKind.BeforeMigration => "-before-migration",
         BackupKind.BeforeRestore => "-before-restore",
+        BackupKind.BeforeEncryption => "-before-encryption",
+        BackupKind.BeforeDecryption => "-before-decryption",
         _ => string.Empty,
     };
 
-    [GeneratedRegex(@"^(?<stamp>\d{8}-\d{6})(?:-(?<kind>auto|before-migration|before-restore))?(?:-\d+)?\.zip$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^(?<stamp>\d{8}-\d{6})(?:-(?<kind>auto|before-migration|before-restore|before-encryption|before-decryption))?(?:-\d+)?\.zip$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
     private static partial Regex NameRegex();
 
     /// <summary>The <c>backup.json</c> manifest.</summary>
@@ -321,7 +348,11 @@ public static partial class BackupArchive
     /// <param name="Kind">Backup kind.</param>
     /// <param name="CreatedAt">UTC time stamp.</param>
     /// <param name="LastMigration">Newest migration in the copy.</param>
-    private sealed record BackupManifest(int Format, string FileName, string Kind, DateTime CreatedAt, string? LastMigration);
+    private sealed record BackupManifest(int Format, string FileName, string Kind, DateTime CreatedAt, string? LastMigration)
+    {
+        /// <summary>The database copy is SQLCipher-encrypted with the file's key (F-SET-4; absent in older backups).</summary>
+        public bool Encrypted { get; init; }
+    }
 }
 
 /// <summary>Paths of the backups folder for a data directory.</summary>

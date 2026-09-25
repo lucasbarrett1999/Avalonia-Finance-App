@@ -9,7 +9,18 @@ namespace Keel.Desktop.Services;
 /// <param name="Strict">Fail instead of falling back to the remembered or default file (file switches).</param>
 /// <param name="ResumeFirstRun">Continue the first-run setup (template, first account) in the new session.</param>
 /// <param name="Message">Status-strip message instead of the default "Opened …".</param>
-public sealed record BudgetStartupOptions(string? FilePath = null, bool Strict = false, bool ResumeFirstRun = false, string? Message = null)
+/// <param name="Unlock">Passphrase for an encrypted file (F-SET-4).</param>
+/// <param name="Encryption">Encrypt or decrypt the file before opening it (the previous session is stopped first).</param>
+/// <param name="AllowLocked">Start the session even when the file is encrypted and no key is known: the shell then asks
+/// for the passphrase (used by the first-run "Open existing", whose layer would hide a prompt in the old shell).</param>
+public sealed record BudgetStartupOptions(
+    string? FilePath = null,
+    bool Strict = false,
+    bool ResumeFirstRun = false,
+    string? Message = null,
+    Keel.Application.Files.BudgetFileUnlock? Unlock = null,
+    Keel.Application.Files.BudgetFileEncryptionChange? Encryption = null,
+    bool AllowLocked = false)
 {
     /// <summary>Default startup: the remembered file, else the default file, else the first-run setup.</summary>
     public static BudgetStartupOptions Default { get; } = new();

@@ -80,6 +80,14 @@ public static class DependencyInjection
         services.AddSingleton<IDataFileMaintenance, DataFileMaintenance>();
         services.AddSingleton<Keel.Application.Setup.ISetupProgressService, Keel.Infrastructure.Setup.SetupProgressService>();
         services.AddSingleton<Keel.Application.Tags.ITagService, Keel.Infrastructure.Tags.TagService>();
+        services.AddSingleton<BudgetFileKeyRing>();
+        services.AddSingleton<IBudgetFileEncryption, BudgetFileEncryptionService>();
+        services.AddSingleton<Keel.Application.Stats.IStatsService, Keel.Infrastructure.Stats.StatsService>();
+        services.Replace(ServiceDescriptor.Singleton<IImportService>(sp => new Keel.Infrastructure.Stats.ImportStatsRecorder(
+            ActivatorUtilities.CreateInstance<ImportService>(sp),
+            sp.GetRequiredService<IDbContextFactory<KeelDbContext>>(),
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Keel.Infrastructure.Stats.ImportStatsRecorder>>())));
         services.AddSingleton<IMigrationImportService, Keel.Infrastructure.Import.Migration.MigrationImportService>();
         services.AddSingleton<Keel.Application.Portability.IDataExportService, Keel.Infrastructure.Portability.DataExportService>();
         services.AddSingleton<Keel.Application.Portability.IBundleImportService, Keel.Infrastructure.Portability.BundleImportService>();

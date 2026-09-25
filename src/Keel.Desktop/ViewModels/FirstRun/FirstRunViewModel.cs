@@ -200,7 +200,8 @@ public sealed partial class FirstRunViewModel : ViewModelBase
             return;
         }
 
-        await _sessions.OpenAsync(path);
+        // An encrypted file opens locked and the new shell asks for its passphrase (this layer would hide a prompt).
+        await _sessions.OpenAsync(path, new BudgetStartupOptions(AllowLocked: true));
         _settings.Update(s => s with { FirstRunCompleted = true });
     });
 

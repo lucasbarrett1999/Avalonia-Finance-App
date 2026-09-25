@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Settings"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Settings.EncryptionSettingsView"
+             x:DataType="vm:EncryptionSettingsViewModel">
+  <StackPanel Spacing="10">
+    <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.Encrypt_Section}" Margin="0,8,0,0" />
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14" VerticalAlignment="Top" Margin="0,2,0,0" />
+      <TextBlock x:Name="EncryptionStatusText" Text="{Binding StatusText}" TextWrapping="Wrap" MaxWidth="640" />
+    </StackPanel>
+    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+      <Button x:Name="EncryptButton" Command="{Binding EncryptCommand}" Content="{x:Static res:Strings.Encrypt_EncryptButton}" IsVisible="{Binding CanEncrypt}" />
+      <Button x:Name="RemoveEncryptionButton" Command="{Binding RemoveEncryptionCommand}" Content="{x:Static res:Strings.Encrypt_RemoveButton}" IsVisible="{Binding CanRemove}" />
+      <Button x:Name="UnlockButton" Classes="accent" Command="{Binding UnlockCommand}" Content="{x:Static res:Strings.Encrypt_UnlockButton}" IsVisible="{Binding IsLocked}" />
+    </WrapPanel>
+    <StackPanel Spacing="4" IsVisible="{Binding CanRemove}">
+      <CheckBox x:Name="RememberKeyCheck" IsChecked="{Binding IsKeyRemembered}" Content="{x:Static res:Strings.Encrypt_RememberToggle}" />
+      <TextBlock Classes="secondary" Text="{Binding StoreText}" IsVisible="{Binding StoreText, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" Margin="28,0,0,0" />
+      <Border Classes="warning" IsVisible="{Binding IsWeakerStore}" Margin="28,4,0,0">
+        <TextBlock Text="{x:Static res:Strings.Encrypt_SecretStoreWeaker}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+      </Border>
+    </StackPanel>
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Encrypt_LostWarning}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Encrypt_AttachmentsNote}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+  </StackPanel>
+</UserControl>
