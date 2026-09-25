@@ -73,6 +73,5 @@
     <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.DataFile_Diagnostics}" Margin="0,8,0,0" />
     <TextBlock Classes="secondary" Text="{x:Static res:Strings.DataFile_DiagnosticsHint}" TextWrapping="Wrap" />
     <Button x:Name="DiagnosticsButton" Command="{Binding CopyDiagnosticBundleCommand}" Content="{x:Static res:Strings.Menu_DiagnosticBundle}" />
-    <TextBlock Classes="secondary" Text="{x:Static res:Strings.DataFile_Unencrypted}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
   </StackPanel>
 </UserControl>

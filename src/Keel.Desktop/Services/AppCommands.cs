@@ -4,7 +4,10 @@ using Avalonia.Input;
 using Keel.Application.Settings;
 using Keel.Desktop.Resources;
 using Keel.Desktop.ViewModels;
+using Keel.Desktop.ViewModels.Bills;
 using Keel.Desktop.ViewModels.Dialogs;
+using Keel.Desktop.ViewModels.Reports;
+using Keel.Desktop.ViewModels.Rules;
 using Keel.Desktop.ViewModels.Settings;
 using Keel.Desktop.ViewModels.Sync;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,8 +23,21 @@ namespace Keel.Desktop.Services;
 /// <param name="Gesture">Shortcut gesture, if any (menus show it).</param>
 public sealed record AppCommand(string Id, string Title, string Section, Action Execute, string? Keys = null, KeyGesture? Gesture = null)
 {
-    /// <summary>Screen-reader text: title, section and shortcut.</summary>
-    public string AutomationName => Keys is null ? $"{Title}, {Section}" : $"{Title}, {Section}, {Keys}";
+    /// <summary>
+    /// Whether the action can run now (F-SET-5, ADR 0103): evaluated when the palette opens, from the open file and
+    /// the current screen. The palette lists unavailable actions dimmed and does not run them.
+    /// </summary>
+    public bool IsEnabled { get; init; } = true;
+
+    /// <summary>Screen-reader text: title, section and shortcut (and "unavailable").</summary>
+    public string AutomationName
+    {
+        get
+        {
+            var name = Keys is null ? $"{Title}, {Section}" : $"{Title}, {Section}, {Keys}";
+            return IsEnabled ? name : LedgerText.Format(Strings.Palette_UnavailableName, name);
+        }
+    }
 }
 
 /// <summary>A menu entry: a command, a submenu, or a separator.</summary>
@@ -117,6 +133,7 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
             list.Add(Cmd("quit", Strings.Shortcut_Quit, file, Quit));
         }
 
+        AddCompleteness(shell, list);
         return list;
     }
 
@@ -186,6 +203,8 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         ("Rules", Strings.Settings_Rules),
         ("Keyboard", Strings.Settings_Shortcuts),
         ("Updates", Strings.Settings_UpdatesTitle),
+        ("Privacy", Strings.Stats_SectionTitle),
+        ("Encryption", Strings.Encrypt_Section),
     ];
 
     private AppCommand Cmd(string id, string title, string section, Action execute)
@@ -194,13 +213,141 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         return new AppCommand(id, title, section, execute, entry?.Keys, entry?.Gesture);
     }
 
+    // M9 (F-SET-5, ADR 0103): every non-row action of every screen, and enablement for all commands. Page actions
+    // navigate to their page first; enablement comes from the open file and the current page only, so building the
+    // list never creates a page that is not shown.
+    private void AddCompleteness(ShellViewModel shell, List<AppCommand> list)
+    {
+        var session = services.GetService<AppSession>();
+        var hasFile = session?.BudgetFile is not null;
+        var encrypted = session?.BudgetFile?.IsEncrypted ?? false;
+        var go = Strings.Palette_SectionGoTo;
+        var file = Strings.Palette_SectionFile;
+        var view = Strings.Palette_SectionView;
+        var actions = Strings.Palette_SectionActions;
+        var help = Strings.Palette_SectionHelp;
+        var register = shell.CurrentPage as AccountsViewModel;
+        var accountRegister = register is { AccountId: not null } ? register : null;
+
+        // Enablement of the M8 commands: file actions need an open file; undo, redo and sync ask their command.
+        string[] needFile = ["move-file", "import", "backup", "restore", "integrity", "add-account", "add-transaction", "start-review", "budget-fund", "budget-move", "bills-detect", "bills-new", "goals-new", "reports-export"];
+        for (var i = 0; i < list.Count; i++)
+        {
+            var command = list[i];
+            var enabled = command.Id switch
+            {
+                "undo" => shell.UndoCommand.CanExecute(null),
+                "redo" => shell.RedoCommand.CanExecute(null),
+                "sync-all" => shell.SyncAllCommand.CanExecute(null),
+                _ when command.Id.StartsWith("go-", StringComparison.Ordinal) || command.Id.StartsWith("account-", StringComparison.Ordinal) => hasFile,
+                _ => !needFile.Contains(command.Id) || hasFile,
+            };
+            list[i] = command with { IsEnabled = enabled };
+        }
+
+        // Go to: the rules page, each report, each Bills tab.
+        list.Add(Cmd("go-rules", Strings.Palette_GoRules, go, () => shell.NavigateTo<RulesViewModel>()) with { IsEnabled = hasFile });
+        ReportKind[] reports = [ReportKind.Spending, ReportKind.IncomeExpense, ReportKind.NetWorth, ReportKind.Forecast];
+        string[] reportTitles = [Strings.Reports_Spending_Title, Strings.Reports_IncomeExpense_Title, Strings.Reports_NetWorth_Title, Strings.Forecast_Title];
+        for (var i = 0; i < reports.Length; i++)
+        {
+            var kind = reports[i];
+            list.Add(Cmd(Numbered("reports-pick", i), LedgerText.Format(Strings.Palette_Report, reportTitles[i]), go, () => Navigate<ReportsViewModel>(kind)) with { Keys = Digit(i), IsEnabled = hasFile });
+        }
+
+        string[] tabs = [Strings.Bills_TabCalendar, Strings.Bills_TabList, Strings.Bills_TabSubscriptions];
+        for (var i = 0; i < tabs.Length; i++)
+        {
+            var tab = (BillsTab)i;
+            list.Add(Cmd(Numbered("bills-tabs", i), LedgerText.Format(Strings.Palette_BillsTab, tabs[i]), go, () => OnPage<BillsViewModel>(shell, b => b.SelectedTab = tab)) with { Keys = Digit(i), IsEnabled = hasFile });
+        }
+
+        // File: restore from a file, encryption (F-SET-4).
+        list.Add(Cmd("restore-file", Strings.Palette_RestoreFromFile, file, () => _ = DataFile().RestoreFromFileCommand.ExecuteAsync(null)) with { IsEnabled = hasFile });
+        list.Add(Cmd("encrypt-file", Strings.Encrypt_EncryptButton, file, () => _ = Encryption().EncryptAsync()) with { IsEnabled = hasFile && !encrypted });
+        list.Add(Cmd("remove-encryption", Strings.Encrypt_RemoveButton, file, () => _ = Encryption().RemoveEncryptionAsync()) with { IsEnabled = hasFile && encrypted });
+        list.Add(Cmd("unlock-file", Strings.Encrypt_UnlockButton, file, () => _ = shell.UnlockAsync()) with { IsEnabled = shell.LockedFile is not null });
+
+        // View: closed accounts, notifications, accent colours, motion.
+        list.Add(Cmd("closed-accounts", shell.ShowClosedAccounts ? Strings.Palette_HideClosedAccounts : Strings.Palette_ShowClosedAccounts, view, () => shell.ShowClosedAccounts = !shell.ShowClosedAccounts) with { IsEnabled = shell.HasClosedAccounts || shell.ShowClosedAccounts });
+        list.Add(Cmd("notifications", Strings.Palette_ShowNotifications, view, () => shell.Notifications?.ToggleCommand.Execute(null)) with { IsEnabled = shell.Notifications is not null && hasFile });
+        foreach (var accent in AppearanceService.Accents.Keys)
+        {
+            var name = Strings.ResourceManager.GetString("Accent_" + accent, Strings.Culture) ?? accent.ToString();
+            list.Add(Cmd("accent-" + accent.ToString().ToLowerInvariant(), LedgerText.Format(Strings.Palette_Accent, name), view, () =>
+            {
+                var appearance = Appearance();
+                appearance.SelectedAccent = appearance.Accents.First(a => a.Accent == accent);
+            }));
+        }
+
+        string[] motions = [Strings.Settings_MotionSystem, Strings.Settings_MotionReduce, Strings.Settings_MotionFull];
+        string[] motionIds = ["motion-system", "motion-reduce", "motion-full"];
+        for (var i = 0; i < motions.Length; i++)
+        {
+            var index = i;
+            list.Add(Cmd(motionIds[i], LedgerText.Format(Strings.Palette_Motion, motions[i]), view, () => Appearance().MotionIndex = index));
+        }
+
+        // Register (the account register on screen).
+        list.Add(Cmd("reconcile", Strings.Palette_Reconcile, actions, () => accountRegister?.StartReconcileCommand.Execute(null)) with { IsEnabled = accountRegister is { CanReconcile: true, IsTracking: false } });
+        list.Add(Cmd("edit-account", Strings.Palette_EditAccount, actions, () => Run(accountRegister?.EditAccountCommand)) with { IsEnabled = accountRegister?.Account is not null });
+        list.Add(Cmd("record-balance", Strings.Palette_RecordBalance, actions, () => Run(accountRegister?.RecordBalanceCommand)) with { IsEnabled = accountRegister is { IsTracking: true } });
+        list.Add(Cmd("clear-filters", Strings.Palette_ClearFilters, actions, () => register?.ClearFiltersCommand.Execute(null)) with { IsEnabled = register is not null });
+        list.Add(Cmd("sync-account", Strings.Palette_SyncAccount, actions, () => Run(accountRegister?.SyncAccountCommand)) with { IsEnabled = accountRegister?.SyncAccountCommand.CanExecute(null) ?? false });
+        list.Add(Cmd("reconnect-account", Strings.Palette_ReconnectAccount, actions, () => Run(accountRegister?.ReconnectAccountCommand)) with { IsEnabled = accountRegister is { NeedsReconnect: true } });
+        list.Add(Cmd("schedule-new", Strings.Palette_NewSchedule, actions, () => Run(accountRegister?.Scheduled?.NewScheduleCommand)) with { IsEnabled = accountRegister?.Scheduled is not null && accountRegister.Account is not null });
+
+        // Budget.
+        list.Add(Cmd("budget-previous", Strings.Shortcut_BudgetPreviousMonth, actions, () => OnPage<BudgetViewModel>(shell, b => b.PreviousMonth())) with { IsEnabled = hasFile });
+        list.Add(Cmd("budget-next", Strings.Shortcut_BudgetNextMonth, actions, () => OnPage<BudgetViewModel>(shell, b => b.NextMonth())) with { IsEnabled = hasFile });
+        list.Add(Cmd("budget-this-month", Strings.Palette_BudgetThisMonth, actions, () => OnPage<BudgetViewModel>(shell, b => b.GoToToday())) with { IsEnabled = hasFile });
+        list.Add(Cmd("budget-inspector", Strings.Shortcut_BudgetInspector, actions, () => OnPage<BudgetViewModel>(shell, b => b.ToggleInspector())) with { IsEnabled = hasFile });
+        list.Add(Cmd("budget-quick-assign", Strings.Shortcut_BudgetQuickAssign, actions, () => OnPage<BudgetViewModel>(shell, b => _ = b.QuickAssignPaletteAsync())) with { IsEnabled = hasFile });
+        list.Add(Cmd("budget-explain-rta", Strings.Palette_ExplainReadyToAssign, actions, () => OnPage<BudgetViewModel>(shell, b => b.ExplainReadyToAssign())) with { IsEnabled = hasFile });
+        list.Add(Cmd("budget-manage-categories", Strings.Palette_ManageCategories, actions, () => OnPage<BudgetViewModel>(shell, b => _ = b.ManageCategoriesAsync())) with { IsEnabled = hasFile });
+
+        // Review and rules.
+        list.Add(Cmd("review-batch", Strings.Palette_BatchApprove, actions, () => OnPage<ReviewViewModel>(shell, r => Run(r.BatchApproveCommand))) with { IsEnabled = hasFile });
+        list.Add(Cmd("rules-new", Strings.Palette_NewRule, actions, () => OnPage<RulesViewModel>(shell, r => Run(r.NewRuleCommand))) with { IsEnabled = hasFile });
+        list.Add(Cmd("rules-apply-all", Strings.Palette_ApplyAllRules, actions, () => OnPage<RulesViewModel>(shell, r => Run(r.ApplyAllCommand))) with { IsEnabled = hasFile });
+
+        // Bills calendar months.
+        list.Add(Cmd("bills-previous-month", Strings.Palette_BillsPreviousMonth, actions, () => OnPage<BillsViewModel>(shell, b => _ = b.PreviousMonthAsync())) with { IsEnabled = hasFile });
+        list.Add(Cmd("bills-next-month", Strings.Palette_BillsNextMonth, actions, () => OnPage<BillsViewModel>(shell, b => _ = b.NextMonthAsync())) with { IsEnabled = hasFile });
+        list.Add(Cmd("bills-this-month", Strings.Palette_BillsThisMonth, actions, () => OnPage<BillsViewModel>(shell, b => _ = b.ThisMonthAsync())) with { IsEnabled = hasFile });
+
+        // Reports.
+        list.Add(Cmd("reports-refresh", Strings.Palette_RefreshReport, actions, () => OnPage<ReportsViewModel>(shell, r => r.Reload())) with { IsEnabled = hasFile });
+        list.Add(Cmd("reports-all-accounts", Strings.Palette_ReportAllAccounts, actions, () => OnPage<ReportsViewModel>(shell, r => r.SelectAllAccounts())) with { IsEnabled = hasFile });
+
+        // Home, notifications, connections, updates.
+        list.Add(Cmd("home-hide-checklist", Strings.Palette_HideChecklist, actions, () => OnPage<HomeViewModel>(shell, h => _ = h.DismissChecklistAsync())) with { IsEnabled = hasFile && shell.CurrentPage is HomeViewModel { ShowChecklist: true } });
+        list.Add(Cmd("notifications-read", Strings.Palette_MarkNotificationsRead, actions, () => _ = shell.Notifications?.MarkAllReadAsync()) with { IsEnabled = shell.Notifications is not null && hasFile });
+        list.Add(Cmd("add-connection", Strings.Palette_AddConnection, actions, () => _ = shell.Sync.AddConnectionAsync()) with { IsEnabled = hasFile });
+        var updates = services.GetService<UpdateService>();
+        list.Add(Cmd("check-updates", Strings.Palette_CheckUpdates, help, () => Run(Updates().CheckNowCommand)) with { IsEnabled = updates?.IsEnabled ?? false });
+        list.Add(Cmd("install-update", Strings.Palette_InstallUpdate, help, () => Run(Updates().InstallCommand)) with { IsEnabled = updates?.IsUpdateAvailable ?? false });
+    }
+
+    private static string Numbered(string id, int index) => id + "-" + (index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string Digit(int index) => (index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private void Navigate<TPage>(object parameter)
+        where TPage : class => services.GetRequiredService<Keel.Application.Navigation.INavigationService>().NavigateTo<TPage>(parameter);
+
+    private EncryptionSettingsViewModel Encryption() => services.GetRequiredService<EncryptionSettingsViewModel>();
+
+    private UpdatesSettingsViewModel Updates() => services.GetRequiredService<UpdatesSettingsViewModel>();
+
     private DataFileSettingsViewModel DataFile() => services.GetRequiredService<DataFileSettingsViewModel>();
 
     private AppearanceSettingsViewModel Appearance() => services.GetRequiredService<AppearanceSettingsViewModel>();
 
-    private static void Run(System.Windows.Input.ICommand command)
+    private static void Run(System.Windows.Input.ICommand? command)
     {
-        if (command.CanExecute(null))
+        if (command is not null && command.CanExecute(null))
         {
             command.Execute(null);
         }

@@ -105,3 +105,32 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
 - [ ] Install the previous release, create data, then install this one over it: the file opens, a
       `-before-migration` backup exists if the schema changed, and nothing is lost.
 - [ ] Open a file from this release with the previous release: it refuses with a clear message.
+
+## 9. Encryption, Stats and the palette (M9e)
+
+Run on each OS (the SQLCipher native library ships per RID; the headless tests only cover Linux).
+
+- [ ] Settings → General → Encryption → **Encrypt this file…**: a short or mismatched passphrase and an
+      unticked warning are refused; with a valid passphrase the file is replaced, the window reopens it,
+      and `budgets/backups` has a `-before-encryption.zip` (plain). The `.keel` file no longer starts with
+      "SQLite format 3" (`head -c 16 file.keel`).
+- [ ] Quit and start Keel: it asks for the passphrase in the window; a wrong one shows an error and the
+      prompt stays; the right one opens the file. **Cancel** leaves the file locked with a hint, and the
+      palette's **Unlock budget file…** asks again.
+- [ ] Tick "Remember the key on this computer", quit, start: no prompt. The key is in the OS store
+      (Windows `secrets/`, macOS Keychain item `budget-file/<id>` of service `com.keel.app`, Linux
+      `secret-tool search service com.keel.app`). Untick it in Settings: the next start asks again.
+- [ ] Back up now, add a transaction, restore the backup: the file is still encrypted and opens without
+      a new prompt; the backup zip's `.keel` does not open without the passphrase.
+- [ ] Move the encrypted file (Settings → General): the moved file opens; Copy diagnostic bundle: its
+      `schema-summary.json` says `"encrypted": "yes"` and contains no key or passphrase.
+- [ ] **Remove encryption…**: a wrong passphrase is refused; the right one leaves a plain file and an
+      encrypted `-before-decryption.zip`.
+- [ ] The encrypted file opens in DB Browser for SQLite (SQLCipher 4 defaults) with the passphrase.
+- [ ] Idle memory with the encrypted 100k fixture open (Home, then the All accounts register and Budget
+      once) stays under 250 MB (PRD 11).
+- [ ] Settings → Privacy & Stats: five cards with value, target, met/missed/not measured (icon and
+      words) and an explanation; after a restart the cold start shows; scroll the 100k fixture's All
+      accounts register and **Refresh** shows the frame times.
+- [ ] `Ctrl+K`: page actions (Budget months, Bills tabs, reports, rules, reconcile…) are listed;
+      unavailable ones say "Unavailable here" and do not run.

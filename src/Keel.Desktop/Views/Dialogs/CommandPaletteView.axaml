@@ -19,9 +19,14 @@
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="services:AppCommand">
           <Grid ColumnDefinitions="*,Auto,Auto" AutomationProperties.Name="{Binding AutomationName}">
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-            <TextBlock Grid.Column="1" Classes="secondary" Text="{Binding Section}" Margin="12,0"
-                       FontSize="{StaticResource Keel.FontSize.Small}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       Classes.secondary="{Binding !IsEnabled}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="12,0" VerticalAlignment="Center">
+              <TextBlock Classes="secondary" Text="{x:Static res:Strings.Palette_Unavailable}" IsVisible="{Binding !IsEnabled}"
+                         FontSize="{StaticResource Keel.FontSize.Small}" FontStyle="Italic" VerticalAlignment="Center" />
+              <TextBlock Classes="secondary" Text="{Binding Section}"
+                         FontSize="{StaticResource Keel.FontSize.Small}" VerticalAlignment="Center" />
+            </StackPanel>
             <Border Grid.Column="2" Classes="keycap" IsVisible="{Binding Keys, Converter={x:Static ObjectConverters.IsNotNull}}">
               <TextBlock Text="{Binding Keys}" FontSize="{StaticResource Keel.FontSize.Small}" />
             </Border>
@@ -30,6 +35,7 @@
       </ListBox.ItemTemplate>
     </ListBox>
     <TextBlock Classes="secondary" Text="{x:Static res:Strings.Palette_NoResults}" IsVisible="{Binding HasNoResults}" Margin="4,0" />
+    <TextBlock x:Name="PaletteError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" Margin="4,0" TextWrapping="Wrap" />
     <TextBlock Classes="secondary" Text="{x:Static res:Strings.Palette_Footer}" FontSize="{StaticResource Keel.FontSize.Small}" Margin="4,0" />
   </StackPanel>
 </UserControl>

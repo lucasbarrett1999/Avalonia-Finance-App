@@ -71,4 +71,40 @@ public sealed class HighDpiRenderingTests : IDisposable
         window.Close();
         LogCapture.Instance.Messages.ShouldBeEmpty();
     }
+
+    [AvaloniaFact]
+    public async Task Encryption_and_stats_render_at_2x_scaling_on_a_1080p_display()
+    {
+        await M9eScreens.SeedAsync(_host);
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Width = 960;
+        window.Height = 540;
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            await M9eScreens.VisitAsync(_host, shell, screen =>
+            {
+                using var bitmap = new RenderTargetBitmap(new PixelSize(1920, 1080), new Vector(192, 192));
+                bitmap.Render(window);
+                bitmap.PixelSize.ShouldBe(new PixelSize(1920, 1080));
+                if (!string.IsNullOrEmpty(outputDir))
+                {
+                    Directory.CreateDirectory(outputDir);
+                    bitmap.Save(Path.Combine(outputDir, $"{screen}-2x-{theme}.png"));
+                }
+
+                return Task.CompletedTask;
+            });
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+    }
 }

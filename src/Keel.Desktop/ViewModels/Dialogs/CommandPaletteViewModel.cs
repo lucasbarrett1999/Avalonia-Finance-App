@@ -21,7 +21,7 @@ public sealed partial class CommandPaletteViewModel : DialogViewModel
         ArgumentNullException.ThrowIfNull(commands);
         _commands = commands;
         Results = commands.Take(MaxResults).ToList();
-        Selected = Results.FirstOrDefault();
+        Selected = Results.FirstOrDefault(c => c.IsEnabled) ?? Results.FirstOrDefault();
     }
 
     /// <inheritdoc />
@@ -68,6 +68,13 @@ public sealed partial class CommandPaletteViewModel : DialogViewModel
     /// <inheritdoc />
     protected override Task<bool> ConfirmCoreAsync()
     {
+        if (Selected is { IsEnabled: false })
+        {
+            // Unavailable actions are listed (so they can be found) but never run (ADR 0103).
+            Error = Strings.Palette_UnavailableError;
+            return Task.FromResult(false);
+        }
+
         Chosen = Selected;
         return Task.FromResult(Chosen is not null);
     }
@@ -75,7 +82,8 @@ public sealed partial class CommandPaletteViewModel : DialogViewModel
     partial void OnQueryChanged(string? value)
     {
         Results = FuzzyMatch.Filter(_commands, value, c => c.Title, c => c.Section).Take(MaxResults).ToList();
-        Selected = Results.FirstOrDefault();
+        Selected = Results.FirstOrDefault(c => c.IsEnabled) ?? Results.FirstOrDefault();
+        Error = null;
     }
 
     private int IndexOf(AppCommand command)

@@ -1,5 +1,76 @@
 # Changelog
 
+## M9e — Encryption, Stats page and palette completeness
+
+M9 stream E (PRD 12 P1 backlog): optional SQLCipher encryption of budget files (F-SET-4, PRD 6.7, 10), the
+private Stats page (PRD 4, 9.9 Privacy & Stats) and command palette completeness (F-SET-5).
+
+### Added
+
+- **SQLCipher engine** (ADR 0101): `SQLitePCLRaw.bundle_e_sqlcipher` 2.1.11 with
+  `Microsoft.EntityFrameworkCore.Sqlite.Core` instead of the e_sqlite3 bundle; plain files open unchanged.
+- **Encrypted budget files** (F-SET-4, ADR 0101): Settings → General → Encryption with **Encrypt this file…**
+  (passphrase twice, at least 8 characters, the "lost passphrase means lost data" acknowledgement, optional
+  "remember the key") and **Remove encryption…** (current passphrase checked first). Conversions run between
+  sessions: verified `-before-encryption` / `-before-decryption` backup, `sqlcipher_export` into a verified copy,
+  swap, reopen; a failure reopens the file unchanged. Keys are derived like SQLCipher's own (PBKDF2-HMAC-SHA512,
+  256k, file salt) once and passed as raw keys, so the file is standard SQLCipher 4 and opens with the passphrase
+  elsewhere. Opening a locked file asks in the window (wrong passphrase: error, prompt stays; Cancel: locked shell
+  with "Unlock budget file…"); keys unlocked in this run are reused for restore and move; an opt-in keeps the
+  derived key in the OS secret store (`budget-file/<salt>`). Backups of an encrypted file stay encrypted with the
+  same key and salt; restore keeps the open file's encryption (converting plain or other-passphrase backups, asking
+  for the latter's passphrase); moves, the integrity check and the diagnostic bundle (`encrypted`, `cipher_version`)
+  handle encrypted files. `build/package.sh` / `package.ps1` check that each RID's publish folder has the
+  SQLCipher native library.
+- **Privacy & Stats** (PRD 4, ADR 0102): five cards (first launch → first assigned budget, imported transactions
+  approved without change over 30 days, duplicates flagged on re-import, cold start to interactive, register
+  scroll frame time at 100k rows) with value, target, met/missed/not measured by icon and words, and how each is
+  computed; loading, error and no-file states; Refresh. Computed locally from the audit log, the file's Setting
+  table and settings.json; never transmitted. Instrumentation: first launch on fresh installs, import-file
+  fingerprints and re-import counts (`ImportStatsRecorder` decorator, `stats.imports`), the first session's
+  process start → first interactive frame, and a `ScrollFrameMeter` fed by `RegisterSource.RowRequested`.
+- **Command palette completeness** (F-SET-5, ADR 0103): about 50 new commands so every non-row action of every
+  screen is in the palette (report and Bills tab targets, budget months, inspector, quick assign, explain Ready to
+  Assign, manage categories, batch approval, rules, reconcile, edit account, record balance, clear filters,
+  sync/reconnect account, new schedule, Bills months, report refresh, restore from file, encryption, unlock,
+  closed accounts, notifications, accent colours, motion, add connection, updates, Settings → Privacy & Stats and
+  Encryption); `AppCommand.IsEnabled` from the file and the current page, unavailable commands listed as
+  "Unavailable here" and not run; a reflection test that fails when a screen command or registry shortcut is
+  neither in the palette nor classified as row-level.
+- **Docs**: the user guide's data-file page (encryption with the plain warning, Privacy & Stats), the palette
+  in the keyboard page, release checklist section 9; ADRs 0101–0103.
+
+### Decisions and deviations
+
+- [ADR 0101](docs/decisions/0101-sqlcipher-encryption.md): the SQLCipher bundle replaces EF Core's default SQLite
+  bundle for every file (SQLite 3.39.2 instead of 3.49), raw keys with the salt instead of passphrase keys, a
+  64 MiB page cache on encrypted connections, restore keeps the open file's encryption.
+- [ADR 0102](docs/decisions/0102-local-stats-page.md): metric definitions; import fingerprints stored in the
+  file's Setting table; scroll frames timed with animation-frame callbacks triggered by `RegisterSource` row
+  requests (RegisterSource alone cannot see frames).
+- [ADR 0103](docs/decisions/0103-palette-completeness.md): palette enablement and the completeness test.
+- No EF Core model change and no migration.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,825 passed, 4 skipped (gated: Plaid sandbox, Secret Service, Keychain, DPAPI) |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter EncryptionTimingTests` (100k fixture) | plain vs encrypted: file 78.2 / 74.6 MB; encrypt 6-9 s; open 14-90 / 250-320 ms; register open 93 / 101 ms; last page 122 / 121 ms; budget month 298 / 304 ms |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter LedgerFixtureTests` (plain file, e_sqlite3 → e_sqlcipher) | register open 102 → 83 ms, last page 128 → 180 ms |
+| `dotnet publish -r linux-x64 / win-x64 / osx-arm64` | `libe_sqlcipher.so` / `e_sqlcipher.dll` / `libe_sqlcipher.dylib` in each publish folder; the .so needs only libc |
+| `build/package.sh --dry-run` | prints the SQLCipher library check for every RID |
+| `dotnet list package --vulnerable --include-transitive` | no vulnerable packages |
+
+### Not done here
+
+- Windows and macOS were not run locally: DPAPI/Keychain key caching and the per-RID native library are
+  covered by the shared code paths, the publish check and `docs/qa-checklist.md` section 9.
+- No "change passphrase" action (remove the encryption, then encrypt with the new passphrase).
+- Idle memory with an encrypted 100k file (PRD 11, 250 MB) was not measured.
+
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 

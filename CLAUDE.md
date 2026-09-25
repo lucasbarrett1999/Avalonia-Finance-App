@@ -95,6 +95,10 @@ pwsh build/package.ps1 -Rid win-x64,win-arm64
 actionlint .github/workflows/*.yml
 # App icons (checked in): regenerate from Assets/keel-icon.svg only when the design changes
 dotnet run build/icons/generate-icons.cs
+# M9e: SQLCipher encryption on real files (incl. the 100k plain-vs-encrypted timings), stats, palette, UI flows
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Encryption|FullyQualifiedName~Tests.Stats" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter "EncryptionTests|StatsPageTests|CommandPaletteTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter "M9eRenderingTests|Encryption_and_stats_render"
 ```
 
 The app applies pending migrations itself when it opens a budget file (after a `-before-migration`
@@ -309,6 +313,36 @@ docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs),
        nine guides incl. bank-sync.md), qa-checklist.md (run before each tag), images/ (README screenshots).
 .github/workflows/ci.yml       Build+test on windows/macos/ubuntu, format check, vulnerable-package scan, packaging dry run.
 .github/workflows/release.yml  On v* tags: version check, tests, packages on all three OSes, one GitHub release.
+M9e: encryption (F-SET-4), Stats page (PRD 4), palette completeness (F-SET-5):
+  Directory.Packages.props    SQLitePCLRaw.bundle_e_sqlcipher 2.1.11 + EF Core Sqlite.Core replace the e_sqlite3 bundle
+                              for every file (ADR 0101); build/package.* check each RID ships the SQLCipher native library.
+  Keel.Application/Files/     IBudgetFileEncryption (status, verify, remember key, ConvertAsync), BudgetFileUnlock,
+                              BudgetFileEncryptionChange, BudgetFileKeyRing (keys unlocked this run, shared by sessions),
+                              BudgetFileLockedException; IBudgetFileService.OpenOrCreateAsync(path, unlock, ct);
+                              BudgetFileInfo.IsEncrypted; SecretKeys.BudgetFile(fileId); BackupKind Before(En|De)cryption;
+                              IBackupService.RestoreAsync(path, passphrase, ct). Stats/: IStatsService + StatsReport,
+                              LocalStats (AppSettings.Stats: first launch, cold start, register scroll samples).
+  Keel.Infrastructure/        Persistence/SqlCipher (file id = salt, PBKDF2 raw keys with salt, CanOpen, sqlcipher_export);
+                              KeelDatabase/KeelDbContextFactory take a key (CurrentKey internal); SqlitePragmaInterceptor adds
+                              a 64 MiB cache on keyed connections; Files/BudgetFileEncryptionService; BackupArchive,
+                              BackupService, DataFileMaintenance, BudgetFileService are key-aware. Stats/ (StatsService,
+                              ImportStatsRecorder decorator over ImportService, ImportStatsLog in Setting `stats.imports`).
+  Keel.Desktop/               BudgetSessions (KeyRing, OpenWithPromptAsync, PromptUnlockAsync, ChangeEncryptionAsync,
+                              ColdStartedAt), AppSession.LockedFile, BudgetStartupOptions (Unlock, Encryption, AllowLocked),
+                              ShellViewModel.M9e (unlock prompt on start, WhenLoadedAsync), Services/StatsInstrumentation +
+                              ScrollFrameMeter (fed by RegisterSource.RowRequested), ViewModels/Settings/Encryption- and
+                              StatsSettingsViewModel (+ views; Settings "EncryptionSection", "PrivacySection"),
+                              ViewModels/Dialogs/EncryptionDialogViewModels (Unlock, EncryptFile, RemoveEncryption + views),
+                              AppCommands.AddCompleteness (every non-row action, AppCommand.IsEnabled).
+  Tests                       Infrastructure: Encryption/ (EncryptionTestHost = sessions and app runs over one data dir with
+                              a shared InMemorySecretStore; encryption, backups/restore, migration, move, diagnostics, logs;
+                              EncryptionTimingTests 100k), Stats/StatsServiceTests. Desktop: EncryptionTests
+                              (TestHost.Reopen + KeepFiles for new app runs), StatsPageTests, CommandPaletteTests coverage
+                              (every screen command and registry key classified), M9eScreens (+ AccessibilityTests,
+                              HighDpiRenderingTests, M9eRenderingTests).
+  Rules                       Every connection to an encrypted file goes through a key from the factory (never log it);
+                              new helper connections use BackupArchive/SqlCipher.ConnectionString(path, key, mode). A new
+                              screen command must be added to AppCommands or classified in CommandPaletteTests.
 ```
 
 Dependency direction: `Desktop -> Application -> Domain`; `Infrastructure -> Application -> Domain`.

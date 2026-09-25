@@ -98,3 +98,18 @@ or screen by typing part of its name, and shows each action's shortcut.
 
 Page keys (single letters and digits) work when no text box has the focus, so typing never triggers
 them.
+
+## The command palette
+
+`Ctrl+K` lists every action that is not about one selected row, on every screen: pages and reports,
+Bills tabs and months, budget months, the inspector, quick assign, Explain Ready to Assign and Manage
+categories, batch approval in Review, new and apply-all rules, reconcile, edit account, record balance,
+sync and reconnect for the register on screen, clear filters, new scheduled transaction, file actions
+(new, open, move, import, back up, restore, integrity check, diagnostics, encrypt, remove encryption,
+unlock), theme, density, accent colour and motion, notifications, bank connections and updates. Type
+part of a name; `↑`/`↓` move, `Enter` runs, `Esc` closes.
+
+Actions that do not apply right now (for example **Reconcile this account…** when no account register
+is open, or **Remove encryption…** on a plain file) stay in the list, marked "Unavailable here", and do
+not run. Actions on one selected row (toggle cleared, approve, the Review decisions) are keys and
+buttons only, listed in the tables above.

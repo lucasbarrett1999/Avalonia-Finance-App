@@ -14,7 +14,8 @@ needs no account; bank sync is optional.
 6. [Reports and goals](reports-and-goals.md): spending, income vs expense, net worth, forecast, goals.
 7. [Bank sync](bank-sync.md): Plaid and SimpleFIN with your own keys.
 8. [Backups and the data file](backups-and-data.md): where your data is, backups, restore, moving
-   the file, the integrity check, diagnostics, privacy.
+   the file, encryption with a passphrase, the integrity check, diagnostics, privacy and the local
+   Stats page.
 9. [Keyboard shortcuts](keyboard-shortcuts.md) and the command palette.
 
 Keyboard keys are written for Windows and Linux (`Ctrl`); on macOS use `⌘` wherever this guide says

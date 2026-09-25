@@ -23,6 +23,7 @@ public partial class AccountsView : UserControl
     private readonly Dictionary<DataGridRow, (RegisterRowViewModel Row, PropertyChangedEventHandler Handler)> _rowWatchers = [];
     private AccountsViewModel? _vm;
     private KeyModifiers _commandModifier = KeyModifiers.Control;
+    private ScrollFrameMeter? _meter;
 
     /// <summary>Creates the view.</summary>
     public AccountsView()
@@ -49,6 +50,43 @@ public partial class AccountsView : UserControl
         base.OnAttachedToVisualTree(e);
         // Same source as PlatformShortcuts: Cmd on macOS, Ctrl elsewhere.
         _commandModifier = PlatformShortcuts.FromCurrentPlatform().CommandModifiers;
+        AttachMeter();
+    }
+
+    /// <inheritdoc />
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        DetachMeter();
+    }
+
+    /// <summary>Frame timing for the Stats page while the register scrolls (PRD 4); tests read it.</summary>
+    public ScrollFrameMeter? FrameMeter => _meter;
+
+    // The register source reports each row the grid asks for; the meter times frames while that continues.
+    private void AttachMeter()
+    {
+        DetachMeter();
+        if (_vm?.Stats is not { } stats || TopLevel.GetTopLevel(this) is not { } top)
+        {
+            return;
+        }
+
+        var meter = new ScrollFrameMeter(callback => top.RequestAnimationFrame(callback));
+        var rows = _vm.Rows;
+        meter.BurstEnded += (_, _) => stats.RecordScroll(meter, rows.Count);
+        rows.RowRequested = meter.Activity;
+        _meter = meter;
+    }
+
+    private void DetachMeter()
+    {
+        if (_meter is not null && _vm is not null)
+        {
+            _vm.Rows.RowRequested = null;
+        }
+
+        _meter = null;
     }
 
     /// <inheritdoc />
@@ -63,7 +101,10 @@ public partial class AccountsView : UserControl
             _vm.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
+        DetachMeter();
         _vm = DataContext as AccountsViewModel;
+        AttachMeter();
+
         if (_vm is not null)
         {
             _vm.SelectIndexRequested += OnSelectIndexRequested;
@@ -80,6 +121,7 @@ public partial class AccountsView : UserControl
         if (e.PropertyName is nameof(AccountsViewModel.IsAllAccounts) or nameof(AccountsViewModel.Account))
         {
             UpdateAccountColumn();
+            _meter?.Reset(); // another register: frame times start over
         }
     }
 

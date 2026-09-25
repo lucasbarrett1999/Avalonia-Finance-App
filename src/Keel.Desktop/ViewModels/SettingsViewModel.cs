@@ -30,8 +30,12 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
         Settings.AppearanceSettingsViewModel? appearance = null,
         Settings.BillsSettingsViewModel? bills = null,
         Settings.UpdatesSettingsViewModel? updates = null,
-        ShortcutRegistry? registry = null)
+        ShortcutRegistry? registry = null,
+        Settings.EncryptionSettingsViewModel? encryption = null,
+        Settings.StatsSettingsViewModel? stats = null)
     {
+        Encryption = encryption;
+        Stats = stats;
         _themes = themes;
         _themes.ThemeChanged += OnThemeChanged;
         DataFile = dataFile;
@@ -174,10 +178,18 @@ public sealed class SettingsViewModel : PageViewModel, Keel.Application.Navigati
         SectionRequested?.Invoke(this, EventArgs.Empty);
         _ = DataFile?.LoadAsync();
         _ = Bills?.LoadAsync();
+        _ = Encryption?.LoadAsync();
+        _ = Stats?.LoadAsync();
     }
 
     /// <summary>The Connections section (F-SET-3).</summary>
     public ConnectionsSettingsViewModel Connections { get; }
+
+    /// <summary>Settings → General → Encryption (F-SET-4).</summary>
+    public Settings.EncryptionSettingsViewModel? Encryption { get; }
+
+    /// <summary>Settings → Privacy &amp; Stats (PRD 4).</summary>
+    public Settings.StatsSettingsViewModel? Stats { get; }
 }
 
 /// <summary>One row of the shortcut reference.</summary>

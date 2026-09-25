@@ -22,11 +22,7 @@
               <TextBlock Text="{x:Static res:Strings.Settings_General}" FontWeight="SemiBold" FontSize="16" />
             </StackPanel>
             <ContentControl x:Name="DataFileHost" Content="{Binding DataFile}" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14"
-                             Foreground="{DynamicResource Keel.TextSecondary}" />
-              <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Privacy}" TextWrapping="Wrap" />
-            </StackPanel>
+            <ContentControl x:Name="EncryptionSection" Content="{Binding Encryption}" />
           </StackPanel>
         </Border>
 
@@ -127,6 +123,22 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Privacy & Stats (PRD 4, 9.9): local success metrics, never transmitted -->
+        <Border Classes="card" x:Name="PrivacySection">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.EyeOff}" Width="18" Height="18" />
+              <TextBlock Text="{x:Static res:Strings.Stats_SectionTitle}" FontWeight="SemiBold" FontSize="16" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <controls:Icon Data="{StaticResource Icon.Lock}" Width="14" Height="14"
+                             Foreground="{DynamicResource Keel.TextSecondary}" />
+              <TextBlock Classes="secondary" Text="{x:Static res:Strings.Settings_Privacy}" TextWrapping="Wrap" />
+            </StackPanel>
+            <ContentControl x:Name="StatsHost" Content="{Binding Stats}" />
           </StackPanel>
         </Border>
 

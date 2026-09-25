@@ -56,6 +56,12 @@ internal static class Program
             var settings = new JsonAppSettingsStore(dataDirectory);
             LocaleService.ApplyCulture(settings.Current.FormatCulture);
             using var sessions = CreateSessions(args, dataDirectory, logger, settings);
+            using (var process = System.Diagnostics.Process.GetCurrentProcess())
+            {
+                // The Stats page's cold start runs from here to the first interactive frame (PRD 4).
+                sessions.ColdStartedAt = process.StartTime.ToUniversalTime();
+            }
+
             var host = sessions.Start(new BudgetStartupOptions(requestedFile));
             App.Services = host.Services;
             instance?.Listen(path => Dispatcher.UIThread.Post(() => _ = sessions.ActivateAsync(path)));
@@ -147,6 +153,7 @@ internal static class Program
 
         builder.Services.AddKeelInfrastructure(dataDirectory);
         builder.Services.AddSingleton(sessions.Settings);
+        builder.Services.AddSingleton(sessions.KeyRing);
         builder.Services.AddSingleton(sessions);
         builder.Services.AddSingleton(options);
         builder.Services.AddKeelDesktop();

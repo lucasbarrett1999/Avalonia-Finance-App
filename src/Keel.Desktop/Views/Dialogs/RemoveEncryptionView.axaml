@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dlg="using:Keel.Desktop.ViewModels.Dialogs"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Dialogs.RemoveEncryptionView"
+             x:DataType="dlg:RemoveEncryptionViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" MaxWidth="440">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+    <TextBlock Text="{Binding Intro}" TextWrapping="Wrap" />
+    <StackPanel Spacing="4">
+      <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Encrypt_CurrentPassphrase}" />
+      <TextBox x:Name="PassphraseBox" Text="{Binding Passphrase}" PasswordChar="•" RevealPassword="{Binding ShowPassphrase}"
+               IsEnabled="{Binding !IsBusy}" AutomationProperties.Name="{x:Static res:Strings.Encrypt_CurrentPassphrase}">
+        <TextBox.KeyBindings>
+          <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+        </TextBox.KeyBindings>
+      </TextBox>
+      <CheckBox x:Name="ShowPassphraseCheck" IsChecked="{Binding ShowPassphrase}" Content="{x:Static res:Strings.Encrypt_ShowPassphrase}" />
+    </StackPanel>
+    <TextBlock x:Name="ErrorText" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Spacing="4" IsVisible="{Binding IsBusy}">
+      <ProgressBar IsIndeterminate="True" Height="4" AutomationProperties.Name="{x:Static res:Strings.Encrypt_Removing}" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Encrypt_Removing}" />
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button x:Name="CancelButton" Command="{Binding CancelCommand}" IsEnabled="{Binding !IsBusy}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="RemoveButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Encrypt_RemoveConfirm}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

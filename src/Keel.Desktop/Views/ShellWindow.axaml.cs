@@ -22,6 +22,18 @@ public partial class ShellWindow : Window
         InitializeComponent();
     }
 
+    // Stats page (PRD 4): the cold start ends at the first frame drawn after the shell's first loads.
+    private async Task ReportColdStartAsync()
+    {
+        if (DataContext is not ShellViewModel shell || shell.StatsInstrumentation is not { IsColdStartPending: true } stats)
+        {
+            return;
+        }
+
+        await shell.WhenLoadedAsync();
+        RequestAnimationFrame(_ => stats.MarkInteractiveAsync());
+    }
+
     /// <summary>Creates the window for <paramref name="viewModel"/>.</summary>
     public ShellWindow(ShellViewModel viewModel, WindowPlacementService placement, BudgetSessions? sessions = null, AppearanceService? appearance = null)
         : this()
@@ -57,6 +69,7 @@ public partial class ShellWindow : Window
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
+        _ = ReportColdStartAsync();
         PositionChanged += (_, args) =>
         {
             if (WindowState == WindowState.Normal)

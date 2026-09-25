@@ -256,6 +256,285 @@ public sealed class CommandPaletteTests : IDisposable
         FuzzyMatch.Filter(items, null, s => s).ShouldBe(items);
     }
 
+    // Shortcuts that act on the selected row, the cell cursor, an open editor or a dialog; everything else in the
+    // registry must have a palette command (ADR 0103).
+    private static readonly Dictionary<string, string> KeysOutsideThePalette = new(StringComparer.Ordinal)
+    {
+        ["palette"] = "opens the palette itself",
+        ["register-edit"] = "edits the selected transaction",
+        ["register-cleared"] = "toggles the selected transaction",
+        ["register-approve"] = "approves the selected transactions",
+        ["register-delete"] = "deletes the selected transactions",
+        ["register-save-new"] = "inside the transaction editor",
+        ["register-cancel"] = "inside the transaction editor",
+        ["budget-navigate"] = "moves the budget cell cursor",
+        ["budget-edit"] = "edits the budget cell under the cursor",
+        ["budget-next-assigned"] = "inside the Assigned editor",
+        ["budget-target"] = "sets the target of the category under the cursor",
+        ["review-approve"] = "decides the focused review item",
+        ["review-pick"] = "decides the focused review item",
+        ["review-category"] = "decides the focused review item",
+        ["review-split"] = "decides the focused review item",
+        ["review-transfer"] = "decides the focused review item",
+        ["review-rule"] = "decides the focused review item",
+        ["review-delete"] = "decides the focused review item",
+        ["review-move"] = "moves between review items",
+        ["bills-close"] = "closes the selected item's detail",
+        ["dialog-confirm"] = "inside dialogs",
+        ["dialog-cancel"] = "inside dialogs",
+        ["money-math"] = "inside amount boxes",
+    };
+
+    // Registry ids whose palette command has another id.
+    private static readonly Dictionary<string, string> KeyAliases = new(StringComparer.Ordinal)
+    {
+        ["register-new"] = "add-transaction",
+        ["redo-alt"] = "redo",
+    };
+
+    // Every parameterless command of every screen, mapped to the palette command that runs it (ADR 0103).
+    private static readonly Dictionary<string, string> CoveredCommands = new(StringComparer.Ordinal)
+    {
+        ["ShellViewModel.ToggleSidebarCommand"] = "sidebar",
+        ["ShellViewModel.UndoCommand"] = "undo",
+        ["ShellViewModel.RedoCommand"] = "redo",
+        ["ShellViewModel.AddAccountCommand"] = "add-account",
+        ["ShellViewModel.SearchCommand"] = "search",
+        ["ShellViewModel.SyncAllCommand"] = "sync-all",
+        ["HomeViewModel.AssignCommand"] = "go-1",
+        ["HomeViewModel.StartReviewCommand"] = "start-review",
+        ["HomeViewModel.OpenNetWorthCommand"] = "reports-pick-3",
+        ["HomeViewModel.OpenAccountsCommand"] = "go-6",
+        ["HomeViewModel.AddAccountCommand"] = "add-account",
+        ["HomeViewModel.OpenBillsCommand"] = "go-3",
+        ["HomeViewModel.OpenForecastCommand"] = "reports-pick-4",
+        ["HomeViewModel.DismissChecklistCommand"] = "home-hide-checklist",
+        ["BudgetViewModel.FundTargetsCommand"] = "budget-fund",
+        ["BudgetViewModel.ToggleInspectorCommand"] = "budget-inspector",
+        ["BudgetViewModel.ExplainReadyToAssignCommand"] = "budget-explain-rta",
+        ["BudgetViewModel.QuickAssignPaletteCommand"] = "budget-quick-assign",
+        ["BudgetViewModel.ManageCategoriesCommand"] = "budget-manage-categories",
+        ["BudgetViewModel.UndoCommand"] = "undo",
+        ["BudgetViewModel.PreviousMonthCommand"] = "budget-previous",
+        ["BudgetViewModel.NextMonthCommand"] = "budget-next",
+        ["BudgetViewModel.GoToTodayCommand"] = "budget-this-month",
+        ["ReviewViewModel.BatchApproveCommand"] = "review-batch",
+        ["ReviewViewModel.ManageRulesCommand"] = "go-rules",
+        ["BillsViewModel.RunDetectionCommand"] = "bills-detect",
+        ["BillsViewModel.AddItemCommand"] = "bills-new",
+        ["BillsViewModel.PreviousMonthCommand"] = "bills-previous-month",
+        ["BillsViewModel.NextMonthCommand"] = "bills-next-month",
+        ["BillsViewModel.ThisMonthCommand"] = "bills-this-month",
+        ["GoalsViewModel.NewGoalCommand"] = "goals-new",
+        ["GoalsViewModel.OpenBudgetCommand"] = "go-1",
+        ["ReportsViewModel.ReloadCommand"] = "reports-refresh",
+        ["ReportsViewModel.SelectAllAccountsCommand"] = "reports-all-accounts",
+        ["ReportsViewModel.ExportCsvCommand"] = "reports-export",
+        ["AccountsViewModel.NewTransactionCommand"] = "add-transaction",
+        ["AccountsViewModel.StartReconcileCommand"] = "reconcile",
+        ["AccountsViewModel.ImportFileCommand"] = "import",
+        ["AccountsViewModel.EditAccountCommand"] = "edit-account",
+        ["AccountsViewModel.RecordBalanceCommand"] = "record-balance",
+        ["AccountsViewModel.ClearFiltersCommand"] = "clear-filters",
+        ["AccountsViewModel.SyncAccountCommand"] = "sync-account",
+        ["AccountsViewModel.ReconnectAccountCommand"] = "reconnect-account",
+        ["ScheduledGhostsViewModel.NewScheduleCommand"] = "schedule-new",
+        ["RulesViewModel.NewRuleCommand"] = "rules-new",
+        ["RulesViewModel.ApplyAllCommand"] = "rules-apply-all",
+        ["NotificationCenterViewModel.ToggleCommand"] = "notifications",
+        ["NotificationCenterViewModel.MarkAllReadCommand"] = "notifications-read",
+        ["ConnectionsSettingsViewModel.AddConnectionCommand"] = "add-connection",
+        ["DataFileSettingsViewModel.NewFileCommand"] = "new-file",
+        ["DataFileSettingsViewModel.OpenFileCommand"] = "open-file",
+        ["DataFileSettingsViewModel.ChangeLocationCommand"] = "move-file",
+        ["DataFileSettingsViewModel.BackupNowCommand"] = "backup",
+        ["DataFileSettingsViewModel.RestoreFromFileCommand"] = "restore-file",
+        ["DataFileSettingsViewModel.CheckIntegrityCommand"] = "integrity",
+        ["DataFileSettingsViewModel.CopyDiagnosticBundleCommand"] = "diagnostics",
+        ["UpdatesSettingsViewModel.CheckNowCommand"] = "check-updates",
+        ["UpdatesSettingsViewModel.InstallCommand"] = "install-update",
+        ["EncryptionSettingsViewModel.EncryptCommand"] = "encrypt-file",
+        ["EncryptionSettingsViewModel.RemoveEncryptionCommand"] = "remove-encryption",
+        ["EncryptionSettingsViewModel.UnlockCommand"] = "unlock-file",
+        ["StatsSettingsViewModel.RefreshCommand"] = "settings-Privacy",
+    };
+
+    // Screen commands that are row-level (they act on a selected or focused item), belong to an editor, form or popup,
+    // or retry a failed load. They stay buttons and keys only.
+    private static readonly Dictionary<string, string> CommandsOutsideThePalette = new(StringComparer.Ordinal)
+    {
+        ["ShellViewModel.OpenCommandPaletteCommand"] = "opens the palette itself",
+        ["BudgetViewModel.SetTargetCommand"] = "the category under the cursor",
+        ["BudgetViewModel.PickerPreviousYearCommand"] = "inside the month picker",
+        ["BudgetViewModel.PickerNextYearCommand"] = "inside the month picker",
+        ["BudgetViewModel.RetryCommand"] = "retries a failed load",
+        ["ReviewViewModel.ApproveCommand"] = "the focused review item",
+        ["ReviewViewModel.ChangeCategoryCommand"] = "the focused review item",
+        ["ReviewViewModel.SplitCommand"] = "the focused review item",
+        ["ReviewViewModel.MarkTransferCommand"] = "the focused review item",
+        ["ReviewViewModel.CreateRuleCommand"] = "the focused review item",
+        ["ReviewViewModel.DeleteCommand"] = "the focused review item",
+        ["ReviewViewModel.NextCommand"] = "moves between review items",
+        ["ReviewViewModel.PreviousCommand"] = "moves between review items",
+        ["ReviewViewModel.ToggleTraceCommand"] = "the focused review item's explanation",
+        ["ReviewViewModel.RetryCommand"] = "retries a failed load",
+        ["BillsViewModel.EditCommand"] = "the selected bill",
+        ["BillsViewModel.CloseDetailCommand"] = "the selected bill",
+        ["BillsViewModel.ConfirmCommand"] = "the selected bill",
+        ["BillsViewModel.PauseCommand"] = "the selected bill",
+        ["BillsViewModel.ResumeCommand"] = "the selected bill",
+        ["BillsViewModel.DismissCommand"] = "the selected bill",
+        ["BillsViewModel.ReenableCommand"] = "the selected bill",
+        ["BillsViewModel.CreateTargetCommand"] = "the selected bill",
+        ["BillsViewModel.CreateScheduleCommand"] = "the selected bill",
+        ["BillsViewModel.OpenTransactionsCommand"] = "the selected bill",
+        ["AccountsViewModel.EditSelectedCommand"] = "the selected transaction",
+        ["AccountsViewModel.SaveCommand"] = "the transaction editor",
+        ["AccountsViewModel.SaveAndNewCommand"] = "the transaction editor",
+        ["AccountsViewModel.CancelEditCommand"] = "the transaction editor",
+        ["AccountsViewModel.ToggleClearedCommand"] = "the selected transaction",
+        ["AccountsViewModel.ApproveCommand"] = "the selected transactions",
+        ["AccountsViewModel.DeleteSelectedCommand"] = "the selected transactions",
+        ["AccountsViewModel.MarkClearedCommand"] = "the selected transactions",
+        ["AccountsViewModel.MarkUnclearedCommand"] = "the selected transactions",
+        ["AccountsViewModel.CategorizeSelectedCommand"] = "the selected transactions",
+        ["AccountsViewModel.MoveSelectedCommand"] = "the selected transactions",
+        ["AccountsViewModel.CreateRuleFromTransactionCommand"] = "the selected transaction",
+        ["AccountsViewModel.RetryCommand"] = "retries a failed load",
+        ["ScheduledGhostsViewModel.ToggleExpandedCommand"] = "expands the register's schedule strip",
+        ["RulesViewModel.RetryCommand"] = "retries a failed load",
+        ["NotificationCenterViewModel.CloseCommand"] = "closes the open panel",
+        ["ConnectionsSettingsViewModel.SaveClientIdCommand"] = "the key typed into the Connections form",
+        ["ConnectionsSettingsViewModel.SaveSecretCommand"] = "the key typed into the Connections form",
+        ["ConnectionsSettingsViewModel.SaveSetupTokenCommand"] = "the token typed into the Connections form",
+        ["ConnectionsSettingsViewModel.ReplaceClientIdCommand"] = "a field of the Connections form",
+        ["ConnectionsSettingsViewModel.ReplaceSecretCommand"] = "a field of the Connections form",
+        ["ConnectionsSettingsViewModel.ReplaceSetupTokenCommand"] = "a field of the Connections form",
+        ["ConnectionsSettingsViewModel.CancelReplaceCommand"] = "a field of the Connections form",
+        ["ConnectionsSettingsViewModel.RemovePlaidKeysCommand"] = "the keys shown in the Connections form",
+    };
+
+    [AvaloniaFact]
+    public async Task Every_non_row_action_of_every_screen_and_every_shortcut_has_a_palette_command()
+    {
+        var (window, shell) = await ShowAsync();
+        var commands = _host.Get<AppCommands>().Build(shell);
+        var ids = commands.Select(c => c.Id).ToHashSet(StringComparer.Ordinal);
+        var problems = new List<string>();
+
+        // Every registry shortcut has a palette command with its id (or numbered ones for "1–4"-style keys).
+        foreach (var entry in _host.Get<ShortcutRegistry>().All.Where(e => !KeysOutsideThePalette.ContainsKey(e.Id)))
+        {
+            var id = KeyAliases.GetValueOrDefault(entry.Id, entry.Id);
+            if (!ids.Contains(id) && !ids.Any(c => c.StartsWith(id + "-", StringComparison.Ordinal)))
+            {
+                problems.Add($"shortcut '{entry.Id}' ({entry.Action}) has no palette command");
+            }
+        }
+
+        // Every parameterless command of every screen is in the palette or classified as row/editor-level.
+        var assembly = typeof(ShellViewModel).Assembly;
+        Type[] extra = [typeof(ShellViewModel), typeof(Keel.Desktop.ViewModels.Alerts.NotificationCenterViewModel), typeof(Keel.Desktop.ViewModels.Sync.ConnectionsSettingsViewModel), typeof(Keel.Desktop.ViewModels.Rules.PayeesViewModel), typeof(Keel.Desktop.ViewModels.Bills.ScheduledGhostsViewModel)];
+        var screens = assembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false } && (typeof(PageViewModel).IsAssignableFrom(t) || t.Namespace == "Keel.Desktop.ViewModels.Settings" || extra.Contains(t)))
+            .ToList();
+        screens.Count.ShouldBeGreaterThan(15);
+        var found = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in screens)
+        {
+            foreach (var property in type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+            {
+                if (property.PropertyType != typeof(CommunityToolkit.Mvvm.Input.IRelayCommand) && property.PropertyType != typeof(CommunityToolkit.Mvvm.Input.IAsyncRelayCommand))
+                {
+                    continue; // IRelayCommand<T> takes the row it acts on
+                }
+
+                var key = type.Name + "." + property.Name;
+                found.Add(key);
+                if (CoveredCommands.TryGetValue(key, out var id))
+                {
+                    if (!ids.Contains(id))
+                    {
+                        problems.Add($"{key} maps to missing palette command '{id}'");
+                    }
+                }
+                else if (!CommandsOutsideThePalette.ContainsKey(key))
+                {
+                    problems.Add($"{key} is neither in the palette nor classified as row-level (add it to AppCommands, or to CommandsOutsideThePalette with the reason)");
+                }
+            }
+        }
+
+        foreach (var stale in CoveredCommands.Keys.Concat(CommandsOutsideThePalette.Keys).Where(k => !found.Contains(k)))
+        {
+            problems.Add($"{stale} no longer exists; update CommandPaletteTests");
+        }
+
+        problems.ShouldBeEmpty(string.Join(Environment.NewLine, problems));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task Palette_commands_are_enabled_by_state_and_unavailable_ones_do_not_run()
+    {
+        var (window, shell) = await ShowAsync();
+        var commands = _host.Get<AppCommands>().Build(shell);
+        AppCommand Command(string id) => commands.Single(c => c.Id == id);
+
+        // No register on screen: register actions are listed but unavailable.
+        Command("reconcile").IsEnabled.ShouldBeFalse();
+        Command("record-balance").IsEnabled.ShouldBeFalse();
+        Command("reconcile").AutomationName.ShouldContain("unavailable");
+        Command("backup").IsEnabled.ShouldBeTrue();
+        Command("encrypt-file").IsEnabled.ShouldBeTrue();
+        Command("remove-encryption").IsEnabled.ShouldBeFalse();
+        Command("unlock-file").IsEnabled.ShouldBeFalse();
+        Command("undo").IsEnabled.ShouldBeFalse();
+
+        // In an account register they become available.
+        var account = await Task.Run(() => _host.Get<IAccountService>().CreateAccountAsync(new CreateAccountRequest("Joint checking", AccountType.Checking, "USD", new DateOnly(2026, 1, 1), 0), CancellationToken.None));
+        await UiTestHelpers.WaitUntilAsync(() => shell.AccountGroups.SelectMany(g => g.Accounts).Any(), "account in the sidebar");
+        shell.OpenAccount(account.Id);
+        await _host.Get<AccountsViewModel>().SettleAsync();
+        commands = _host.Get<AppCommands>().Build(shell);
+        Command("reconcile").IsEnabled.ShouldBeTrue();
+        Command("edit-account").IsEnabled.ShouldBeTrue();
+        Command("clear-filters").IsEnabled.ShouldBeTrue();
+        Command("record-balance").IsEnabled.ShouldBeFalse("only tracking accounts record balances");
+        Command("undo").IsEnabled.ShouldBeTrue();
+
+        // The palette keeps an unavailable command listed but does not run it.
+        var run = shell.OpenCommandPaletteAsync();
+        var palette = await ImportDialogTests.DialogAsync<CommandPaletteViewModel>(shell);
+        palette.Query = "record a balance";
+        palette.Selected!.Id.ShouldBe("record-balance");
+        palette.ConfirmCommand.Execute(null);
+        palette.Error.ShouldBe(Keel.Desktop.Resources.Strings.Palette_UnavailableError);
+        shell.Dialogs.Current.ShouldBeSameAs(palette);
+
+        // An available page action runs after the palette closes: Bills tab 3 via the palette.
+        palette.Query = "bills subscriptions";
+        palette.Selected!.Id.ShouldBe("bills-tabs-3");
+        palette.Selected.Keys.ShouldBe("3");
+        palette.ConfirmCommand.Execute(null);
+        await run;
+        shell.CurrentPage.ShouldBeOfType<BillsViewModel>().SelectedTab.ShouldBe(BillsTab.Subscriptions);
+
+        // Reports and Budget page actions.
+        commands = _host.Get<AppCommands>().Build(shell);
+        Command("reports-pick-3").Execute();
+        _host.Get<ReportsViewModel>().SelectedReport!.Kind.ShouldBe(Keel.Desktop.ViewModels.Reports.ReportKind.NetWorth);
+        var budget = _host.Get<BudgetViewModel>();
+        Command("budget-next").Execute();
+        shell.CurrentPage.ShouldBeSameAs(budget);
+        await budget.SettleAsync();
+        var next = budget.CurrentMonth;
+        Command("budget-this-month").Execute();
+        await budget.SettleAsync();
+        budget.CurrentMonth.ShouldBe(next.AddMonths(-1));
+        window.Close();
+    }
+
     private static List<string> Ids(IEnumerable<MenuNode> nodes) =>
         nodes.SelectMany(n => n.Children is { } children ? Ids(children) : n.Command is { } c ? [c.Id] : []).ToList();
 

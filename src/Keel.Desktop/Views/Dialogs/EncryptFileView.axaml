@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dlg="using:Keel.Desktop.ViewModels.Dialogs"
+             xmlns:controls="using:Keel.Desktop.Controls"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Dialogs.EncryptFileView"
+             x:DataType="dlg:EncryptFileViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="14" MaxWidth="480">
+    <StackPanel Orientation="Horizontal" Spacing="10">
+      <controls:Icon Data="{StaticResource Icon.Lock}" Width="20" Height="20" />
+      <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" TextWrapping="Wrap" />
+    </StackPanel>
+    <TextBlock Text="{Binding Intro}" TextWrapping="Wrap" />
+    <Border Classes="warning" x:Name="LostWarning">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <controls:Icon Data="{StaticResource Icon.Alert}" Width="16" Height="16" VerticalAlignment="Top" />
+        <TextBlock Text="{x:Static res:Strings.Encrypt_LostWarning}" TextWrapping="Wrap" MaxWidth="420" FontWeight="SemiBold" />
+      </StackPanel>
+    </Border>
+    <Grid ColumnDefinitions="*,12,*">
+      <StackPanel Spacing="4">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Encrypt_Passphrase}" />
+        <TextBox x:Name="PassphraseBox" Text="{Binding Passphrase}" PasswordChar="•" RevealPassword="{Binding ShowPassphrase}"
+                 IsEnabled="{Binding !IsBusy}" AutomationProperties.Name="{x:Static res:Strings.Encrypt_Passphrase}" />
+      </StackPanel>
+      <StackPanel Grid.Column="2" Spacing="4">
+        <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Encrypt_ConfirmPassphrase}" />
+        <TextBox x:Name="ConfirmBox" Text="{Binding ConfirmPassphrase}" PasswordChar="•" RevealPassword="{Binding ShowPassphrase}"
+                 IsEnabled="{Binding !IsBusy}" AutomationProperties.Name="{x:Static res:Strings.Encrypt_ConfirmPassphrase}">
+          <TextBox.KeyBindings>
+            <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+          </TextBox.KeyBindings>
+        </TextBox>
+      </StackPanel>
+    </Grid>
+    <CheckBox x:Name="ShowPassphraseCheck" IsChecked="{Binding ShowPassphrase}" Content="{x:Static res:Strings.Encrypt_ShowPassphrase}" />
+    <StackPanel Spacing="2">
+      <CheckBox x:Name="RememberCheck" IsChecked="{Binding Remember}" IsEnabled="{Binding !IsBusy}" Content="{x:Static res:Strings.Encrypt_RememberKey}" />
+      <TextBlock Classes="secondary" Text="{Binding StoreText}" IsVisible="{Binding StoreText, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" Margin="28,0,0,0" />
+      <Border Classes="warning" IsVisible="{Binding IsWeakerStore}" Margin="28,4,0,0">
+        <TextBlock Text="{x:Static res:Strings.Encrypt_SecretStoreWeaker}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+      </Border>
+    </StackPanel>
+    <CheckBox x:Name="AcknowledgeCheck" IsChecked="{Binding Acknowledged}" IsEnabled="{Binding !IsBusy}" Content="{x:Static res:Strings.Encrypt_Acknowledge}" />
+    <TextBlock x:Name="ErrorText" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Spacing="4" IsVisible="{Binding IsBusy}">
+      <ProgressBar IsIndeterminate="True" Height="4" AutomationProperties.Name="{x:Static res:Strings.Encrypt_Encrypting}" />
+      <TextBlock Classes="secondary" Text="{x:Static res:Strings.Encrypt_Encrypting}" TextWrapping="Wrap" />
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button x:Name="CancelButton" Command="{Binding CancelCommand}" IsEnabled="{Binding !IsBusy}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="EncryptButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Encrypt_EncryptConfirm}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

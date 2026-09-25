@@ -163,7 +163,7 @@ public sealed partial class DataFileSettingsViewModel : ViewModelBase
         var path = await _files.OpenBudgetFileAsync(start);
         if (path is not null)
         {
-            await SwitchAsync(path, null);
+            await SwitchAsync(path, null, promptForPassphrase: true);
         }
     }
 
@@ -323,7 +323,11 @@ public sealed partial class DataFileSettingsViewModel : ViewModelBase
         IsBusy = true;
         try
         {
-            await Task.Run(() => _backups.RestoreAsync(zip, CancellationToken.None));
+            if (!await RestoreBackupAsync(zip))
+            {
+                return;
+            }
+
             await _sessions.OpenAsync(current.Path, new BudgetStartupOptions(Message: LedgerText.Format(Strings.DataFile_RestoredStatus, label)));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or BackupVerificationException or System.Data.Common.DbException)
@@ -336,12 +340,44 @@ public sealed partial class DataFileSettingsViewModel : ViewModelBase
         }
     }
 
-    private async Task SwitchAsync(string path, BudgetStartupOptions? options)
+    // A backup made under another passphrase (F-SET-4) asks for that passphrase; false when the user cancels.
+    private async Task<bool> RestoreBackupAsync(string zip)
+    {
+        try
+        {
+            await Task.Run(() => _backups.RestoreAsync(zip, CancellationToken.None));
+            return true;
+        }
+        catch (Keel.Application.Files.BudgetFileLockedException)
+        {
+            var restored = false;
+            var prompt = new ViewModels.Dialogs.UnlockFileViewModel(zip, async (passphrase, _) =>
+            {
+                await Task.Run(() => _backups.RestoreAsync(zip, passphrase, CancellationToken.None));
+                restored = true;
+            })
+            {
+                CanRemember = false,
+            };
+            await _dialogs.ShowAsync(prompt);
+            return restored;
+        }
+    }
+
+    private async Task SwitchAsync(string path, BudgetStartupOptions? options, bool promptForPassphrase = false)
     {
         IsBusy = true;
         try
         {
-            await _sessions.OpenAsync(path, options);
+            if (promptForPassphrase)
+            {
+                // An encrypted file asks for its passphrase here, in this shell (F-SET-4).
+                await _sessions.OpenWithPromptAsync(path, options);
+            }
+            else
+            {
+                await _sessions.OpenAsync(path, options);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

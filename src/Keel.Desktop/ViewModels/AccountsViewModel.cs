@@ -64,9 +64,11 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         ImportWorkflow import,
         RuleEditorFlow ruleEditor,
         SyncCoordinator sync,
-        Bills.ScheduledGhostsViewModel? scheduled = null)
+        Bills.ScheduledGhostsViewModel? scheduled = null,
+        StatsInstrumentation? stats = null)
     {
         Scheduled = scheduled;
+        Stats = stats;
         ArgumentNullException.ThrowIfNull(messenger);
         AttachSync(sync);
         _import = import;
@@ -93,6 +95,9 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         SelectedCategoryFilter = CategoryOption.All;
         messenger.Register(this);
     }
+
+    /// <summary>Stats page measurements (register scroll frame times, PRD 4); null in view-model-only tests.</summary>
+    public StatsInstrumentation? Stats { get; }
 
     /// <summary>Raised when the view should select and scroll to a row index.</summary>
     public event EventHandler<int>? SelectIndexRequested;
