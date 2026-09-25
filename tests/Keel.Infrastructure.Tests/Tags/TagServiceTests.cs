@@ -244,4 +244,38 @@ public sealed class TagServiceTests : IAsyncLifetime
         await _host.Undo.UndoAsync(Ct);
         (await TagsOfAsync(row.Id)).ShouldBe(["Trip"]);
     }
+
+    [Fact]
+    public async Task Imported_tags_reuse_existing_tags_so_flags_and_subscription_marks_hold()
+    {
+        // Existing tags in other spellings: Monarch's "Weekly" and "Subscription", YNAB's flag.
+        var checking = await _host.CheckingAsync("Existing");
+        await AddTaggedAsync(checking.Id, -100, "Seed", "weekly", "#SUBSCRIPTION", "flagged");
+        var existing = await Tags.GetTagsAsync(Ct);
+        var subscription = existing.Single(t => t.Name == "SUBSCRIPTION");
+        var recurring = _host.Get<IRecurringService>();
+        await recurring.SetSubscriptionDesignationsAsync(new SubscriptionDesignations([], [subscription.Id]), Ct);
+
+        var migration = _host.Get<Keel.Application.Import.IMigrationImportService>();
+        foreach (var (fixture, accounts) in new[]
+        {
+            ("monarch-transactions.csv", new[] { ("Joint Checking (...1234)", Keel.Domain.AccountType.Checking), ("Rewards Card (...9876)", Keel.Domain.AccountType.CreditCard) }),
+            ("ynab-register.csv", new[] { ("Checking", Keel.Domain.AccountType.Checking), ("Savings", Keel.Domain.AccountType.Savings), ("Visa Card", Keel.Domain.AccountType.CreditCard) }),
+        })
+        {
+            var parsed = await Keel.Infrastructure.Tests.Import.Migration.MigrationFixtureTests.ParseAsync(fixture);
+            (await migration.PlanAsync(parsed, Ct)).NewTags.ShouldNotContain(t => t.Equals("weekly", StringComparison.OrdinalIgnoreCase) || t.Equals("flagged", StringComparison.OrdinalIgnoreCase));
+            await migration.ImportAsync(new Keel.Application.Import.MigrationRequest(parsed, "USD",
+                accounts.Select(a => Keel.Application.Import.MigrationAccountChoice.Create(a.Item1, a.Item1, a.Item2)).ToList()), Ct);
+        }
+
+        var after = await Tags.ListAsync(Ct);
+        after.Where(t => t.Name.Equals("weekly", StringComparison.OrdinalIgnoreCase)).ShouldHaveSingleItem().Name.ShouldBe("weekly", "an existing tag keeps its spelling");
+        var flagged = after.Where(t => t.IsReserved).ShouldHaveSingleItem();
+        flagged.TransactionCount.ShouldBeGreaterThan(1, "the YNAB flag joins the existing Flagged tag");
+        var marked = after.Where(t => t.Name.Equals("subscription", StringComparison.OrdinalIgnoreCase)).ShouldHaveSingleItem();
+        marked.Id.ShouldBe(subscription.Id);
+        marked.IsSubscriptionTag.ShouldBeTrue();
+        marked.TransactionCount.ShouldBeGreaterThan(1);
+    }
 }

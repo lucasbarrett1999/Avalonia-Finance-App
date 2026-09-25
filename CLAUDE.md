@@ -95,6 +95,12 @@ pwsh build/package.ps1 -Rid win-x64,win-arm64
 actionlint .github/workflows/*.yml
 # App icons (checked in): regenerate from Assets/keel-icon.svg only when the design changes
 dotnet run build/icons/generate-icons.cs
+# M9d: CSV export, JSON bundle round trip (and its 100k timing line), YNAB/Monarch importers, UI flows
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Portability|FullyQualifiedName~Import.Migration"
+dotnet test tests/Keel.Infrastructure.Tests --filter BundleTimingTests --logger "console;verbosity=detailed"
+KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter MigrationFixtureTests
+dotnet test tests/Keel.Desktop.Tests --filter "PortabilityTests|PortabilityRenderingTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter PortabilityRenderingTests
 # M9c tags, attachments, payee merge: services on real SQLite, headless flows, audits, screenshots
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Tags|FullyQualifiedName~Tests.Attachments|FullyQualifiedName~PayeeMerge"
 dotnet test tests/Keel.Desktop.Tests --filter "TagsAttachmentsTests|FullyQualifiedName~AccessibilityTests.Tags|FullyQualifiedName~HighDpiRenderingTests.Tags"
@@ -313,6 +319,30 @@ docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs),
        nine guides incl. bank-sync.md), qa-checklist.md (run before each tag), images/ (README screenshots).
 .github/workflows/ci.yml       Build+test on windows/macos/ubuntu, format check, vulnerable-package scan, packaging dry run.
 .github/workflows/release.yml  On v* tags: version check, tests, packages on all three OSes, one GitHub release.
+M9d export, bundle import, YNAB/Monarch importers (F-REP-6, PRD 9.10; ADR 0098-0100):
+  Keel.Application/Portability/  IDataExportService (CsvExportFiles, CsvExportResult), IBundleImportService,
+                              BundleFormat ("keel-export" v1), BundleInfo, BundleImportResult, BundleException(BundleError).
+  Keel.Application/Import/    IMigrationImportService (+ MigrationPlan/Request/Summary, BudgetImportSummary);
+                              ImportFileFormat Ynab/YnabBudget/Monarch, ParseResult.BudgetRows/IsMigration;
+                              IncomingTransaction.Status/IsApproved/Tags (defaults keep the old behaviour).
+  Keel.Infrastructure/Portability/  DataExportService (CSV files + bundle from one ReadSnapshot), CsvTables (column
+                              order is the contract), BundleSchema (model-driven tables, AuditEvent and audit-derived
+                              Setting keys excluded, value codec), JsonTokenStream (streaming reader), BundleImportService,
+                              BulkTableWriter (prepared upsert + audit rows).
+  Keel.Infrastructure/Import/ Ynab/ (YnabRegisterParser, YnabBudgetParser), Monarch/ (MonarchImportParser,
+                              MonarchCategories), AppExportTable (header-named columns), Migration/
+                              (MigrationImportService, MigrationRows, CategoryCatalog). ImportService.ImportCoreAsync is
+                              internal static (several batches per unit of work); LedgerWriter.DryRunAsync rolls back.
+  Keel.Desktop/               ViewModels/Portability/ (PortabilitySettingsViewModel in Settings → General, ExportDialog,
+                              BundleImportDialog, MigrationDialog + rows, BudgetImportDialog, MigrationWorkflow,
+                              PortabilityText) + Views/Portability/; FirstRunViewModel.Portability (restore a bundle
+                              inline, import from YNAB/Monarch); Services/PortabilityDialogs (IPortabilityDialogs);
+                              ImportWorkflow hands YNAB/Monarch files to MigrationWorkflow.
+  Tests:                      Infrastructure Portability/ (PortabilityKit: every PRD 6.2 table + stored-value table
+                              hashes; CsvExportTests; BundleRoundTripTests; BundleTimingTests in TimingCollection) and
+                              Import/Migration/ (fixtures in Import/Fixtures/Migration with .expected.json); Desktop
+                              PortabilityTests (FakePortabilityDialogs, MigrationSamples), PortabilityRenderingTests
+                              (PortabilityScenes), new methods in AccessibilityTests and HighDpiRenderingTests.
 M9c tags, attachments and payee merge (F-TXN-8, F-TXN-9; ADR 0096, 0097):
   Keel.Domain/Ledger/TagNames   Clean (trim, one leading '#', 100 chars), case-insensitive Same, reserved "Flagged".
                               SearchQuery gains has:tag / has:attachment; free words also match tag names.

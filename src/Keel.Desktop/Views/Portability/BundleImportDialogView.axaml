@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Portability"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Portability.BundleImportDialogView"
+             x:DataType="vm:BundleImportDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" MaxWidth="560">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Bundle_Intro}" TextWrapping="Wrap" />
+    <Border Classes="card">
+      <StackPanel Spacing="4">
+        <TextBlock x:Name="BundleSource" Text="{Binding SourceText}" TextWrapping="Wrap" FontWeight="SemiBold" />
+        <TextBlock x:Name="BundleCounts" Classes="secondary" Text="{Binding CountsText}" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Bundle_NewFile}" />
+    <TextBox x:Name="BundleFileNameBox" Text="{Binding FileName}" AutomationProperties.Name="{x:Static res:Strings.Bundle_NewFile}">
+      <TextBox.KeyBindings>
+        <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}" />
+      </TextBox.KeyBindings>
+    </TextBox>
+    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" TextWrapping="Wrap">
+      <Run Text="{x:Static res:Strings.Bundle_CreatedAt}" />
+      <Run Text=" " />
+      <Run Text="{Binding NewFilePath}" />
+    </TextBlock>
+    <Button x:Name="BundleLocationButton" Command="{Binding ChooseLocationCommand}" Content="{x:Static res:Strings.Bundle_ChooseLocation}" />
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" AutomationProperties.Name="{x:Static res:Strings.Bundle_Working}" />
+    <TextBlock x:Name="BundleError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="BundleConfirmButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Bundle_Confirm}" IsEnabled="{Binding !IsBusy}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

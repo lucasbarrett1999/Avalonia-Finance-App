@@ -80,6 +80,9 @@ public static class DependencyInjection
         services.AddSingleton<IDataFileMaintenance, DataFileMaintenance>();
         services.AddSingleton<Keel.Application.Setup.ISetupProgressService, Keel.Infrastructure.Setup.SetupProgressService>();
         services.AddSingleton<Keel.Application.Tags.ITagService, Keel.Infrastructure.Tags.TagService>();
+        services.AddSingleton<IMigrationImportService, Keel.Infrastructure.Import.Migration.MigrationImportService>();
+        services.AddSingleton<Keel.Application.Portability.IDataExportService, Keel.Infrastructure.Portability.DataExportService>();
+        services.AddSingleton<Keel.Application.Portability.IBundleImportService, Keel.Infrastructure.Portability.BundleImportService>();
         services.AddSingleton<Keel.Application.Attachments.IAttachmentService, Keel.Infrastructure.Attachments.AttachmentService>();
         return services;
     }

@@ -226,6 +226,43 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
     }
 
     [AvaloniaFact]
+    public async Task Export_bundle_and_migration_dialogs_are_named_and_readable_in_both_themes()
+    {
+        await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(300, Seed: 8, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var problems = new List<string>();
+        var scenes = await PortabilityScenes.DialogsAsync(_host, shell, Path.Combine(_host.Root, "exports"));
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            foreach (var (name, open) in scenes)
+            {
+                var showing = open();
+                await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, name + " shown");
+                await SettleAsync();
+                problems.AddRange(AccessibilityAudit.UnnamedControls(window, $"{name}/{theme}"));
+                problems.AddRange(AccessibilityAudit.LowContrastText(window, $"{name}/{theme}"));
+                problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, $"{name}/{theme}"));
+                shell.Dialogs.Current!.CancelCommand.Execute(null);
+                await showing;
+            }
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
     public async Task Tags_attachments_and_payee_merge_are_named_and_readable_in_both_themes()
     {
         var ledger = await TagTestLedger.CreateAsync(_host);

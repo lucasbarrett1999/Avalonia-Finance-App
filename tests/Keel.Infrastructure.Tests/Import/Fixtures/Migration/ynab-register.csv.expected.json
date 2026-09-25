@@ -1,0 +1,204 @@
+{
+  "format": "Ynab",
+  "encoding": "utf-8",
+  "accounts": [
+    {
+      "accountId": "Checking",
+      "name": "Checking"
+    },
+    {
+      "accountId": "Savings",
+      "name": "Savings"
+    },
+    {
+      "accountId": "Visa Card",
+      "name": "Visa Card"
+    }
+  ],
+  "transactions": [
+    {
+      "date": "2026-01-02",
+      "amount": 250000,
+      "payeeRaw": "Starting Balance",
+      "currency": "USD",
+      "category": "Inflow: Ready to Assign",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Category Group": "Inflow",
+        "Category": "Ready to Assign",
+        "Cleared": "Reconciled"
+      },
+      "sourceIndex": 0,
+      "sourceLine": 2
+    },
+    {
+      "date": "2026-01-03",
+      "amount": -8412,
+      "payeeRaw": "Corner Grocer",
+      "memo": "weekly shop",
+      "currency": "USD",
+      "category": "Everyday: Groceries",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Category Group": "Everyday",
+        "Category": "Groceries",
+        "Cleared": "Reconciled"
+      },
+      "sourceIndex": 1,
+      "sourceLine": 3
+    },
+    {
+      "date": "2026-01-05",
+      "amount": -6140,
+      "payeeRaw": "City Power",
+      "currency": "USD",
+      "category": "Bills: Electric",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Flag": "Red",
+        "Category Group": "Bills",
+        "Category": "Electric",
+        "Cleared": "Cleared"
+      },
+      "sourceIndex": 2,
+      "sourceLine": 4
+    },
+    {
+      "date": "2026-01-07",
+      "amount": -20000,
+      "payeeRaw": "Transfer : Savings",
+      "currency": "USD",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Cleared": "Cleared"
+      },
+      "sourceIndex": 3,
+      "sourceLine": 5
+    },
+    {
+      "date": "2026-01-02",
+      "amount": 100000,
+      "payeeRaw": "Starting Balance",
+      "currency": "USD",
+      "category": "Inflow: Ready to Assign",
+      "sourceAccountId": "Savings",
+      "extras": {
+        "Category Group": "Inflow",
+        "Category": "Ready to Assign",
+        "Cleared": "Reconciled"
+      },
+      "sourceIndex": 4,
+      "sourceLine": 6
+    },
+    {
+      "date": "2026-01-07",
+      "amount": 20000,
+      "payeeRaw": "Transfer : Checking",
+      "currency": "USD",
+      "sourceAccountId": "Savings",
+      "extras": {
+        "Cleared": "Cleared"
+      },
+      "sourceIndex": 5,
+      "sourceLine": 7
+    },
+    {
+      "date": "2026-01-02",
+      "amount": -35000,
+      "payeeRaw": "Starting Balance",
+      "currency": "USD",
+      "sourceAccountId": "Visa Card",
+      "extras": {
+        "Cleared": "Reconciled"
+      },
+      "sourceIndex": 6,
+      "sourceLine": 8
+    },
+    {
+      "date": "2026-01-10",
+      "amount": -1230,
+      "payeeRaw": "Bean There Cafe",
+      "currency": "USD",
+      "category": "Everyday: Dining Out",
+      "sourceAccountId": "Visa Card",
+      "extras": {
+        "Category Group": "Everyday",
+        "Category": "Dining Out",
+        "Cleared": "Uncleared"
+      },
+      "sourceIndex": 7,
+      "sourceLine": 9
+    },
+    {
+      "date": "2026-01-15",
+      "amount": -35000,
+      "payeeRaw": "Transfer : Visa Card",
+      "currency": "USD",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Cleared": "Cleared"
+      },
+      "sourceIndex": 8,
+      "sourceLine": 10
+    },
+    {
+      "date": "2026-01-15",
+      "amount": 35000,
+      "payeeRaw": "Transfer : Checking",
+      "currency": "USD",
+      "sourceAccountId": "Visa Card",
+      "extras": {
+        "Cleared": "Cleared"
+      },
+      "sourceIndex": 9,
+      "sourceLine": 11
+    },
+    {
+      "date": "2026-01-16",
+      "amount": 185000,
+      "payeeRaw": "Acme Payroll",
+      "currency": "USD",
+      "category": "Inflow: Ready to Assign",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Category Group": "Inflow",
+        "Category": "Ready to Assign",
+        "Cleared": "Cleared"
+      },
+      "sourceIndex": 10,
+      "sourceLine": 12
+    },
+    {
+      "date": "2026-01-18",
+      "amount": -4000,
+      "payeeRaw": "Hardware Barn",
+      "memo": "Split (1/2) paint",
+      "currency": "USD",
+      "category": "Home: Repairs",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Category Group": "Home",
+        "Category": "Repairs",
+        "Cleared": "Uncleared"
+      },
+      "sourceIndex": 11,
+      "sourceLine": 13
+    },
+    {
+      "date": "2026-01-18",
+      "amount": -999,
+      "payeeRaw": "Hardware Barn",
+      "memo": "Split (2/2) bulbs",
+      "currency": "USD",
+      "category": "Everyday: Household",
+      "sourceAccountId": "Checking",
+      "extras": {
+        "Category Group": "Everyday",
+        "Category": "Household",
+        "Cleared": "Uncleared"
+      },
+      "sourceIndex": 12,
+      "sourceLine": 14
+    }
+  ]
+}

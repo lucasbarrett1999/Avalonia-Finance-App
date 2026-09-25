@@ -17,7 +17,8 @@ them. Rules name tags by text in their JSON (`TagCondition`, `AddTagAction`).
 - **Names.** `TagNames.Clean` trims, collapses whitespace, drops one leading `#` and cuts to the 100-character
   column. Tags compare case-insensitively everywhere (in code, because SQLite's `UPPER` is ASCII-only and
   the unique index on `Tag.Name` is case-sensitive); an existing tag keeps its first spelling. All tag writes
-  (editor, rules) go through `TagService.GetOrAddAsync`/`SetTransactionTagsAsync`.
+  (editor, rules, imported tags such as a YNAB flag or Monarch's Tags column) go through
+  `TagService.GetOrAddAsync`/`SetTransactionTagsAsync`.
 - **Editing.** `SaveTransactionRequest.Tags` is the transaction's tag list after the save (null keeps the
   tags). New names become tags inside the same `LedgerWriter` action as the transaction, so one undo removes
   the tag it created. Tags belong to one side of a transfer. The editor's tag box adds on Enter (the

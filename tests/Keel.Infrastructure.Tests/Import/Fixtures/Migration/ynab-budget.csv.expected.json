@@ -1,0 +1,79 @@
+{
+  "format": "YnabBudget",
+  "encoding": "utf-8",
+  "transactions": [],
+  "budgetRows": [
+    {
+      "month": "2026-01-01",
+      "group": "Inflow",
+      "category": "Ready to Assign",
+      "assigned": 0,
+      "activity": 435000,
+      "available": 0,
+      "sourceLine": 2
+    },
+    {
+      "month": "2026-01-01",
+      "group": "Credit Card Payments",
+      "category": "Visa Card",
+      "assigned": 0,
+      "activity": 1230,
+      "available": 1230,
+      "sourceLine": 3
+    },
+    {
+      "month": "2026-01-01",
+      "group": "Everyday",
+      "category": "Groceries",
+      "assigned": 40000,
+      "activity": -8412,
+      "available": 31588,
+      "sourceLine": 4
+    },
+    {
+      "month": "2026-01-01",
+      "group": "Everyday",
+      "category": "Dining Out",
+      "assigned": 10000,
+      "activity": -1230,
+      "available": 8770,
+      "sourceLine": 5
+    },
+    {
+      "month": "2026-01-01",
+      "group": "Bills",
+      "category": "Electric",
+      "assigned": 7000,
+      "activity": -6140,
+      "available": 860,
+      "sourceLine": 6
+    },
+    {
+      "month": "2026-02-01",
+      "group": "Everyday",
+      "category": "Groceries",
+      "assigned": 45000,
+      "activity": 0,
+      "available": 76588,
+      "sourceLine": 7
+    },
+    {
+      "month": "2026-02-01",
+      "group": "Bills",
+      "category": "Electric",
+      "assigned": 7000,
+      "activity": 0,
+      "available": 7860,
+      "sourceLine": 8
+    },
+    {
+      "month": "2026-02-01",
+      "group": "Fun",
+      "category": "Concerts",
+      "assigned": 2500,
+      "activity": 0,
+      "available": 2500,
+      "sourceLine": 9
+    }
+  ]
+}

@@ -7,14 +7,16 @@ needs no account; bank sync is optional.
 1. [Getting started](getting-started.md): install, the first-run setup, your first month.
 2. [Budgeting in Keel](budgeting.md): Ready to Assign, Assigned, Activity, Available, credit cards,
    targets, moving money.
-3. [Importing files](importing.md): CSV, OFX, QFX and QIF, duplicates, transfers.
+3. [Importing files](importing.md): CSV, OFX, QFX and QIF, duplicates, transfers, and moving to Keel
+   from YNAB or Monarch.
 4. [Review and rules](review-and-rules.md): approving new transactions, suggestions, rules, payees.
 5. [Bills and scheduling](bills-and-scheduling.md): recurring bills and subscriptions, alerts,
    scheduled transactions, the forecast.
 6. [Reports and goals](reports-and-goals.md): spending, income vs expense, net worth, forecast, goals.
 7. [Bank sync](bank-sync.md): Plaid and SimpleFIN with your own keys.
 8. [Backups and the data file](backups-and-data.md): where your data is, backups, restore, moving
-   the file, the integrity check, diagnostics, privacy.
+   the file, export to CSV or a Keel bundle and importing a bundle, the integrity check, diagnostics,
+   privacy.
 9. [Keyboard shortcuts](keyboard-shortcuts.md) and the command palette.
 10. [Transactions, tags and attachments](transactions.md): the register, search, tags, receipts.
 

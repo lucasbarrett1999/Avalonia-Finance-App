@@ -124,6 +124,9 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
             list.Add(Cmd("quit", Strings.Shortcut_Quit, file, Quit));
         }
 
+        list.Add(Cmd("export-data", Strings.Export_Command, file, () => _ = Portability().ExportAsync()));
+        list.Add(Cmd("import-bundle", Strings.Bundle_Command, file, () => _ = Portability().ImportBundleAsync()));
+        list.Add(Cmd("import-ynab-monarch", Strings.Ynab_Command, file, () => _ = Portability().ImportFromAppAsync()));
         return list;
     }
 
@@ -205,6 +208,8 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
     private DataFileSettingsViewModel DataFile() => services.GetRequiredService<DataFileSettingsViewModel>();
 
     private AppearanceSettingsViewModel Appearance() => services.GetRequiredService<AppearanceSettingsViewModel>();
+
+    private Keel.Desktop.ViewModels.Portability.PortabilitySettingsViewModel Portability() => services.GetRequiredService<Keel.Desktop.ViewModels.Portability.PortabilitySettingsViewModel>();
 
     private static void Run(System.Windows.Input.ICommand command)
     {

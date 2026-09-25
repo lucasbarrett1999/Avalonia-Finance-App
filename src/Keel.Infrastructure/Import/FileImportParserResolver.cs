@@ -1,14 +1,17 @@
 using Keel.Application.Import;
 using Keel.Infrastructure.Import.Csv;
+using Keel.Infrastructure.Import.Monarch;
 using Keel.Infrastructure.Import.Ofx;
 using Keel.Infrastructure.Import.Qif;
+using Keel.Infrastructure.Import.Ynab;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Keel.Infrastructure.Import;
 
 /// <summary>
-/// Picks a parser by content first and extension second: OFX/QFX, then QIF, then CSV (which
-/// accepts any delimited text, so it goes last).
+/// Picks a parser by content first and extension second: OFX/QFX, then QIF, then the app exports
+/// recognized by their header (YNAB register and budget, Monarch; M9), then CSV (which accepts any
+/// delimited text, so it goes last).
 /// </summary>
 public sealed class FileImportParserResolver(IEnumerable<IFileImportParser> parsers) : IFileImportParserResolver
 {
@@ -16,9 +19,9 @@ public sealed class FileImportParserResolver(IEnumerable<IFileImportParser> pars
         .OrderBy(p => p switch { OfxImportParser => 0, QifImportParser => 1, CsvImportParser => 3, _ => 2 })
         .ToList();
 
-    /// <summary>A resolver over the three built-in parsers.</summary>
+    /// <summary>A resolver over the built-in parsers.</summary>
     public FileImportParserResolver()
-        : this([new OfxImportParser(), new QifImportParser(), new CsvImportParser()])
+        : this([new OfxImportParser(), new QifImportParser(), new CsvImportParser(), new YnabRegisterParser(), new YnabBudgetParser(), new MonarchImportParser()])
     {
     }
 
@@ -51,13 +54,16 @@ public sealed class FileImportParserResolver(IEnumerable<IFileImportParser> pars
 /// <summary>DI registration for the file import parsers.</summary>
 public static class ImportParsersServiceCollectionExtensions
 {
-    /// <summary>Registers the OFX/QFX, QIF and CSV parsers and the resolver as singletons.</summary>
+    /// <summary>Registers the OFX/QFX, QIF, CSV, YNAB and Monarch parsers and the resolver as singletons.</summary>
     public static IServiceCollection AddKeelFileImportParsers(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<IFileImportParser, OfxImportParser>();
         services.AddSingleton<IFileImportParser, QifImportParser>();
         services.AddSingleton<IFileImportParser, CsvImportParser>();
+        services.AddSingleton<IFileImportParser, YnabRegisterParser>();
+        services.AddSingleton<IFileImportParser, YnabBudgetParser>();
+        services.AddSingleton<IFileImportParser, MonarchImportParser>();
         services.AddSingleton<IFileImportParserResolver>(sp => new FileImportParserResolver(sp.GetServices<IFileImportParser>()));
         return services;
     }

@@ -197,4 +197,22 @@ public sealed class AttachmentServiceTests : IAsyncLifetime
         var movedFolder = _host.Get<IDataDirectory>().AttachmentsDirectoryFor(destination);
         File.ReadAllText(Path.Combine(movedFolder, added.Sha256)).ShouldBe("moved");
     }
+
+    [Fact]
+    public async Task An_export_bundle_carries_the_attachment_files_into_the_new_file()
+    {
+        var txn = await TransactionAsync();
+        var added = await Attachments.AddAsync(txn.Id, await SourceAsync("receipt.pdf", "bundled"), Ct);
+        var bundle = _sources.File("export.json");
+        await _host.Get<Keel.Application.Portability.IDataExportService>().ExportBundleAsync(bundle, Ct);
+
+        var target = _sources.File("Restored.keel");
+        var result = await _host.Get<Keel.Application.Portability.IBundleImportService>().ImportIntoNewFileAsync(bundle, target, Ct);
+
+        result.AttachmentFiles.ShouldBe(1);
+        var folder = _host.Get<IDataDirectory>().AttachmentsDirectoryFor(target);
+        File.ReadAllText(Path.Combine(folder, added.Sha256)).ShouldBe("bundled", "the hash-named file lands where the new file's rows look for it");
+        await using var db = Keel.Infrastructure.Persistence.KeelDbContextFactory.CreateForFile(target);
+        (await db.Attachments.SingleAsync()).Sha256.ShouldBe(added.Sha256);
+    }
 }
