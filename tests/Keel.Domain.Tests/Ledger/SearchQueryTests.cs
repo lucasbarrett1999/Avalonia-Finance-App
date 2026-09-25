@@ -73,3 +73,30 @@ public class SearchQueryTests
         q.Memos.ShouldBe(["rent"]);
     }
 }
+
+public class SearchQueryHasTests
+{
+    [Theory]
+    [InlineData("has:tag", true, false)]
+    [InlineData("has:tags", true, false)]
+    [InlineData("has:attachment", false, true)]
+    [InlineData("HAS:Receipt", false, true)]
+    [InlineData("has:tag has:attachment", true, true)]
+    public void Parses_has_filters(string text, bool hasTag, bool hasAttachment)
+    {
+        var q = SearchQuery.Parse(text);
+        q.HasTag.ShouldBe(hasTag);
+        q.HasAttachment.ShouldBe(hasAttachment);
+        q.IsEmpty.ShouldBeFalse();
+        q.Errors.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Unknown_has_values_are_errors_and_tag_keys_are_collected()
+    {
+        var q = SearchQuery.Parse("has:nothing tag:\"tax 2026\" tag:trip");
+        q.Errors.ShouldBe(["has:nothing"]);
+        q.HasTag.ShouldBeFalse();
+        q.Tags.ShouldBe(["tax 2026", "trip"]);
+    }
+}

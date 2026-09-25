@@ -58,11 +58,14 @@ public sealed class RegisterQuery(IDbContextFactory<KeelDbContext> factory) : IR
 
                 var balances = await RunningBalancesAsync(connection, filter.AccountId, rows, ct).ConfigureAwait(false);
                 var splits = await SplitsAsync(connection, rows, ct).ConfigureAwait(false);
+                var (tags, attachments) = await TagsAndAttachmentsAsync(connection, rows, ct).ConfigureAwait(false);
                 IReadOnlyList<RegisterRow> page = rows
                     .Select(r => r with
                     {
                         RunningBalance = balances.GetValueOrDefault(r.Id),
                         Splits = splits.TryGetValue(r.Id, out var lines) ? lines : [],
+                        Tags = tags.TryGetValue(r.Id, out var names) ? names : [],
+                        AttachmentCount = attachments.GetValueOrDefault(r.Id),
                     })
                     .ToList();
                 return page;
@@ -319,6 +322,56 @@ public sealed class RegisterQuery(IDbContextFactory<KeelDbContext> factory) : IR
         return result.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<RegisterSplit>)kv.Value);
     }
 
+    // Tag names (sorted) and attachment counts of the page rows (F-TXN-8), in two bounded queries.
+    private static async Task<(Dictionary<Guid, IReadOnlyList<string>> Tags, Dictionary<Guid, int> Attachments)> TagsAndAttachmentsAsync(
+        DbConnection connection, IReadOnlyList<RegisterRow> rows, CancellationToken ct)
+    {
+        using var command = connection.CreateCommand();
+        var names = new List<string>(rows.Count);
+        for (var i = 0; i < rows.Count; i++)
+        {
+            names.Add("@p" + i.ToString(CultureInfo.InvariantCulture));
+            Add(command, names[^1], Key(rows[i].Id));
+        }
+
+        var ids = string.Join(", ", names);
+        command.CommandText = $"""
+            SELECT tt."TransactionId", g."Name"
+            FROM "TransactionTags" AS tt JOIN "Tags" AS g ON g."Id" = tt."TagId"
+            WHERE tt."TransactionId" IN ({ids})
+            """;
+        var tags = new Dictionary<Guid, List<string>>();
+        using (var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                var id = reader.GetGuid(0);
+                if (!tags.TryGetValue(id, out var list))
+                {
+                    tags[id] = list = [];
+                }
+
+                list.Add(reader.GetString(1));
+            }
+        }
+
+        command.CommandText = $"""
+            SELECT "TransactionId", COUNT(*) FROM "Attachments" WHERE "TransactionId" IN ({ids}) GROUP BY "TransactionId"
+            """;
+        var attachments = new Dictionary<Guid, int>();
+        using (var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                attachments[reader.GetGuid(0)] = reader.GetInt32(1);
+            }
+        }
+
+        return (
+            tags.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)kv.Value.Order(StringComparer.CurrentCultureIgnoreCase).ToList()),
+            attachments);
+    }
+
     private static string OrderBy(RegisterSort sort)
     {
         var dir = sort.Descending ? "DESC" : "ASC";
@@ -383,6 +436,22 @@ public sealed class RegisterQuery(IDbContextFactory<KeelDbContext> factory) : IR
             where.Append(""" AND t."IsApproved" = 0""");
         }
 
+        if (filter.TagId is { } tagId)
+        {
+            Add(command, "@tag", Key(tagId));
+            where.Append(""" AND EXISTS (SELECT 1 FROM "TransactionTags" AS ft WHERE ft."TransactionId" = t."Id" AND ft."TagId" = @tag)""");
+        }
+
+        if (search.HasTag)
+        {
+            where.Append(""" AND EXISTS (SELECT 1 FROM "TransactionTags" AS ht WHERE ht."TransactionId" = t."Id")""");
+        }
+
+        if (search.HasAttachment)
+        {
+            where.Append(""" AND EXISTS (SELECT 1 FROM "Attachments" AS ha WHERE ha."TransactionId" = t."Id")""");
+        }
+
         var counter = 0;
         string Like(string value)
         {
@@ -400,6 +469,8 @@ public sealed class RegisterQuery(IDbContextFactory<KeelDbContext> factory) : IR
                 OR c."Name" LIKE {q} ESCAPE '\' OR a."Name" LIKE {q} ESCAPE '\' OR ta."Name" LIKE {q} ESCAPE '\'
                 OR EXISTS (SELECT 1 FROM "TransactionSplits" AS s LEFT JOIN "Categories" AS sc ON sc."Id" = s."CategoryId"
                            WHERE s."TransactionId" = t."Id" AND (s."Memo" LIKE {q} ESCAPE '\' OR sc."Name" LIKE {q} ESCAPE '\'))
+                OR EXISTS (SELECT 1 FROM "TransactionTags" AS wt JOIN "Tags" AS wg ON wg."Id" = wt."TagId"
+                           WHERE wt."TransactionId" = t."Id" AND wg."Name" LIKE {q} ESCAPE '\')
                 """);
             if (decimal.TryParse(term.TrimStart('$'), NumberStyles.Number, CultureInfo.InvariantCulture, out var number))
             {

@@ -33,6 +33,7 @@ public interface IRegisterQuery
 /// <param name="CategoryId">Only rows (or splits) in this category.</param>
 /// <param name="UnapprovedOnly">Only unapproved rows.</param>
 /// <param name="Search">Search text in the F-TXN-7 query syntax.</param>
+/// <param name="TagId">Only rows with this tag (F-TXN-8).</param>
 public sealed record RegisterFilter(
     Guid? AccountId = null,
     DateOnly? From = null,
@@ -40,7 +41,8 @@ public sealed record RegisterFilter(
     IReadOnlyCollection<TransactionStatus>? Statuses = null,
     Guid? CategoryId = null,
     bool UnapprovedOnly = false,
-    string? Search = null);
+    string? Search = null,
+    Guid? TagId = null);
 
 /// <summary>Sortable register columns.</summary>
 public enum RegisterSortColumn
@@ -104,6 +106,12 @@ public sealed record RegisterRow(
 
     /// <summary>Whether the row is split.</summary>
     public bool IsSplit => Splits.Count > 0;
+
+    /// <summary>Tag names by name (F-TXN-8).</summary>
+    public IReadOnlyList<string> Tags { get; init; } = [];
+
+    /// <summary>Number of attached files (F-TXN-8).</summary>
+    public int AttachmentCount { get; init; }
 }
 
 /// <summary>A split line of a register row.</summary>
