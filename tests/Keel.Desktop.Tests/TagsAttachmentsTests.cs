@@ -134,6 +134,7 @@ public sealed class TagsAttachmentsTests : IDisposable
         attachments.Items.ShouldBeEmpty();
 
         _files.ToPick.Add(ledger.File("boarding-pass.png", "png bytes"));
+        await UiTestHelpers.WaitUntilAsync(() => view.FindNamed<Button>("EditorAttach") is not null, "attach button realized");
         view.Named<Button>("EditorAttach").Command!.Execute(null);
         await UiTestHelpers.WaitUntilAsync(() => attachments.Items.Count == 1, "attached");
         await attachments.Working;
