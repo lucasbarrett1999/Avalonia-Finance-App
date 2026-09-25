@@ -139,58 +139,86 @@ public sealed class BudgetService(IDbContextFactory<KeelDbContext> contextFactor
     }
 
     /// <inheritdoc />
-    public async Task SetTargetAsync(TargetDto target, CancellationToken ct)
+    public Task SetTargetAsync(TargetDto target, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(target);
-        if (target.Amount <= 0)
+        return SetTargetsAsync([target], ct);
+    }
+
+    /// <inheritdoc />
+    public async Task SetTargetsAsync(IReadOnlyList<TargetDto> targets, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(targets);
+        foreach (var target in targets)
         {
-            throw new ArgumentOutOfRangeException(nameof(target), target.Amount, "A target amount must be positive.");
+            ArgumentNullException.ThrowIfNull(target, nameof(targets));
+            if (target.Amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(targets), target.Amount, "A target amount must be positive.");
+            }
+
+            if (target.Type == TargetType.SavingsBalanceByDate && target.TargetDate is null)
+            {
+                throw new ArgumentException("A savings-balance target needs a target date.", nameof(targets));
+            }
         }
 
-        if (target.Type == TargetType.SavingsBalanceByDate && target.TargetDate is null)
+        if (targets.Select(t => t.CategoryId).Distinct().Count() != targets.Count)
         {
-            throw new ArgumentException("A savings-balance target needs a target date.", nameof(target));
+            throw new ArgumentException("A category can have only one target.", nameof(targets));
         }
 
+        var changed = false;
         var db = contextFactory.CreateDbContext();
         await using (db.ConfigureAwait(false))
         {
-            await RequireAssignableAsync(db, target.CategoryId, ct).ConfigureAwait(false);
-            if (target.Type == TargetType.DebtPayment)
+            foreach (var target in targets)
             {
-                var account = target.LinkedAccountId is { } linked
-                    ? await db.Accounts.AsNoTracking().SingleOrDefaultAsync(a => a.Id == linked, ct).ConfigureAwait(false)
-                    : null;
-                if (account is null || !AccountTypeInfo.IsLiability(account.Type))
+                await RequireAssignableAsync(db, target.CategoryId, ct).ConfigureAwait(false);
+                if (target.Type == TargetType.DebtPayment)
                 {
-                    throw new ArgumentException("A debt-payment target needs a linked loan or credit account.", nameof(target));
+                    var account = target.LinkedAccountId is { } linked
+                        ? await db.Accounts.AsNoTracking().SingleOrDefaultAsync(a => a.Id == linked, ct).ConfigureAwait(false)
+                        : null;
+                    if (account is null || !AccountTypeInfo.IsLiability(account.Type))
+                    {
+                        throw new ArgumentException("A debt-payment target needs a linked loan or credit account.", nameof(targets));
+                    }
                 }
-            }
-            else if (target.LinkedAccountId is { } linked && !await db.Accounts.AnyAsync(a => a.Id == linked, ct).ConfigureAwait(false))
-            {
-                throw new ArgumentException($"Account {linked} does not exist.", nameof(target));
+                else if (target.LinkedAccountId is { } linked && !await db.Accounts.AnyAsync(a => a.Id == linked, ct).ConfigureAwait(false))
+                {
+                    throw new ArgumentException($"Account {linked} does not exist.", nameof(targets));
+                }
+
+                var row = await db.Targets.SingleOrDefaultAsync(t => t.CategoryId == target.CategoryId, ct).ConfigureAwait(false);
+                var before = row is null ? null : Serialize(ToState(row));
+                if (row is null)
+                {
+                    row = new Target { CategoryId = target.CategoryId };
+                    db.Targets.Add(row);
+                }
+
+                row.Type = target.Type;
+                row.Amount = target.Amount;
+                row.TargetDate = target.TargetDate;
+                row.LinkedAccountId = target.LinkedAccountId;
+                row.Cadence = target.Type == TargetType.SavingsBalanceByDate ? null : RecurrenceCadence.Monthly;
+                var after = Serialize(ToState(row));
+                if (before == after)
+                {
+                    continue;
+                }
+
+                Audit(db, before is null ? AuditEventKind.Created : AuditEventKind.Updated, TargetEntityType, target.CategoryId.ToString("D"), before, after);
+                changed = true;
             }
 
-            var row = await db.Targets.SingleOrDefaultAsync(t => t.CategoryId == target.CategoryId, ct).ConfigureAwait(false);
-            var before = row is null ? null : Serialize(ToState(row));
-            if (row is null)
-            {
-                row = new Target { CategoryId = target.CategoryId };
-                db.Targets.Add(row);
-            }
-
-            row.Type = target.Type;
-            row.Amount = target.Amount;
-            row.TargetDate = target.TargetDate;
-            row.LinkedAccountId = target.LinkedAccountId;
-            row.Cadence = target.Type == TargetType.SavingsBalanceByDate ? null : RecurrenceCadence.Monthly;
-            var after = Serialize(ToState(row));
-            if (before == after)
+            if (!changed)
             {
                 return;
             }
 
-            Audit(db, before is null ? AuditEventKind.Created : AuditEventKind.Updated, TargetEntityType, target.CategoryId.ToString("D"), before, after);
+            // One save, one undo entry for the whole batch.
             await SaveAndRecordAsync(db, LedgerAction.SetTarget, ct).ConfigureAwait(false);
         }
 

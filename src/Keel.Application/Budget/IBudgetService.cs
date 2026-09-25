@@ -34,6 +34,12 @@ public interface IBudgetService
     /// <summary>Creates or replaces the target of a category (F-BUD-4).</summary>
     Task SetTargetAsync(TargetDto target, CancellationToken ct);
 
+    /// <summary>
+    /// Creates or replaces several targets at once as one undoable action (the debt payoff planner's
+    /// "Set payment targets", F-GOAL-2); categories must be distinct.
+    /// </summary>
+    Task SetTargetsAsync(IReadOnlyList<TargetDto> targets, CancellationToken ct);
+
     /// <summary>Removes the target of a category (no-op when there is none).</summary>
     Task DeleteTargetAsync(Guid categoryId, CancellationToken ct);
 

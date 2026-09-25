@@ -1,8 +1,10 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Text;
+using Keel.Application.Budget;
 using Keel.Application.Reports;
 using Keel.Domain;
+using Keel.Domain.Budgeting;
 using Keel.Domain.Entities;
 using Keel.Domain.Ledger;
 using Keel.Domain.Reports;
@@ -17,10 +19,16 @@ namespace Keel.Infrastructure.Reports;
 /// through its lines only), plus small lookups of accounts, categories and snapshots. Raw SQL
 /// bypasses the soft-delete query filter, so every statement states <c>IsDeleted = 0</c>; the
 /// rules (system rows, transfers, tracking accounts, splits) are pinned by <c>ReportServiceTests</c>
-/// and explained in ADR 0060.
+/// and explained in ADR 0060. Age of money and budget health (F-REP-5) are explained in ADR 0094;
+/// budget health needs the <paramref name="budget"/> service for the month's budget numbers.
 /// </summary>
-public sealed class ReportService(IDbContextFactory<KeelDbContext> factory, TimeProvider timeProvider) : IReportService
+public sealed class ReportService(IDbContextFactory<KeelDbContext> factory, TimeProvider timeProvider, IBudgetService? budget = null) : IReportService
 {
+    /// <summary>Complete months before the health month whose spending is averaged for "months ahead".</summary>
+    public const int MonthsAheadSpendingMonths = 3;
+
+    private static readonly string CashTypes = string.Join(", ", new[] { AccountType.Checking, AccountType.Savings, AccountType.Cash }.Select(t => $"'{t}'"));
+
     /// <inheritdoc />
     public Task<SpendingReport> GetSpendingAsync(ReportQuery query, CancellationToken ct)
     {
@@ -238,6 +246,154 @@ public sealed class ReportService(IDbContextFactory<KeelDbContext> factory, Time
                 return new NetWorthReport(currency, result, series);
             },
             ct);
+    }
+
+    /// <inheritdoc />
+    public Task<AgeOfMoneyReport> GetAgeOfMoneyAsync(DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        if (to < from)
+        {
+            throw new ArgumentException("The range ends before it starts.", nameof(to));
+        }
+
+        return RunAsync((_, connection) => AgeOfMoneyAsync(connection, from, to, ct), ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<BudgetHealthReport> GetBudgetHealthAsync(DateOnly month, CancellationToken ct)
+    {
+        if (budget is null)
+        {
+            throw new InvalidOperationException("Budget health needs the budget service.");
+        }
+
+        month = BudgetMonth.Of(month);
+        var today = DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
+        var monthEnd = month.AddMonths(1).AddDays(-1);
+        var asOf = today >= month && today < monthEnd ? today : monthEnd;
+        var grid = await budget.GetMonthAsync(month, ct).ConfigureAwait(false);
+        var (spendingFrom, spendingTo, spending, months) = await RunAsync(
+            async (_, connection) =>
+            {
+                // Spending of the complete months before this one, from the first month with on-budget activity.
+                var from = month.AddMonths(-MonthsAheadSpendingMonths);
+                var to = month.AddDays(-1);
+                using (var first = connection.CreateCommand())
+                {
+                    first.CommandText = """
+                        SELECT MIN(t."Date") FROM "Transactions" AS t INNER JOIN "Accounts" AS a ON a."Id" = t."AccountId"
+                        WHERE t."IsDeleted" = 0 AND a."IsOnBudget" = 1
+                        """;
+                    if (await first.ExecuteScalarAsync(ct).ConfigureAwait(false) is string text)
+                    {
+                        var firstMonth = BudgetMonth.Of(DateOnly.ParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture));
+                        from = firstMonth > from ? firstMonth : from;
+                    }
+                }
+
+                var count = BudgetMonth.Between(from, month);
+                if (count <= 0)
+                {
+                    return (from, to, 0L, 0);
+                }
+
+                using var command = connection.CreateCommand();
+                var rows = RowSql(command, new ReportQuery(from, to), "t.\"Date\"");
+                Add(command, "@inflow", Key(SystemIds.InflowGroup));
+                command.CommandText = $"""
+                    SELECT COALESCE(SUM(x."Amount"), 0)
+                    FROM ({rows}) AS x
+                    LEFT JOIN "Categories" AS c ON c."Id" = x."CategoryId"
+                    WHERE x."CategoryId" IS NULL OR c."GroupId" <> @inflow
+                    """;
+                var total = Convert.ToInt64(await command.ExecuteScalarAsync(ct).ConfigureAwait(false), CultureInfo.InvariantCulture);
+                return (from, to, -total, count);
+            },
+            ct).ConfigureAwait(false);
+        var ageOfMoney = await GetAgeOfMoneyAsync(month.AddMonths(-11), monthEnd, ct).ConfigureAwait(false);
+
+        var visible = grid.Groups.Where(g => !g.IsHidden).SelectMany(g => g.Categories).Where(c => !c.IsHidden).ToList();
+        var buffer = grid.ReadyToAssign.Amount + grid.Groups.Where(g => !g.IsSystem).SelectMany(g => g.Categories).Sum(c => Math.Max(0, c.Available.Amount));
+        var average = months == 0 ? 0 : QuickAssign.DivideHalfEven(spending, months);
+        int? tenths = average <= 0 ? null : (int)Math.Min(int.MaxValue, Math.Max(0, buffer) * 10 / average);
+        var targets = visible.Where(c => c.Target is not null).ToList();
+        var overspent = grid.Groups.Where(g => !g.IsHidden)
+            .SelectMany(g => g.Categories.Where(c => !c.IsHidden && c.Available.Amount < 0)
+                .Select(c => new OverspentCategory(c.Id, c.Name, g.Name, c.Available.Amount, c.Overspending == OverspendingKind.Cash)))
+            .OrderBy(c => c.Available)
+            .ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        return new BudgetHealthReport(
+            grid.ReadyToAssign.Currency,
+            month,
+            asOf,
+            ageOfMoney,
+            new MonthsAheadMetric(buffer, grid.ReadyToAssign.Amount, average, spendingFrom, months == 0 ? spendingFrom : spendingTo, tenths),
+            new TargetsFundedMetric(
+                targets.Count,
+                targets.Count(c => c.Target!.Underfunded.Amount == 0),
+                targets.Sum(c => c.Target!.NeededThisMonth.Amount),
+                targets.Sum(c => c.Target!.Underfunded.Amount)),
+            overspent);
+    }
+
+    /// <summary>
+    /// Daily money in and out of on-budget cash accounts (ADR 0094): one row per day with the Σ of
+    /// positive and of negative amounts and the number of outflows. Transfers between two on-budget cash
+    /// accounts (and such split lines) move money without spending it and are left out; card payments,
+    /// transfers to tracking accounts, starting balances and adjustments count.
+    /// </summary>
+    internal static async Task<IReadOnlyList<Keel.Domain.Reports.DailyCashFlow>> DailyCashFlowAsync(DbConnection connection, DateOnly end, CancellationToken ct)
+    {
+        using var command = connection.CreateCommand();
+        Add(command, "@end", Date(end));
+        command.CommandText = $"""
+            SELECT x."Date",
+                   SUM(CASE WHEN x."Amount" > 0 THEN x."Amount" ELSE 0 END),
+                   SUM(CASE WHEN x."Amount" < 0 THEN -x."Amount" ELSE 0 END),
+                   SUM(CASE WHEN x."Amount" < 0 THEN 1 ELSE 0 END)
+            FROM (
+                SELECT t."Date" AS "Date",
+                       t."Amount" - COALESCE((
+                           SELECT SUM(s."Amount") FROM "TransactionSplits" AS s
+                           INNER JOIN "Accounts" AS sa ON sa."Id" = s."TransferAccountId"
+                           WHERE s."TransactionId" = t."Id" AND sa."IsOnBudget" = 1 AND sa."Type" IN ({CashTypes})), 0) AS "Amount"
+                FROM "Transactions" AS t
+                INNER JOIN "Accounts" AS a ON a."Id" = t."AccountId"
+                LEFT JOIN "Accounts" AS ta ON ta."Id" = t."TransferAccountId"
+                WHERE t."IsDeleted" = 0 AND t."Date" <= @end
+                  AND a."IsOnBudget" = 1 AND a."Type" IN ({CashTypes})
+                  AND NOT (ta."Id" IS NOT NULL AND ta."IsOnBudget" = 1 AND ta."Type" IN ({CashTypes}))
+            ) AS x
+            WHERE x."Amount" <> 0
+            GROUP BY x."Date"
+            ORDER BY x."Date"
+            """;
+        var days = new List<Keel.Domain.Reports.DailyCashFlow>();
+        using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            days.Add(new Keel.Domain.Reports.DailyCashFlow(
+                DateOnly.ParseExact(reader.GetString(0), "yyyy-MM-dd", CultureInfo.InvariantCulture),
+                reader.GetInt64(1),
+                reader.GetInt64(2),
+                (int)reader.GetInt64(3)));
+        }
+
+        return days;
+    }
+
+    private async Task<AgeOfMoneyReport> AgeOfMoneyAsync(DbConnection connection, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        var today = DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
+        var points = ReportPeriod.MonthEndPoints(from, to, today);
+        if (points.Count == 0)
+        {
+            return new AgeOfMoneyReport([]);
+        }
+
+        var days = await DailyCashFlowAsync(connection, points[^1], ct).ConfigureAwait(false);
+        return new AgeOfMoneyReport(Keel.Domain.Reports.AgeOfMoney.At(days, points));
     }
 
     /// <summary>

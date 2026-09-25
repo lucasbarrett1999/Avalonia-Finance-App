@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddSingleton<IDataFileMaintenance, DataFileMaintenance>();
         services.AddSingleton<Keel.Application.Setup.ISetupProgressService, Keel.Infrastructure.Setup.SetupProgressService>();
         services.AddSingleton<Keel.Application.Tags.ITagService, Keel.Infrastructure.Tags.TagService>();
+        services.AddSingleton<Keel.Application.Debt.IDebtPayoffService, Keel.Infrastructure.Debt.DebtPayoffService>();
         return services;
     }
 }

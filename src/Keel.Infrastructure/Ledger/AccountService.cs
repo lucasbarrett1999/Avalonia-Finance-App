@@ -41,6 +41,8 @@ public sealed class AccountService(IDbContextFactory<KeelDbContext> factory, Led
             throw new LedgerValidationException(LedgerError.OnBudgetNotAllowed);
         }
 
+        request.Debt?.Validate();
+
         var id = await writer.RunAsync(
             LedgerAction.CreateAccount,
             async session =>
@@ -49,6 +51,12 @@ public sealed class AccountService(IDbContextFactory<KeelDbContext> factory, Led
                 var account = Account.Create(name, request.Type, request.OpeningDate, request.Currency!);
                 account.IsOnBudget = isOnBudget;
                 account.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+                if (request.Debt is { } debt && DebtTerms.AppliesTo(request.Type))
+                {
+                    account.InterestRateBps = debt.InterestRateBps;
+                    account.MinimumPayment = debt.MinimumPayment;
+                }
+
                 account.OwnerProfileId = SystemIds.DefaultProfile;
                 account.SortOrder = await NextSortOrderAsync(db, account.Group, ct).ConfigureAwait(false);
                 db.Accounts.Add(account);
@@ -102,6 +110,7 @@ public sealed class AccountService(IDbContextFactory<KeelDbContext> factory, Led
             throw new LedgerValidationException(LedgerError.AccountNameRequired);
         }
 
+        request.Debt?.Validate();
         await writer.RunAsync(
             LedgerAction.UpdateAccount,
             async session =>
@@ -135,6 +144,12 @@ public sealed class AccountService(IDbContextFactory<KeelDbContext> factory, Led
                 }
 
                 account.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+                if (request.Debt is { } debt && DebtTerms.AppliesTo(account.Type))
+                {
+                    account.InterestRateBps = debt.InterestRateBps;
+                    account.MinimumPayment = debt.MinimumPayment;
+                }
+
                 return true;
             },
             ct).ConfigureAwait(false);
@@ -259,7 +274,9 @@ public sealed class AccountService(IDbContextFactory<KeelDbContext> factory, Led
                         a.ReportedBalance is { } reported ? new Money(reported, a.Currency) : null,
                         status,
                         a.OpeningDate,
-                        a.Notes);
+                        a.Notes,
+                        a.InterestRateBps,
+                        a.MinimumPayment);
                 })
                 .ToList();
         }
