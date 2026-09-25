@@ -3,6 +3,108 @@
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M8 — Polish, first-run, backups and packaging
+
+Milestone 8 (PRD 12): the first-run experience (PRD 9.10), data-file management and backups (F-SET-1,
+PRD 10), appearance and formats (F-SET-2), the command palette and keyboard reference (F-SET-5, PRD
+9.1), the accessibility and polish pass (PRD 8, 9.11, 11), Velopack packaging for three systems, the
+user guide, and the carried-over review-queue index and Settings → Bills. Version 1.0.0-rc.1.
+
+### Added
+
+- **Budget-file sessions** (ADR 0080): one host per open file; New, Open, Move and Restore start a
+  fresh session and move the window to it, so no screen, cache or undo entry of the previous file
+  survives; a file that cannot be opened leaves the current one running. `.keel` paths on the command
+  line open the file; single instance per data directory (lock file and local pipe): a second launch
+  brings the window forward and hands over its file; macOS document activations take the same path.
+- **First-run setup** (ADR 0084): Welcome (create with name and folder, or open existing), starter
+  template or empty, first account with balance and currency or "How bank connections work" with the
+  bank sync guide and Settings → Connections, then Budget with Ready to Assign equal to the opening
+  balance. Home's "Get started" card tracks four steps computed from the file.
+- **Settings → General** (ADR 0081): file, data, backups and logs paths; New, Open, Move budget file;
+  Back up now (verified zip in `budgets/backups`), automatic daily backups with keep-N, backups list
+  with Restore (confirmation, before-restore backup), Restore from a file; backup before migrations;
+  the daily `PRAGMA integrity_check` with a status-strip error, Check now; Copy diagnostic bundle
+  (logs and a schema-only summary).
+- **Settings → Appearance** (ADR 0082): accent (six AA-checked accents), comfortable/compact density,
+  motion (follow the OS on Linux and macOS, reduce, full), number/date/currency formats following the
+  OS or a chosen region. **Settings → Bills and subscriptions**: category groups and tags that mark
+  subscriptions. **Settings → Updates**: Velopack update check, off by default. **Settings → Keyboard
+  shortcuts** generated from the registry.
+- **Command palette** `Ctrl/⌘+K` (ADR 0085): every page, account, Settings section and action with
+  fuzzy search and shortcut hints; the `ShortcutRegistry` behind the palette, the reference and the
+  menus; new keys `Ctrl/⌘+,`, `Ctrl/⌘+O`, `Ctrl/⌘+Shift+S`, `Ctrl/⌘+1…7`, `Ctrl/⌘+Q`, page keys on
+  Bills, Goals and Reports; in-window menu bar (Windows, Linux) and the macOS native menu with About
+  and Preferences in the app menu; About dialog.
+- **Accessibility and polish** (ADR 0086): automated audits of screen-reader names, WCAG AA text
+  contrast (composed backgrounds) and tabular figures on every screen, report, Bills tab, main dialog,
+  the palette, notifications and the first-run steps in both themes; pairwise token and accent
+  contrast tests; fixes for accent-button, placeholder, selected-item and selected-text contrast;
+  2x (192 DPI) rendering at 960 × 540 (1080p at 200%) with Budget's narrow header and floating
+  inspector; loading states for Home and Goals; reduced motion stops the sync spinner; focus order test.
+- **Packaging** (ADR 0083): `build/package.sh` and `build/package.ps1` with vpk 1.2.158 (local tool),
+  one Velopack channel per RID; Windows Setup.exe and portable zip with per-user `.keel` registration;
+  macOS Keel.app with the `.keel` document type, .pkg, zip and .dmg; Linux AppImage and a .deb with
+  desktop entry, icons and MIME type; app icon from one SVG (`build/icons/generate-icons.cs`, .ico,
+  .icns, PNGs); `.github/workflows/release.yml` on `v*` tags; CI dry-runs the packaging script.
+- **Docs**: `docs/user-guide/` (nine pages including the existing bank sync guide), `docs/qa-checklist.md`,
+  README with screenshots in `docs/images/`, CLAUDE.md final pass.
+- **Carried over**: `IX_Transactions_ReviewQueue` and the 100k review-queue timing test (f6f5c94);
+  Settings → Bills subscription designations over `IRecurringService`.
+
+### Fixed
+
+- Budget files in rollback-journal mode (copies, restored files, files from elsewhere) failed to open
+  ("attempt to write a readonly database"): read-only connections no longer set the journal mode.
+- The first-run currency is USD, not XDR, on machines with an invariant locale.
+
+### Decisions and deviations
+
+- [ADR 0080](docs/decisions/0080-budget-file-sessions.md) budget-file sessions and single instance;
+  [ADR 0081](docs/decisions/0081-backups-and-data-file-care.md) backups, restore, integrity check,
+  move and diagnostics; [ADR 0082](docs/decisions/0082-appearance-locale-and-motion.md) named accents
+  instead of a free picker, format culture applied by reopening, reduce motion read from GNOME/macOS
+  only; [ADR 0083](docs/decisions/0083-packaging-and-updates.md) .deb via dpkg-deb and .dmg via
+  hdiutil (vpk makes neither), per-user Windows file association from Velopack hooks, unsigned by
+  default; [ADR 0084](docs/decisions/0084-first-run-and-setup-checklist.md) when the setup shows and
+  how the checklist is computed; [ADR 0085](docs/decisions/0085-command-palette-and-shortcut-registry.md)
+  registry, palette and menus; [ADR 0086](docs/decisions/0086-accessibility-audits.md) audits, the
+  window minimum height lowered from 560 to 520, narrow Budget layouts.
+- SQLCipher (F-SET-4, P1) and the YNAB/Monarch importers (P1) are not in M8.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,788 passed, 4 skipped (gated: Plaid sandbox, Secret Service, Keychain, DPAPI) |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Desktop.Tests --filter "FirstRunTests\|DataFileSettingsTests\|CommandPaletteTests\|AccessibilityTests\|TokenContrastTests\|HighDpiRenderingTests"` | all pass |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter ReviewQueueTimingTests` | 19,072 unapproved of 100k: count 20 ms, first page 5 ms, last page 38 ms |
+| `build/package.sh --rid linux-x64` | `Keel-linux-x64.AppImage` 56.5 MB, `keel_1.0.0~rc.1_amd64.deb` 37.4 MB, update packages |
+| `build/package.sh --rid win-x64` (cross-pack from Linux) | `Keel-win-x64-Setup.exe` 65.7 MB, portable zip, update packages |
+| `apt-get install ./keel_1.0.0~rc.1_amd64.deb` (Ubuntu 24.04), then `apt-get remove keel` | installs with dependencies, registers the MIME type, removes cleanly |
+| `actionlint .github/workflows/*.yml` | clean |
+
+### Exit criteria
+
+- **"A fresh user can complete Section 9.10 in under 15 minutes"**: `FirstRunTests` drives the whole
+  flow through the real window (create, template, account, Budget with Ready to Assign = balance,
+  checklist to 4 of 4) in about 6 s headless; the human 15-minute measurement is item 2 of
+  `docs/qa-checklist.md`.
+- **"v1.0.0 tag builds installers in CI"**: `release.yml` is in place and validated with actionlint;
+  the Linux and Windows x64 packages were built locally with the same script. Not demonstrated: GitHub
+  Actions hosted runners refused all jobs on this account during M8, so neither CI nor the release
+  workflow has run, and no tag was created (the version stays 1.0.0-rc.1).
+
+### Not done here
+
+- macOS packaging (Keel.app, vpk osx, .dmg), Windows arm64 packaging, the Windows registry file
+  association and the Velopack update flow could not be run on Linux; they run on the release
+  workflow's macOS and Windows runners.
+- Code signing and notarization need certificates (optional secrets in the release workflow).
+- F-SET-4 SQLCipher encryption (P1) and the "Stats" page (PRD 4) are not implemented.
+
 ## M7 — Bank sync
 
 Milestone 7 (PRD 12): OS secret stores (PRD 6.7), the Plaid provider with Hosted Link and

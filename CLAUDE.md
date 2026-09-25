@@ -6,8 +6,9 @@ every milestone (PRD 15.10).
 Keel is a local-first, cross-platform (Windows, macOS, Linux) personal-finance desktop app:
 envelope budgeting plus net worth, recurring bills and forecasts, on one user-owned SQLite
 file. The spec is `docs/PRD.md`; read it before changing behaviour. Section 6 (domain model
-and budget math) is normative. The build order is PRD section 12; M0 is done (see
-`CHANGELOG.md`).
+and budget math) is normative. The build order is PRD section 12; M0–M8 are done (see
+`CHANGELOG.md`); the version is 1.0.0-rc.1 and the P1 backlog (M9) is next. User docs are in
+`docs/user-guide/`, the release checklist in `docs/qa-checklist.md`.
 
 ## Environment
 
@@ -80,10 +81,24 @@ KEEL_PLAID_CLIENT_ID=... KEEL_PLAID_SECRET=... dotnet test tests/Keel.Infrastruc
 # Real Linux Secret Service: a private session bus with an unlocked GNOME Keyring
 dbus-run-session -- sh -c 'printf pw | gnome-keyring-daemon --daemonize --unlock --components=secrets >/dev/null; \
   KEEL_TEST_SECRET_SERVICE=1 dotnet test tests/Keel.Infrastructure.Tests --filter SecretStoreTests'
+# M8: first-run, data file, palette/shortcuts/menus, appearance, accessibility audits, 2x rendering
+dotnet test tests/Keel.Desktop.Tests --filter "FirstRunTests|DataFileSettingsTests|MaintenanceJobsTests|CommandPaletteTests"
+dotnet test tests/Keel.Desktop.Tests --filter "AccessibilityTests|TokenContrastTests|HighDpiRenderingTests|AppearanceTests"
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Files"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter M8RenderingTests
+# Packaging (vpk is a local tool; Linux needs squashfs-tools; macOS packages only on macOS)
+dotnet tool restore
+build/package.sh --rid linux-x64            # AppImage + .deb under artifacts/releases/linux-x64
+build/package.sh --rid win-x64              # cross-packs Setup.exe from Linux (unsigned)
+build/package.sh --dry-run                  # prints every step
+pwsh build/package.ps1 -Rid win-x64,win-arm64
+actionlint .github/workflows/*.yml
+# App icons (checked in): regenerate from Assets/keel-icon.svg only when the design changes
+dotnet run build/icons/generate-icons.cs
 ```
 
-The app applies pending migrations itself when it opens a budget file; there is no
-`database update` step.
+The app applies pending migrations itself when it opens a budget file (after a `-before-migration`
+backup); there is no `database update` step.
 
 ## Solution map
 
@@ -266,8 +281,34 @@ M7 bank sync:
                               IBrowserLauncher; Views/Sync/ + Styles/Sync.axaml (health dots, spinner).
   Keel.Infrastructure.Tests/Sync/  FakePlaidServer (HTTP), SyncTestHost, sync/provider/secret-store tests, gated sandbox test.
   Keel.Desktop.Tests/         FakeBankProvider, SyncConnectionsTests, SyncRenderingTests.
-docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs), user-guide/bank-sync.md
-.github/workflows/ci.yml  Build+test on windows/macos/ubuntu, format check, vulnerable-package scan.
+M8 polish, first-run, backups, packaging:
+  Keel.Application/           Backup/IBackupService (+BackupKind, BackupVerificationException), Files/IDataFileMaintenance
+                              (integrity check, copy for move, delete, diagnostic bundle), Setup/ISetupProgressService,
+                              Tags/ITagService; AppSettings gains FirstRunCompleted, Accent, Density, FormatCulture,
+                              ReduceMotion, AutoBackupEnabled/Keep, CheckForUpdates.
+  Keel.Infrastructure/Files/  BackupArchive (zip format, SQLite backup-API copies, verification), BackupService,
+                              DataFileMaintenance; BudgetFileService backs up before migrations. Setup/, Tags/.
+                              Platform/FileAssociation (.keel type for every OS) + Windows/WindowsFileAssociation (HKCU).
+  Keel.Desktop/Services/      BudgetSessions (one host per open file, ADR 0080) + BudgetStartupOptions, SingleInstance +
+                              LaunchArguments, MaintenanceJobs (daily integrity check, automatic backup, update check),
+                              UpdateService (Velopack, off by default), ShortcutRegistry, AppCommands (palette + menus),
+                              MenuBuilder, PageKeys, FuzzyMatch, AppearanceService, LocaleService, FileDialogs, KeelInfo.
+  Keel.Desktop/ViewModels/    FirstRun/FirstRunViewModel, Settings/ (DataFile, Appearance, Bills, Updates sections),
+                              Dialogs/CommandPaletteViewModel + AboutDialogViewModel, ShellViewModel.M8 (first-run layer,
+                              palette, menus, maintenance), Home/HomeViewModel.Setup (Get started checklist).
+  Keel.Desktop/Views/         FirstRun/, Settings/, Dialogs/CommandPaletteView + AboutDialogView; Styles/Density.axaml;
+                              Assets/ (keel-icon.svg source, PNG, .ico, .icns).
+  build/                      package.sh, package.ps1 (Velopack, ADR 0083), icons/generate-icons.cs (+ out/ PNGs).
+  Keel.Infrastructure.Tests/Files/  backups, restore, daily keep-N, pre-migration backup, integrity, move copy,
+                              diagnostic bundle without data, setup progress, file association.
+  Keel.Desktop.Tests/         FirstRunTests, DataFileSettingsTests + MaintenanceJobsTests, CommandPaletteTests (palette,
+                              registry vs bindings and the user guide, page keys, menus), AppearanceTests, SingleInstanceTests,
+                              BillsSettingsTests, AccessibilityTests + AccessibilityAudit (names, contrast, tabular figures),
+                              TokenContrastTests, HighDpiRenderingTests (192 DPI at 960x540), M8RenderingTests, FakeFileDialogs.
+docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs), user-guide/ (README index and
+       nine guides incl. bank-sync.md), qa-checklist.md (run before each tag), images/ (README screenshots).
+.github/workflows/ci.yml       Build+test on windows/macos/ubuntu, format check, vulnerable-package scan, packaging dry run.
+.github/workflows/release.yml  On v* tags: version check, tests, packages on all three OSes, one GitHub release.
 ```
 
 Dependency direction: `Desktop -> Application -> Domain`; `Infrastructure -> Application -> Domain`.
@@ -356,7 +397,7 @@ From PRD 15, plus decisions made while building M0.
 - Amount inputs use `controls:MoneyTextBox` bound to `long` minor units (inline `+ - * /` math).
 - A form that saves on Enter from a `MoneyTextBox` handles `KeyDown` on the box (bubble) instead of a
   `KeyBinding`: key bindings run before the box evaluates its text, so they would save the old value.
-- Budget screen keys (PRD 9.3, listed in Settings > Keyboard shortcuts from `PlatformShortcuts`):
+- Budget screen keys (PRD 9.3, listed in Settings > Keyboard shortcuts from the `ShortcutRegistry`):
   arrows move the cell cursor; Enter/F2 edits Assigned (or opens Activity, moves money from
   Available, toggles a group); typing a digit starts editing; in the editor Enter saves and moves down,
   Tab/Shift+Tab save and edit the next/previous Assigned, Esc cancels; `M` move money, `T` target,
@@ -437,6 +478,25 @@ From PRD 15, plus decisions made while building M0.
 - Review keys (ADR 0028): every decision approves and advances; `J/K` only move. Row templates bind to
   commands through an owner property on the row view model (`Owner`, `Editor`, `Choose`), not
   `$parent[...]`, which logs binding errors while a view is torn down.
+**Data file, sessions and packaging (M8)**
+- A session is one host over one open file (ADR 0080). Anything holding file data must be a session
+  service (never a static); timers implement `IDisposable`. Switch files only through `BudgetSessions.OpenAsync`.
+  Tests: `TestHost.Current<T>()` resolves from the running session, `TestHost.CreateFirstRun()` shows the setup,
+  and every other `TestHost` starts with `firstRunCompleted: true`.
+- Backups, restore and moves copy the database with the SQLite backup API (`BackupArchive`), never a file copy of
+  a live database; every copy is verified by reopening it (ADR 0081). The pragma interceptor must keep skipping
+  `journal_mode` on read-only connections.
+- Every shortcut is registered once in `ShortcutRegistry` (tests compare it with the window bindings and with
+  `docs/user-guide/keyboard-shortcuts.md`); every user action that is not row-level goes into `AppCommands`, which
+  feeds the palette and the menus. Page-level single keys go through `PageKeys` (ADR 0085).
+- Packaging: `build/package.sh` / `package.ps1` with the `vpk` local tool pinned to the Velopack package version;
+  the version comes from `Directory.Build.props`; never create tags from an agent session.
+- The update check stays off by default and creates no update source while off (PRD 10).
+**Accessibility (M8)**
+- `AccessibilityTests` audit names, contrast and tabular figures over live screens; add new screens and dialogs to it.
+  New colour tokens need a `TokenContrastTests` pair. Use Keel tokens for text on accent (`AccentButtonForeground`,
+  `Keel.SelectionForeground`) rather than Fluent defaults.
+- Layouts must work at 960 × 540 logical pixels (1080p at 200%); `HighDpiRenderingTests` renders every screen there.
 **Bank sync (M7)**
 - Secrets only through `ISecretStore` under `SecretKeys` names; never in the database, `settings.json`, logs or
   test output. The UI learns only whether a value is set (`IBankCredentialsService`) and shows dots plus Replace.
