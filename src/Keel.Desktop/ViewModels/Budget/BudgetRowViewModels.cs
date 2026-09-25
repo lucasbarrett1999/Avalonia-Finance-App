@@ -270,7 +270,11 @@ public sealed partial class BudgetCategoryRowViewModel : BudgetRowViewModel
 
     /// <summary>Whether the Assigned cell is in edit mode.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(EditorRow))]
     public partial bool IsEditing { get; set; }
+
+    /// <summary>This row while it edits (the one-month template creates its editor for it), otherwise null.</summary>
+    public BudgetCategoryRowViewModel? EditorRow => IsEditing ? this : null;
 
     /// <summary>The user's Flex-mode tag (Unset: automatic, F-BUD-6).</summary>
     public FlexKind FlexTag => Data?.FlexTag ?? FlexKind.Unset;

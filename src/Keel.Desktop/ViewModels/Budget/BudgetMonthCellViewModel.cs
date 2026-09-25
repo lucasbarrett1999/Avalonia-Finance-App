@@ -60,7 +60,7 @@ public sealed partial class BudgetMonthCellViewModel : ObservableObject
 
     /// <summary>Whether this is the month the cell cursor is in.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsAssignedSelected), nameof(IsActivitySelected), nameof(IsAvailableSelected), nameof(IsEditing))]
+    [NotifyPropertyChangedFor(nameof(IsAssignedSelected), nameof(IsActivitySelected), nameof(IsAvailableSelected), nameof(IsEditing), nameof(EditorRow))]
     public partial bool IsActive { get; private set; }
 
     /// <summary>Available &gt; 0 (green pill).</summary>
@@ -89,6 +89,9 @@ public sealed partial class BudgetMonthCellViewModel : ObservableObject
 
     /// <summary>The Assigned editor is open in this cell.</summary>
     public bool IsEditing => IsActive && Category is { IsEditing: true };
+
+    /// <summary>The row while this cell edits (the editor is created for it), otherwise null.</summary>
+    public BudgetCategoryRowViewModel? EditorRow => IsEditing ? Category : null;
 
     /// <summary>"September 2026: assigned $1.00, activity $2.00, available $3.00".</summary>
     public string AutomationName => LedgerText.Format(Strings.BudgetMonths_CellAutomation, BudgetText.Month(Month), AssignedText, ActivityText, AvailableText, AvailableStateText);
@@ -135,6 +138,7 @@ public sealed partial class BudgetMonthCellViewModel : ObservableObject
         OnPropertyChanged(nameof(IsActivitySelected));
         OnPropertyChanged(nameof(IsAvailableSelected));
         OnPropertyChanged(nameof(IsEditing));
+        OnPropertyChanged(nameof(EditorRow));
     }
 
     private static string Money(Money money) => LedgerText.Money(money.Amount, money.Currency);

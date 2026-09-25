@@ -357,9 +357,16 @@
                               <Border Grid.Column="1" Tag="Assigned" Classes="budgetCell" Classes.cursor="{Binding IsAssignedSelected}">
                                 <Panel>
                                   <TextBlock Classes="cellAmount" Text="{Binding AssignedText}" IsVisible="{Binding !IsEditing}" Margin="0,0,4,0" />
-                                  <controls:MoneyTextBox x:Name="AssignedEditor" Classes="assignedEditor" IsVisible="{Binding IsEditing}"
-                                                         Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
-                                                         AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                                  <!-- Created only while the row edits, so building and rebuilding rows stays cheap -->
+                                  <ContentControl Content="{Binding EditorRow}">
+                                    <ContentControl.ContentTemplate>
+                                      <DataTemplate x:DataType="b:BudgetCategoryRowViewModel">
+                                        <controls:MoneyTextBox x:Name="AssignedEditor" Classes="assignedEditor"
+                                                               Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                                                               AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                                      </DataTemplate>
+                                    </ContentControl.ContentTemplate>
+                                  </ContentControl>
                                 </Panel>
                               </Border>
                               <Border Grid.Column="2" Tag="Activity" Classes="budgetCell" Classes.cursor="{Binding IsActivitySelected}">
@@ -469,13 +476,16 @@
                                       <Border Grid.Column="0" Tag="Assigned" Classes="budgetCell compact" Classes.cursor="{Binding IsAssignedSelected}">
                                         <Panel>
                                           <TextBlock Classes="cellAmount" Text="{Binding AssignedText}" IsVisible="{Binding !IsEditing}" Margin="0,0,4,0" />
-                                          <Panel IsVisible="{Binding IsEditing}">
-                                            <Panel DataContext="{Binding Category}">
-                                              <controls:MoneyTextBox x:Name="AssignedEditor" x:DataType="b:BudgetCategoryRowViewModel" Classes="assignedEditor"
-                                                                     Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
-                                                                     AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
-                                            </Panel>
-                                          </Panel>
+                                          <!-- The editor exists only while this cell edits (three per row would slow the mode switch) -->
+                                          <ContentControl Content="{Binding EditorRow}">
+                                            <ContentControl.ContentTemplate>
+                                              <DataTemplate x:DataType="b:BudgetCategoryRowViewModel">
+                                                <controls:MoneyTextBox x:Name="AssignedEditor" Classes="assignedEditor"
+                                                                       Value="{Binding EditValue}" Currency="{Binding Currency}" ShowZeroAsEmpty="False"
+                                                                       AutomationProperties.Name="{x:Static res:Strings.Budget_ColumnAssigned}" />
+                                              </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                          </ContentControl>
                                         </Panel>
                                       </Border>
                                       <Border Grid.Column="1" Tag="Activity" Classes="budgetCell compact" Classes.cursor="{Binding IsActivitySelected}">

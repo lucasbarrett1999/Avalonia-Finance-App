@@ -46,10 +46,14 @@ logical pixels (PRD 11, `HighDpiRenderingTests`).
 
 ## Consequences
 
-- A window shift re-lays out three times the cells of a one-month switch: over the 100k-transaction
-  fixture the view model work stays under 20 ms but layout makes the headless median about 110–130 ms in
-  the sandbox (one month: about 40 ms). PRD 11's 100 ms target is kept for the one-month view; the
-  three-month test allows 250 ms.
+- A window shift re-lays out three times the cells of a one-month switch. Over the 100k-transaction
+  fixture the view model work is 5–30 ms and the headless median with layout 34 ms on a quiet run (up
+  to about 100 ms while other test runs load the sandbox). The test asserts a 100 ms view-model median
+  and allows 250 ms with layout; PRD 11's 100 ms stays asserted for the one-month switch (`BudgetTests`).
+- The Assigned editor (`MoneyTextBox`) is created only while a cell edits (a `ContentControl` over
+  `EditorRow`), in both templates, so building rows does not create a text box per cell. Switching the
+  mode still rebuilds every row container (about 0.4–0.8 s per switch at 48 rows in the loaded sandbox);
+  it is a deliberate, rare action.
 - Drag and drop of an Available pill moves money in the active month (the pill's month becomes active
   when it is pressed).
 - The Manage categories dialog now sizes its list up to 440 px instead of exactly 440 px, so it fits

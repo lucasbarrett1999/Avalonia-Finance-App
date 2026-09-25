@@ -34,13 +34,41 @@ P1 backlog stream A (PRD 12, M9): the three-month side-by-side budget (F-BUD-2 P
 
 ### Changed
 
+- The grid's Assigned editor is created only while a cell edits (both templates), which keeps
+  building rows cheap.
 - At Budget view widths under 760 px, Fund targets and Move money show icons only (names and tooltips
   unchanged) to make room for the two toggles. The Manage categories dialog is 560 px wide (the tag
   pickers) and its list is at most 440 px high, so it fits at 960 × 540.
 
 ### Verification
 
-VERIFICATION_PLACEHOLDER
+```bash
+dotnet build Keel.sln -c Release                 # 0 warnings, 0 errors
+dotnet format Keel.sln --verify-no-changes       # clean
+dotnet test Keel.sln -m:1                        # Domain 1,051 passed; Infrastructure 473 passed, 4 skipped
+                                                 # (keys/services not present); Desktop 294 passed
+dotnet test tests/Keel.Domain.Tests --filter FlexSummaryTests                  # 19 passed (6.4.7 golden reviewed)
+dotnet test tests/Keel.Infrastructure.Tests --filter FlexTagTests              # 3 passed
+dotnet test tests/Keel.Desktop.Tests --filter "BudgetViewsTests|BudgetViewsRenderingTests|AccessibilityTests|HighDpiRenderingTests"
+```
+
+- `FlexSummaryTests`: the 6.4.7 example (plus a Non-monthly and a second Flex category) in the Flex view
+  with a Verify golden; buckets are sums of grid cells and add up to the visible group rows; generated
+  budgets put every visible regular category in exactly one bucket; default kinds from targets and tags
+  that always win; hidden categories left out; pace (days left including today, safe per day rounded
+  down, future and past months); overspent Flex.
+- `FlexTagTests`: tags stored by name, undoable, announced; protected categories refused; the month DTO
+  and the loaded-ledger path carry the same summary with target defaults and a tag override.
+- `BudgetViewsTests` (headless): three months from the loaded ledger (same `BudgetLedgerData`), per-month
+  numbers, colours and headers, rebuilt templates, remembered in settings; cursor across months, Enter
+  and Tab editing in September, move money in the cursor's month, `Alt+←/→` window shifts, clicking a
+  cell in October, undo; Flex view numbers against 6.4.7, drill-downs to the filtered grid and to the
+  register; tagging in the inspector and in Manage categories with undo; registry, palette and View
+  menu; the mode restored from settings. Over the 100k fixture a three-month window shift measured a
+  view-model median of 5.6 ms and 33.3 ms with layout on a quiet run (the test allows 100 ms and 250 ms).
+- Screenshots of both views at 1440 × 900 and 960 × 540 in light and dark (`BudgetViewsRenderingTests`,
+  also `HighDpiRenderingTests` at 2x) were reviewed; `AccessibilityTests` audit the three-month grid, the
+  Flex view, a drill-down and Manage categories in both themes.
 
 ### Decisions and deviations
 
