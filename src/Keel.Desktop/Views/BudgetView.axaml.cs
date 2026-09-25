@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using Keel.Desktop.Controls;
 using Keel.Desktop.ViewModels;
 using Keel.Desktop.ViewModels.Budget;
+using Keel.Desktop.Views.Budget;
 
 namespace Keel.Desktop.Views;
 
@@ -32,6 +33,11 @@ public partial class BudgetView : UserControl
     public BudgetView()
     {
         InitializeComponent();
+        if (BudgetRows.ItemTemplate is BudgetRowTemplateSelector selector)
+        {
+            selector.ThreeMonths = () => (DataContext as BudgetViewModel)?.IsThreeMonths ?? false;
+        }
+
         AddHandler(KeyDownEvent, OnKeyDownTunnel, RoutingStrategies.Tunnel);
         AddHandler(TextInputEvent, OnTextInput, RoutingStrategies.Tunnel);
         BudgetRows.AddHandler(PointerPressedEvent, OnRowsPointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
@@ -63,10 +69,14 @@ public partial class BudgetView : UserControl
     /// <summary>Below this width the inspector floats over the grid instead of taking a column.</summary>
     public const double OverlayInspectorWidth = 980;
 
+    /// <summary>Below this width Fund targets and Move money show their icons only (the view toggles need the room).</summary>
+    public const double CompactActionsWidth = 760;
+
     /// <summary>Applies the narrow layouts for <paramref name="width"/> (PRD 11: usable at 200% scaling).</summary>
     public void ApplyWidth(double width)
     {
         Classes.Set("narrowHeader", width < NarrowHeaderWidth);
+        Classes.Set("compactActions", width < CompactActionsWidth);
         Classes.Set("overlayInspector", width < OverlayInspectorWidth);
     }
 
@@ -83,6 +93,7 @@ public partial class BudgetView : UserControl
             _vm.FocusGridRequested -= OnFocusGridRequested;
             _vm.ScrollIntoViewRequested -= OnScrollIntoViewRequested;
             _vm.Inspector.TargetFocusRequested -= OnTargetFocusRequested;
+            _vm.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
         _vm = DataContext as BudgetViewModel;
@@ -92,6 +103,25 @@ public partial class BudgetView : UserControl
             _vm.FocusGridRequested += OnFocusGridRequested;
             _vm.ScrollIntoViewRequested += OnScrollIntoViewRequested;
             _vm.Inspector.TargetFocusRequested += OnTargetFocusRequested;
+            _vm.PropertyChanged += OnViewModelPropertyChanged;
+        }
+
+        ApplyMode();
+    }
+
+    // Three months need more width than one: the table gets a minimum width and scrolls sideways (ADR 0090).
+    private void ApplyMode()
+    {
+        var three = _vm?.IsThreeMonths ?? false;
+        GridHScroller.HorizontalScrollBarVisibility = three ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
+        GridTable.MinWidth = three ? BudgetGridSizes.ThreeMonthMinWidth : 0;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(BudgetViewModel.IsThreeMonths))
+        {
+            ApplyMode();
         }
     }
 
@@ -228,6 +258,14 @@ public partial class BudgetView : UserControl
         {
             _ = vm.QuickAssignPaletteAsync();
         }
+        else if (shortcuts.ToggleThreeMonths.Matches(e) && vm.ShowGrid)
+        {
+            vm.ToggleThreeMonths();
+        }
+        else if (shortcuts.ToggleFlexView.Matches(e) && vm.ShowGrid)
+        {
+            vm.ToggleFlexView();
+        }
         else
         {
             return false;
@@ -290,18 +328,34 @@ public partial class BudgetView : UserControl
     private void OnFocusGridRequested(object? sender, EventArgs e) => Dispatcher.UIThread.Post(
         () =>
         {
-            if (_vm is { EditingRow: null } && GridHost.IsEffectivelyVisible && FocusedElement is not TextBox)
+            if (_vm is not { EditingRow: null } || FocusedElement is TextBox)
+            {
+                return;
+            }
+
+            if (GridHost.IsEffectivelyVisible)
             {
                 GridHost.Focus(NavigationMethod.Tab);
+            }
+            else if (FlexHost.IsEffectivelyVisible && FlexHost.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Name == "FlexNumberButton") is { } flex)
+            {
+                flex.Focus();
             }
         },
         DispatcherPriority.Loaded);
 
     private void OnScrollIntoViewRequested(object? sender, BudgetRowViewModel row)
     {
-        if (BudgetRows.ContainerFromItem(row) is { } container)
+        if (BudgetRows.ContainerFromItem(row) is not { } container)
         {
-            container.BringIntoView();
+            return;
+        }
+
+        container.BringIntoView();
+        if (_vm is { IsThreeMonths: true })
+        {
+            // Sideways too: the cursor's month may be off screen in a narrow window.
+            container.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("cursor") && b.IsEffectivelyVisible)?.BringIntoView();
         }
     }
 
@@ -309,8 +363,9 @@ public partial class BudgetView : UserControl
         () => InspectorHost.GetVisualDescendants().OfType<MoneyTextBox>().FirstOrDefault(b => b.Name == "TargetAmountBox")?.Focus(NavigationMethod.Tab),
         DispatcherPriority.Loaded);
 
+    // The visible editor: three-month rows have one per month, and only the active month's is shown.
     private MoneyTextBox? FindEditor(BudgetCategoryRowViewModel row) =>
-        BudgetRows.ContainerFromItem(row)?.GetVisualDescendants().OfType<MoneyTextBox>().FirstOrDefault(b => b.Name == "AssignedEditor");
+        BudgetRows.ContainerFromItem(row)?.GetVisualDescendants().OfType<MoneyTextBox>().FirstOrDefault(b => b.Name == "AssignedEditor" && b.IsEffectivelyVisible);
 
     // Leaving the editor with the mouse (or any other way) saves it.
     private void OnEditorLostFocus(object? sender, RoutedEventArgs e)
@@ -339,9 +394,23 @@ public partial class BudgetView : UserControl
         CommitFocusedEditor();
 
         var cell = source.GetSelfAndVisualAncestors().OfType<Border>().FirstOrDefault(b => b.Tag is string);
-        if (cell?.DataContext is not BudgetRowViewModel row || !Enum.TryParse<BudgetColumn>((string)cell.Tag!, out var column))
+        if (cell is null || !Enum.TryParse<BudgetColumn>((string)cell.Tag!, out var column))
         {
             return;
+        }
+
+        BudgetRowViewModel row;
+        switch (cell.DataContext)
+        {
+            case BudgetRowViewModel r:
+                row = r;
+                break;
+            case BudgetMonthCellViewModel monthCell:
+                row = monthCell.Row;
+                _vm.SelectMonth(monthCell.Offset);      // three months: the click picks the month too
+                break;
+            default:
+                return;
         }
 
         if (row is BudgetCategoryRowViewModel category && column == BudgetColumn.Assigned)
@@ -471,6 +540,11 @@ public partial class BudgetView : UserControl
         else if (button.Classes.Contains("activityLink") && button.DataContext is BudgetCategoryRowViewModel row)
         {
             _vm.OpenActivity(row);
+            e.Handled = true;
+        }
+        else if (button.Classes.Contains("activityLink") && button.DataContext is BudgetMonthCellViewModel { Category: { } monthRow } cell)
+        {
+            _vm.OpenActivity(monthRow, cell.Offset);
             e.Handled = true;
         }
     }

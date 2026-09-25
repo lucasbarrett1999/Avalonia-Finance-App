@@ -76,12 +76,14 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
     private readonly INavigationService _navigation;
     private readonly StatusService _status;
     private readonly TimeProvider _time;
+    private readonly IFileDialogs? _files;
     private CancellationTokenSource? _loadCts;
     private bool _suppressReload;
 
     /// <summary>Creates the screen.</summary>
-    public ReportsViewModel(IReportService reports, IAccountService accounts, INavigationService navigation, StatusService status, TimeProvider time, IMessenger messenger, Keel.Application.Forecast.IForecastService? forecast = null)
+    public ReportsViewModel(IReportService reports, IAccountService accounts, INavigationService navigation, StatusService status, TimeProvider time, IMessenger messenger, Keel.Application.Forecast.IForecastService? forecast = null, IFileDialogs? files = null)
     {
+        _files = files;
         ArgumentNullException.ThrowIfNull(messenger);
         _reports = reports;
         _accounts = accounts;
@@ -93,6 +95,8 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
         {
             Reports = [.. Reports, new ForecastReportViewModel(this, forecast, time)];
         }
+
+        Reports = [.. Reports, new BudgetHealthReportViewModel(this, time)];
 
         Ranges = Enum.GetValues<ReportRange>().Select(r => new Choice<ReportRange>(r, Strings.ResourceManager.GetString("ReportRange_" + r, Strings.Culture) ?? r.ToString())).ToList();
         _suppressReload = true;
@@ -192,6 +196,12 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
     /// </summary>
     public Func<string, string, Task<string?>>? SaveFile { get; set; }
 
+    /// <summary>
+    /// Renders the selected report's chart to a PNG file at twice its size (PRD 9.8); set by the view.
+    /// Returns false when the report shows no chart.
+    /// </summary>
+    public Func<string, bool>? RenderChartPng { get; set; }
+
     /// <summary>The only account in the filter, when exactly one is selected (drill-down opens its register).</summary>
     public Guid? SingleAccountId => SelectedAccountIds() is { Count: 1 } ids ? ids.First() : null;
 
@@ -258,6 +268,9 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
 
     /// <summary>Opens the register (drill-down to the underlying transactions).</summary>
     public void OpenRegister(RegisterNavigation navigation) => _navigation.NavigateTo<AccountsViewModel>(navigation);
+
+    /// <summary>Opens Budget (budget health links there).</summary>
+    public void OpenBudget() => _navigation.NavigateTo<BudgetViewModel>();
 
     /// <summary>Opens the Spending report for a range (expense bar drill-down).</summary>
     public void ShowSpending(DateOnly from, DateOnly to, bool includeTransfers, bool includeTracking)
@@ -328,6 +341,44 @@ public sealed partial class ReportsViewModel : PageViewModel, INavigationTarget,
         catch (UnauthorizedAccessException ex)
         {
             _status.Show(LedgerText.Format(Strings.Reports_ExportFailed, ex.Message), isError: true);
+        }
+    }
+
+    /// <summary>Exports the selected report's chart as a PNG image at 2x (PRD 9.8).</summary>
+    [RelayCommand]
+    public async Task ExportPngAsync()
+    {
+        if (_files is null || RenderChartPng is null || !SelectedReport.IsLoaded)
+        {
+            return;
+        }
+
+        if (!SelectedReport.HasData)
+        {
+            _status.Show(Strings.ExportPng_NoChart, isError: true);
+            return;
+        }
+
+        var path = await _files.SavePngAsync(SelectedReport.PngFileName);
+        if (path is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (RenderChartPng(path))
+            {
+                _status.Show(LedgerText.Format(Strings.ExportPng_Saved, Path.GetFileName(path)));
+            }
+            else
+            {
+                _status.Show(Strings.ExportPng_NoChart, isError: true);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _status.Show(LedgerText.Format(Strings.ExportPng_Failed, ex.Message), isError: true);
         }
     }
 

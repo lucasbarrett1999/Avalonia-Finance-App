@@ -30,6 +30,9 @@ or screen by typing part of its name, and shows each action's shortcut.
 | `Delete` | Delete with undo |
 | `Ctrl+Enter` | Save and add another |
 | `Esc` | Cancel editing |
+| `T` | Edit tags of the selected transaction |
+| `Enter` | Add the typed tag (in the Tags box) |
+| `Backspace` | Remove the last tag (in the empty Tags box) |
 
 ## Budget
 
@@ -46,6 +49,8 @@ or screen by typing part of its name, and shows each action's shortcut.
 | `Ctrl+Shift+F` | Budget: fund targets |
 | `I` | Budget: show or hide the inspector |
 | `Q` | Budget: quick assign |
+| `W` | Budget: show three months side by side |
+| `F` | Budget: switch between the grid and the Flex view |
 
 ## Review
 
@@ -73,14 +78,16 @@ or screen by typing part of its name, and shows each action's shortcut.
 
 | Keys | Action |
 |---|---|
-| `1`–`4` | Choose a report |
+| `1`–`5` | Choose a report |
 | `Ctrl+E` | Export the report as CSV |
+| `Ctrl+Shift+E` | Export the report chart as PNG |
 
 ## Goals
 
 | Keys | Action |
 |---|---|
 | `N` | New goal |
+| `1` / `2` | Goals: switch between goals and debt payoff |
 
 ## Bank connections
 

@@ -88,6 +88,11 @@ public static class DependencyInjection
             sp.GetRequiredService<IDbContextFactory<KeelDbContext>>(),
             sp.GetRequiredService<TimeProvider>(),
             sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Keel.Infrastructure.Stats.ImportStatsRecorder>>())));
+        services.AddSingleton<IMigrationImportService, Keel.Infrastructure.Import.Migration.MigrationImportService>();
+        services.AddSingleton<Keel.Application.Portability.IDataExportService, Keel.Infrastructure.Portability.DataExportService>();
+        services.AddSingleton<Keel.Application.Portability.IBundleImportService, Keel.Infrastructure.Portability.BundleImportService>();
+        services.AddSingleton<Keel.Application.Attachments.IAttachmentService, Keel.Infrastructure.Attachments.AttachmentService>();
+        services.AddSingleton<Keel.Application.Debt.IDebtPayoffService, Keel.Infrastructure.Debt.DebtPayoffService>();
         return services;
     }
 }

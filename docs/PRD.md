@@ -184,7 +184,7 @@ Acceptance:
 - Date formats: ISO, US, EU, and "Mon DD, YYYY" are auto-detected; ambiguous cases prompt.
 
 **F-TXN-3 (P0) Bank sync via provider abstraction.** An `IBankDataProvider` interface with operations: `BeginLink`, `CompleteLink`, `ListAccounts`, `SyncTransactions(cursor)`, `GetBalances`, `Unlink`, `GetConnectionHealth`. Two implementations:
-- **Plaid** (P0): Link via Hosted Link opened in the system browser; the app polls `/link/token/get` for the public token (no WebView dependency). Uses `/transactions/sync` with stored cursors. Handles `ITEM_LOGIN_REQUIRED` by surfacing a "Reconnect" state and creating an update-mode link token. Bring-your-own-keys model: the user enters their own Plaid client ID and secret in Settings; these are stored in the OS secret store (6.7). Document clearly that shipping a shared production secret in a desktop binary is unsafe and that a hosted proxy is the P2 path to a no-keys experience.
+- **Plaid** (P0): Link via Hosted Link opened in the system browser; the app polls `/link/token/get` for the public token (no WebView dependency). Uses `/transactions/sync` with stored cursors. Handles `ITEM_LOGIN_REQUIRED` by surfacing a "Reconnect" state and creating an update-mode link token. Bring-your-own-keys model: the user enters their own Plaid client ID and secret in Settings; these are stored in the OS secret store (6.7). Document clearly that shipping a shared production secret in a desktop binary is unsafe and that a hosted proxy is the P2 path to a no-keys experience. That proxy is the planned go-live model (see D2): a hosted relay holding the owner's production key, gated by the paid licence, behind the same `IBankDataProvider`.
 - **SimpleFIN Bridge** (P1): token-based, designed for local apps, no client secret. Setup token → access URL exchange, then `/accounts?start-date=` polling.
 
 Acceptance:
@@ -736,7 +736,7 @@ Exit: v1.0.0 tag builds installers in CI; a fresh user can complete Section 9.10
 | # | Decision | Assumption / alternative |
 |---|---|---|
 | D1 | Working name "Keel" | Any name; single find-and-replace plus icon |
-| D2 | Bring-your-own Plaid keys in v1 | Owner has or will create a Plaid developer account; the alternative (hosted proxy) needs infrastructure and is P2 |
+| D2 | Bring-your-own Plaid keys in v1 | Owner decision (2026-09-25): at go-live the app ships as a paid product (subscription or one-time purchase) and users do not supply keys. The owner's production Plaid key stays on a small hosted relay (link-token creation, public-token exchange, `/transactions/sync` and `/item/remove` on the user's behalf, plus the licence check); the desktop app never holds the production secret. Bring-your-own-keys remains the developer and sandbox path. Relay and licensing are post-v1 work; the provider interface (7.5) must keep the relay swappable for the direct Plaid client |
 | D3 | Single base currency per file | Multi-currency budgeting is a large feature; accounts still record currency for the future |
 | D4 | No cloud, no accounts, no sync service | The whole thesis; household via synced folder is P2 |
 | D5 | CommunityToolkit.Mvvm instead of ReactiveUI | Simpler for generated code and for an agent; old repo mixed both |

@@ -50,3 +50,11 @@ Rules change incoming transactions before you see them. Manage them in **Setting
 
 **Settings → Payees**: search your payees, set a default category (used when no rule matches), and
 rename a payee (renaming to an existing name merges the two).
+
+**Merge payees** when the same shop appears under several names ("Amazon", "AMZN Mktp", "Amazon.com"):
+check the payees in the list, choose **Merge into…**, and pick the one that stays. The dialog shows what
+moves before you confirm: every transaction, scheduled transaction and recurring item of the others moves
+to it, rules that set or equal one of the other names use the name that stays, and the payee that stays
+keeps its default category (or takes the first one of the others that has one). The other payees are
+removed. The bank's original description of each transaction is kept, and one undo reverts the merge.
+Suggestions learn from the merged history right away.

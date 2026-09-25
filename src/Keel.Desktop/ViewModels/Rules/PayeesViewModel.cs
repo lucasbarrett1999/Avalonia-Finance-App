@@ -16,8 +16,9 @@ using Keel.Desktop.ViewModels.Register;
 namespace Keel.Desktop.ViewModels.Rules;
 
 /// <summary>
-/// Settings → Payees (F-TXN-9, partial): search, default category per payee (used by
-/// categorization at 95% confidence) and rename, which applies to every transaction of the payee.
+/// Settings → Payees (F-TXN-9): search, default category per payee (used by categorization at 95%
+/// confidence), rename, which applies to every transaction of the payee, and merge: select payees and
+/// "Merge into…" one of them (ADR 0097).
 /// </summary>
 public sealed partial class PayeesViewModel : ObservableObject, IRecipient<LedgerChanged>
 {
@@ -28,6 +29,7 @@ public sealed partial class PayeesViewModel : ObservableObject, IRecipient<Ledge
     private readonly ICategoryService _categories;
     private readonly DialogService _dialogs;
     private readonly StatusService _status;
+    private readonly Dictionary<Guid, PayeeListItem> _selected = [];
     private int _version;
     private bool _loaded;
 
@@ -75,6 +77,21 @@ public sealed partial class PayeesViewModel : ObservableObject, IRecipient<Ledge
     /// <summary>The current load (tests await it).</summary>
     public Task Loading { get; private set; } = Task.CompletedTask;
 
+    /// <summary>Payees checked for merging (kept across searches).</summary>
+    public IReadOnlyList<PayeeListItem> SelectedPayees => [.. _selected.Values];
+
+    /// <summary>"3 selected".</summary>
+    public string SelectionText => LedgerText.Format(Strings.PayeeMerge_Selected, _selected.Count.ToString(CultureInfo.CurrentCulture));
+
+    /// <summary>Whether any payee is checked.</summary>
+    public bool HasSelection => _selected.Count > 0;
+
+    /// <summary>Whether enough payees are checked to merge.</summary>
+    public bool CanMerge => _selected.Count >= 2;
+
+    /// <summary>The latest merge (tests await it).</summary>
+    public Task Merging { get; private set; } = Task.CompletedTask;
+
     /// <summary>Loads once.</summary>
     public Task EnsureLoadedAsync()
     {
@@ -109,6 +126,64 @@ public sealed partial class PayeesViewModel : ObservableObject, IRecipient<Ledge
         {
             _status.Show(LedgerText.Format(Strings.Status_PayeeRenamed, row.Name, renamed.Name), offerUndo: true);
         }
+    }
+
+    /// <summary>Opens the merge dialog for the checked payees (F-TXN-9).</summary>
+    [RelayCommand(CanExecute = nameof(CanMerge))]
+    private Task MergeAsync() => Merging = MergeCoreAsync();
+
+    /// <summary>Unchecks every payee.</summary>
+    [RelayCommand]
+    private void ClearSelection()
+    {
+        _selected.Clear();
+        foreach (var row in Payees)
+        {
+            row.SetSelected(false);
+        }
+
+        SelectionChanged();
+    }
+
+    private async Task MergeCoreAsync()
+    {
+        var payees = SelectedPayees.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+        if (payees.Count < 2)
+        {
+            return;
+        }
+
+        var dialog = new MergePayeesDialogViewModel(_payees, payees);
+        await dialog.RefreshAsync();
+        if (await _dialogs.ShowAsync(dialog) && dialog.Result is { } result)
+        {
+            ClearSelection();
+            _status.Show(LedgerText.Format(Strings.PayeeMerge_Done, result.MergedCount.ToString(CultureInfo.CurrentCulture), result.Survivor.Name,
+                result.Transactions.ToString("N0", CultureInfo.CurrentCulture)), offerUndo: true);
+        }
+    }
+
+    internal void Toggle(PayeeRowViewModel row, bool selected)
+    {
+        if (selected)
+        {
+            _selected[row.Id] = row.Payee;
+        }
+        else
+        {
+            _selected.Remove(row.Id);
+        }
+
+        SelectionChanged();
+    }
+
+    private void SelectionChanged()
+    {
+        OnPropertyChanged(nameof(SelectedPayees));
+        OnPropertyChanged(nameof(SelectionText));
+        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(CanMerge));
+        MergeCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSearchTextChanged(string? value)
@@ -156,8 +231,17 @@ public sealed partial class PayeesViewModel : ObservableObject, IRecipient<Ledge
             Payees.Clear();
             foreach (var payee in payees)
             {
-                Payees.Add(new PayeeRowViewModel(payee, choices, SetDefaultAsync) { Owner = this });
+                var row = new PayeeRowViewModel(payee, choices, SetDefaultAsync) { Owner = this };
+                if (_selected.ContainsKey(payee.Id))
+                {
+                    _selected[payee.Id] = payee;
+                    row.SetSelected(true);
+                }
+
+                Payees.Add(row);
             }
+
+            SelectionChanged();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -217,6 +301,31 @@ public sealed partial class PayeeRowViewModel : ObservableObject
     [ObservableProperty]
     public partial CategoryOption? DefaultCategory { get; set; }
 
+    /// <summary>Checked for merging.</summary>
+    [ObservableProperty]
+    public partial bool IsSelected { get; set; }
+
+    /// <summary>"Select Amazon for merging".</summary>
+    public string SelectName => LedgerText.Format(Strings.PayeeMerge_SelectName, Payee.Name);
+
+    private bool _silent;
+
+    /// <summary>Sets the check without notifying the list.</summary>
+    internal void SetSelected(bool selected)
+    {
+        _silent = true;
+        IsSelected = selected;
+        _silent = false;
+    }
+
+    partial void OnIsSelectedChanged(bool value)
+    {
+        if (!_silent)
+        {
+            Owner?.Toggle(this, value);
+        }
+    }
+
     partial void OnDefaultCategoryChanged(CategoryOption? value)
     {
         if (_ready && value is not null)
@@ -269,6 +378,150 @@ public sealed partial class RenamePayeeDialogViewModel : DialogViewModel
         {
             Error = LedgerText.Error(ex.Error);
             return false;
+        }
+    }
+}
+
+/// <summary>
+/// Merge payees (F-TXN-9): choose the payee that stays; the dialog shows how many transactions, scheduled
+/// transactions, recurring items and rules move, and the default category the survivor ends with. One undo reverts it.
+/// </summary>
+public sealed partial class MergePayeesDialogViewModel : DialogViewModel
+{
+    private readonly IPayeeService _payees;
+
+    /// <summary>Creates the dialog for <paramref name="payees"/> (two or more).</summary>
+    public MergePayeesDialogViewModel(IPayeeService service, IReadOnlyList<PayeeListItem> payees)
+    {
+        ArgumentNullException.ThrowIfNull(payees);
+        _payees = service;
+        Choices = payees.Select(p => new MergeChoiceViewModel(p, this)).ToList();
+        var survivor = Choices.OrderByDescending(c => c.Payee.TransactionCount).First();
+        survivor.SetChecked(true);
+        Survivor = survivor.Payee;
+    }
+
+    /// <inheritdoc />
+    public override string Title => Strings.PayeeMerge_Title;
+
+    /// <inheritdoc />
+    public override double PreferredMaxWidth => 600;
+
+    /// <summary>The payees, one of which stays.</summary>
+    public IReadOnlyList<MergeChoiceViewModel> Choices { get; }
+
+    /// <summary>The payee that stays.</summary>
+    [ObservableProperty]
+    public partial PayeeListItem Survivor { get; private set; }
+
+    /// <summary>The counts for the chosen survivor.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Summary), nameof(DefaultText), nameof(HasPreview))]
+    public partial PayeeMergePreview? Preview { get; private set; }
+
+    /// <summary>Whether the counts are loaded.</summary>
+    public bool HasPreview => Preview is not null;
+
+    /// <summary>"Merge 2 payees into Amazon: 14 transactions, 1 scheduled transaction, 1 recurring item and 2 rules move."</summary>
+    public string Summary => Preview is { } p
+        ? LedgerText.Format(Strings.PayeeMerge_Summary, p.Merged.Count.ToString(CultureInfo.CurrentCulture), p.Survivor.Name,
+            p.Transactions.ToString("N0", CultureInfo.CurrentCulture), p.ScheduledTransactions.ToString("N0", CultureInfo.CurrentCulture),
+            p.RecurringItems.ToString("N0", CultureInfo.CurrentCulture), p.Rules.ToString("N0", CultureInfo.CurrentCulture))
+        : Strings.PayeeMerge_Counting;
+
+    /// <summary>Which default category the survivor keeps.</summary>
+    public string DefaultText => Preview is { DefaultCategoryId: null } ? Strings.PayeeMerge_NoDefault : Strings.PayeeMerge_DefaultKept;
+
+    /// <summary>The outcome.</summary>
+    public PayeeMergeResult? Result { get; private set; }
+
+    /// <summary>The latest count refresh (tests await it).</summary>
+    public Task Refreshing { get; private set; } = Task.CompletedTask;
+
+    /// <summary>Counts what the merge into the chosen survivor would move.</summary>
+    public Task RefreshAsync() => Refreshing = RefreshCoreAsync();
+
+    internal void Choose(MergeChoiceViewModel choice)
+    {
+        foreach (var other in Choices.Where(c => c != choice))
+        {
+            other.SetChecked(false);
+        }
+
+        Survivor = choice.Payee;
+        _ = RefreshAsync();
+    }
+
+    /// <inheritdoc />
+    protected override async Task<bool> ConfirmCoreAsync()
+    {
+        try
+        {
+            var survivor = Survivor.Id;
+            Result = await Task.Run(() => _payees.MergeAsync(Choices.Select(c => c.Payee.Id).ToList(), survivor, CancellationToken.None));
+            return true;
+        }
+        catch (LedgerValidationException ex)
+        {
+            Error = LedgerText.Error(ex.Error);
+            return false;
+        }
+    }
+
+    private async Task RefreshCoreAsync()
+    {
+        var survivor = Survivor.Id;
+        Preview = null;
+        try
+        {
+            var preview = await Task.Run(() => _payees.PreviewMergeAsync(Choices.Select(c => c.Payee.Id).ToList(), survivor, CancellationToken.None));
+            if (Survivor.Id == survivor)
+            {
+                Preview = preview;
+            }
+        }
+        catch (LedgerValidationException ex)
+        {
+            Error = LedgerText.Error(ex.Error);
+        }
+    }
+}
+
+/// <summary>One payee in the merge dialog (radio button: the survivor).</summary>
+public sealed partial class MergeChoiceViewModel : ObservableObject
+{
+    private readonly MergePayeesDialogViewModel _owner;
+    private bool _silent;
+
+    /// <summary>Creates the choice.</summary>
+    public MergeChoiceViewModel(PayeeListItem payee, MergePayeesDialogViewModel owner)
+    {
+        Payee = payee;
+        _owner = owner;
+    }
+
+    /// <summary>The payee.</summary>
+    public PayeeListItem Payee { get; }
+
+    /// <summary>"Amazon (12 transactions)".</summary>
+    public string Label => LedgerText.Format(Strings.PayeeMerge_Choice, Payee.Name, Payee.TransactionCount.ToString("N0", CultureInfo.CurrentCulture));
+
+    /// <summary>Whether this payee stays.</summary>
+    [ObservableProperty]
+    public partial bool IsChecked { get; set; }
+
+    internal void SetChecked(bool value)
+    {
+        _silent = true;
+        IsChecked = value;
+        _silent = false;
+    }
+
+    partial void OnIsCheckedChanged(bool value)
+    {
+        if (value && !_silent)
+        {
+            _owner.Choose(this);
         }
     }
 }

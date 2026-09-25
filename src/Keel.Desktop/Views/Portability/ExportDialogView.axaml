@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Keel.Desktop.ViewModels.Portability"
+             xmlns:res="using:Keel.Desktop.Resources"
+             x:Class="Keel.Desktop.Views.Portability.ExportDialogView"
+             x:DataType="vm:ExportDialogViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+  </UserControl.KeyBindings>
+  <StackPanel Spacing="12" MaxWidth="560">
+    <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Export_Intro}" TextWrapping="Wrap" />
+    <TextBlock Classes="fieldLabel" Text="{x:Static res:Strings.Export_Kind}" />
+    <StackPanel Spacing="10" AutomationProperties.Name="{x:Static res:Strings.Export_Kind}">
+      <StackPanel Spacing="2">
+        <RadioButton x:Name="KindZip" GroupName="ExportKind" IsChecked="{Binding IsCsvZip}" Content="{x:Static res:Strings.Export_KindZip}"
+                     AutomationProperties.Name="{x:Static res:Strings.Export_KindZip}" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Export_KindZipHint}" TextWrapping="Wrap" Margin="28,0,0,0"
+                   FontSize="{StaticResource Keel.FontSize.Small}" />
+      </StackPanel>
+      <StackPanel Spacing="2">
+        <RadioButton x:Name="KindFolder" GroupName="ExportKind" IsChecked="{Binding IsCsvFolder}" Content="{x:Static res:Strings.Export_KindFolder}"
+                     AutomationProperties.Name="{x:Static res:Strings.Export_KindFolder}" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Export_KindFolderHint}" TextWrapping="Wrap" Margin="28,0,0,0"
+                   FontSize="{StaticResource Keel.FontSize.Small}" />
+      </StackPanel>
+      <StackPanel Spacing="2">
+        <RadioButton x:Name="KindBundle" GroupName="ExportKind" IsChecked="{Binding IsBundle}" Content="{x:Static res:Strings.Export_KindBundle}"
+                     AutomationProperties.Name="{x:Static res:Strings.Export_KindBundle}" />
+        <TextBlock Classes="secondary" Text="{x:Static res:Strings.Export_KindBundleHint}" TextWrapping="Wrap" Margin="28,0,0,0"
+                   FontSize="{StaticResource Keel.FontSize.Small}" />
+      </StackPanel>
+    </StackPanel>
+    <TextBlock Classes="secondary" Text="{x:Static res:Strings.Export_Unencrypted}" TextWrapping="Wrap" FontSize="{StaticResource Keel.FontSize.Small}" />
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="4" AutomationProperties.Name="{x:Static res:Strings.Export_Working}" />
+    <TextBlock x:Name="ExportError" Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Command="{Binding CancelCommand}" Content="{x:Static res:Strings.Dialog_Cancel}" />
+      <Button x:Name="ExportConfirmButton" Classes="accent" Command="{Binding ConfirmCommand}" Content="{Binding ConfirmText}" IsEnabled="{Binding !IsBusy}" />
+    </StackPanel>
+  </StackPanel>
+</UserControl>

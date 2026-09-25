@@ -37,6 +37,13 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
 - [ ] Home shows "Get started" with 3 of 4 done; assign all the money; the fourth step ticks off.
 - [ ] Time from first launch to a fully assigned month is under 15 minutes (G1).
 - [ ] Restart: the setup does not show again; the same file opens.
+- [ ] (M9) On a fresh data folder, "Restore from a Keel export bundle…" with a bundle from another
+      machine: the details (source file, date, counts) show; "Restore and open" creates the named file
+      and opens it with every account, the Budget and Reports matching the source.
+- [ ] (M9) On a fresh data folder, "Import from YNAB or Monarch export…" with a real YNAB Register
+      export and a real Monarch export (each in turn): the preview lists every account with a sensible
+      type, categories and tags to create, and a result line; Import lands on Budget; balances match
+      the other app; transfers between the imported accounts are linked; Undo removes everything.
 
 ## 3. Budget file management (F-SET-1, PRD 8)
 
@@ -57,6 +64,15 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
       `schema-summary.json` with no payee names, amounts or notes (search it for a payee you entered).
 - [ ] Open a copy of a damaged file (truncate a copy): Keel reports the problem in the status strip
       and keeps running.
+- [ ] (M9) Export… as CSV zip, CSV folder and Keel bundle: the zip and folder hold the nine CSV files;
+      open `transactions.csv` in a spreadsheet (UTF-8, ISO dates, decimals, split lines with Parent Id);
+      the bundle is a single `.json`. The app stays responsive during a large export.
+- [ ] (M9) Import bundle into a new file… with that bundle: the new file opens with the same accounts,
+      balances, budget, rules, targets, schedules, bills and attachments; the original file is unchanged.
+      A bundle edited by hand to reference a missing account is refused with a clear message and no
+      file is left behind.
+- [ ] (M9) Import the YNAB Budget/Plan export after the register: Assigned per month matches YNAB;
+      importing it again changes nothing.
 
 ## 4. Everyday flows with the mouse and the keyboard
 
@@ -64,13 +80,38 @@ Record the version, OS and build, the date, and a pass/fail per line in the rele
 - [ ] Import a CSV and an OFX from your own bank; re-import the same file: 0 new rows.
 - [ ] Review: approve with `A`, `1`–`9`, change category with `C`, create a rule with `R`.
 - [ ] Budget: assign with typing and Tab, move money with `M` and by dragging a pill, `Alt+←/→`.
+- [ ] Budget three months (`W`): each month shows its own numbers and Ready to Assign; `→` crosses
+      into the next month; typing, `Tab` and `M` act in the cursor's month; `Alt+←/→` shift the three
+      months; the mode survives a restart; at 960 × 540 the grid scrolls sideways to the cursor.
+- [ ] Budget Flex view (`F`): income, Fixed, Non-monthly and the Flex number match the grid (add the
+      categories up by hand once); each number opens the grid with only its categories; tag a category
+      in the inspector and in Manage categories, then undo; a category you tagged keeps its group after
+      you add a target.
 - [ ] Bills: confirm a detected item; add a scheduled transaction; the bell shows alerts.
 - [ ] Reports: click a donut slice down to the register; Export CSV opens in a spreadsheet.
+- [ ] Export PNG (`Ctrl/⌘+Shift+E`) on every report: the image opens, is twice the chart's size and
+      matches the theme; cancelling the save dialog writes nothing.
+- [ ] Budget health: age of money, months ahead, targets funded and overspent categories show the
+      numbers behind them; a history row and an overspent row open the register; Home's age-of-money card
+      matches and opens the report.
+- [ ] Debt payoff (Goals, `2`): add a rate and minimum to a card and a loan in Edit account; change
+      the extra and Avalanche/Snowball and the dates move; a debt with a payment below its interest shows
+      Never; Set payment targets creates the targets (Budget shows them) and one Undo removes them all.
 - [ ] Command palette `Ctrl/⌘+K`: "backup", "budget", an account name, "dark" all work.
 - [ ] `Ctrl/⌘+1…7`, `Ctrl/⌘+,`, `Ctrl/⌘+O`, `Ctrl/⌘+F`, `Ctrl/⌘+Z` and redo behave as listed in
       Settings → Keyboard shortcuts; on macOS the menus show ⌘ glyphs.
 - [ ] Menus: Windows/Linux in-window File, Edit, View, Go, Help; macOS menu bar with the app menu
       holding About, Preferences and Quit.
+- [ ] Tags (F-TXN-8): `T` on a row, type a new and an existing tag with `Enter`, remove one with
+      `Backspace`, save; chips show in the row; the tag filter and `tag:`/`has:tag` find it; one undo
+      removes the new tag. Settings → Tags: rename, merge, delete (count in the confirmation), undo each;
+      "Flagged" cannot be renamed; a rule that adds a renamed tag uses the new name.
+- [ ] Attachments: attach a PDF and a photo from the picker and by dragging them from the file manager
+      onto the editor (a new and an existing transaction); the paperclip count shows; clicking opens the
+      file in the system's viewer (Windows, macOS, Linux); remove and undo; the files are in
+      `<name>.keel-attachments`, a backup zip contains them, Restore and Move budget file bring them along.
+- [ ] Payee merge (F-TXN-9): check three spellings of one payee in Settings → Payees, Merge into…, check
+      the counts, merge; the register, a scheduled transaction and a Bills item show the survivor; undo.
 
 ## 5. Appearance and accessibility (PRD 8, 9.11, 11)
 

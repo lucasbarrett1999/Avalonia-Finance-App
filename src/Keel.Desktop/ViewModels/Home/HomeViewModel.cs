@@ -301,6 +301,7 @@ public sealed partial class HomeViewModel : PageViewModel, INavigationTarget, IR
             }
 
             await LoadRecurringCardsAsync(today, version);
+            await LoadHealthCardAsync(today, version);
             await LoadSetupAsync(version);
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbException)

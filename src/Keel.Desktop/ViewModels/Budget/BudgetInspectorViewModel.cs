@@ -32,6 +32,7 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
     private DateOnly? _monthNoteMonth;
     private string? _savedMonthNote;
     private int _version;
+    private bool _syncingFlex;
 
     /// <summary>Creates the inspector for <paramref name="page"/>.</summary>
     public BudgetInspectorViewModel(BudgetViewModel page, IBudgetService budget, ICategoryService categories, IAccountService accounts)
@@ -42,6 +43,8 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
         _accounts = accounts;
         TargetTypes = Enum.GetValues<TargetType>().Select(t => new Choice<TargetType>(t, BudgetText.TargetType(t))).ToList();
         SelectedTargetType = TargetTypes[0];
+        FlexChoices = new[] { FlexKind.Unset, FlexKind.Fixed, FlexKind.NonMonthly, FlexKind.Flex }
+            .Select(k => new Choice<FlexKind>(k, BudgetText.FlexKind(k))).ToList();
     }
 
     /// <summary>Raised when the target amount field should receive focus (T).</summary>
@@ -49,7 +52,7 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
 
     /// <summary>The category shown, or null for Ready to Assign.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCategory), nameof(IsReadyToAssign), nameof(Title), nameof(ExplanationTitle), nameof(CanHaveTarget))]
+    [NotifyPropertyChangedFor(nameof(IsCategory), nameof(IsReadyToAssign), nameof(Title), nameof(ExplanationTitle), nameof(CanHaveTarget), nameof(CanTagFlex))]
     public partial BudgetCategoryRowViewModel? Category { get; private set; }
 
     /// <summary>Whether a category is shown.</summary>
@@ -136,6 +139,22 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
     /// <summary>Whether <see cref="TargetError"/> is set.</summary>
     public bool HasTargetError => !string.IsNullOrEmpty(TargetError);
 
+    // ---- Flex-mode tag (F-BUD-6) ----
+
+    /// <summary>Whether the category can be tagged (regular categories; card payments belong to no Flex kind).</summary>
+    public bool CanTagFlex => Category is { IsCardPayment: false };
+
+    /// <summary>Automatic, Fixed, Non-monthly, Flex.</summary>
+    public IReadOnlyList<Choice<FlexKind>> FlexChoices { get; }
+
+    /// <summary>The category's tag; choosing one saves it (undoable).</summary>
+    [ObservableProperty]
+    public partial Choice<FlexKind>? SelectedFlex { get; set; }
+
+    /// <summary>"Automatic: counts as Fixed (it has a monthly target)." or "Counts as Flex in the Flex view."</summary>
+    [ObservableProperty]
+    public partial string FlexHint { get; private set; } = string.Empty;
+
     // ---- Quick assign (F-BUD-5), note (F-BUD-7), history ----
 
     /// <summary>Quick-assign actions with their values.</summary>
@@ -174,6 +193,7 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
         }
 
         Category = category;
+        SyncFlex();
         Refresh();
     }
 
@@ -185,8 +205,37 @@ public sealed partial class BudgetInspectorViewModel : ViewModelBase
             return;
         }
 
+        SyncFlex();
         var version = ++_version;
         Loading = LoadAsync(version);
+    }
+
+    partial void OnSelectedFlexChanged(Choice<FlexKind>? value)
+    {
+        if (!_syncingFlex && value is not null && Category is { IsCardPayment: false } category && category.FlexTag != value.Value)
+        {
+            _ = _page.SetFlexTagAsync(category.Id, value.Value);
+        }
+    }
+
+    // Shows the saved tag of the category without writing it back.
+    private void SyncFlex()
+    {
+        _syncingFlex = true;
+        try
+        {
+            var category = Category;
+            SelectedFlex = category is { IsCardPayment: false } c ? FlexChoices.First(f => f.Value == c.FlexTag) : null;
+            FlexHint = category is { IsCardPayment: false } shown
+                ? LedgerText.Format(
+                    shown.FlexTag != FlexKind.Unset ? Strings.Flex_HintTagged : shown.HasTarget ? Strings.Flex_HintAutomatic : Strings.Flex_HintAutomaticNoTarget,
+                    BudgetText.FlexKind(shown.Flex))
+                : string.Empty;
+        }
+        finally
+        {
+            _syncingFlex = false;
+        }
     }
 
     /// <summary>Asks the view to focus the target amount (T).</summary>

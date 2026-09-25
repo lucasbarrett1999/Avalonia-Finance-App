@@ -38,6 +38,15 @@ public enum ImportFileFormat
 
     /// <summary>Quicken Interchange Format.</summary>
     Qif,
+
+    /// <summary>A YNAB register export (every account in one CSV, with categories and cleared state).</summary>
+    Ynab,
+
+    /// <summary>A YNAB budget export (assigned, activity and available per category and month).</summary>
+    YnabBudget,
+
+    /// <summary>A Monarch transactions export (every account in one CSV, with categories and tags).</summary>
+    Monarch,
 }
 
 /// <summary>Day/month order for numeric dates such as 03/04/2026.</summary>
@@ -88,7 +97,24 @@ public sealed record ParseResult(
 {
     /// <summary>The first (usually only) account in the file.</summary>
     public DetectedAccount? Account => Accounts.Count > 0 ? Accounts[0] : null;
+
+    /// <summary>Budget rows of a budget export (<see cref="ImportFileFormat.YnabBudget"/>); empty for transaction files.</summary>
+    public IReadOnlyList<ParsedBudgetRow> BudgetRows { get; init; } = [];
+
+    /// <summary>Whether the file comes from another budgeting app and holds several accounts, categories or a budget
+    /// (YNAB, Monarch): it is imported through <c>IMigrationImportService</c> rather than into one account.</summary>
+    public bool IsMigration => Format is ImportFileFormat.Ynab or ImportFileFormat.YnabBudget or ImportFileFormat.Monarch;
 }
+
+/// <summary>One category and month of a budget export.</summary>
+/// <param name="Month">First day of the month.</param>
+/// <param name="Group">Category group name as the file spells it.</param>
+/// <param name="Category">Category name as the file spells it.</param>
+/// <param name="Assigned">Amount assigned (YNAB "Budgeted"/"Assigned") in minor units.</param>
+/// <param name="Activity">Activity in minor units, when the file states it.</param>
+/// <param name="Available">Available in minor units, when the file states it.</param>
+/// <param name="SourceLine">One-based line in the decoded file.</param>
+public sealed record ParsedBudgetRow(DateOnly Month, string Group, string Category, long Assigned, long? Activity, long? Available, int SourceLine);
 
 /// <summary>Account information stated by a file.</summary>
 public sealed record DetectedAccount

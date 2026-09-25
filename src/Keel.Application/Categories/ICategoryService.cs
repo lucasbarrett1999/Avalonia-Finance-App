@@ -1,3 +1,5 @@
+using Keel.Domain;
+
 namespace Keel.Application.Categories;
 
 /// <summary>Category lookup for pickers and category management (F-BUD-1). Every change is one undoable ledger action.</summary>
@@ -68,6 +70,12 @@ public interface ICategoryService
     /// yet (matching names case-insensitively) and never deletes. Returns the number of categories created.
     /// </summary>
     Task<int> ApplyTemplateAsync(IReadOnlyList<CategoryTemplateGroup> groups, CancellationToken ct);
+
+    /// <summary>
+    /// Tags a regular category Fixed, Non-monthly or Flex for the Flex view (F-BUD-6), or back to automatic
+    /// with <see cref="FlexKind.Unset"/>. One undoable action; no effect on budget numbers.
+    /// </summary>
+    Task SetFlexKindAsync(Guid categoryId, FlexKind kind, CancellationToken ct);
 }
 
 /// <summary>A category group with its categories (category management).</summary>
@@ -94,7 +102,7 @@ public sealed record CategoryUsageDto(int Transactions, int Assignments, int Sch
 /// <param name="Categories">Category names.</param>
 public sealed record CategoryTemplateGroup(string Name, IReadOnlyList<string> Categories);
 
-/// <summary>A category with its group.</summary>
+/// <summary>A category with its group (<c>FlexKind</c>: the Flex-mode tag, Unset for automatic).</summary>
 public sealed record CategoryDto(
     Guid Id,
     Guid GroupId,
@@ -102,7 +110,8 @@ public sealed record CategoryDto(
     string Name,
     bool IsSystem,
     bool IsHidden,
-    Guid? LinkedAccountId)
+    Guid? LinkedAccountId,
+    FlexKind FlexKind = FlexKind.Unset)
 {
     /// <summary>Whether this is a Credit Card Payment category (not assignable to spending).</summary>
     public bool IsCreditCardPayment => LinkedAccountId is not null;

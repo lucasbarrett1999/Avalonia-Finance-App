@@ -77,6 +77,30 @@ public enum LedgerError
 
     /// <summary>A payee needs a name.</summary>
     PayeeNameRequired,
+
+    /// <summary>A tag needs a name.</summary>
+    TagNameRequired,
+
+    /// <summary>The tag does not exist.</summary>
+    TagNotFound,
+
+    /// <summary>Another tag already has that name; merge the tags instead.</summary>
+    TagNameTaken,
+
+    /// <summary>The reserved "Flagged" tag (the rules' flag) cannot be renamed, merged or created by renaming.</summary>
+    TagReserved,
+
+    /// <summary>A tag cannot be merged into itself.</summary>
+    TagMergeSame,
+
+    /// <summary>The attachment does not exist.</summary>
+    AttachmentNotFound,
+
+    /// <summary>The attachment's stored file is missing from the attachments folder.</summary>
+    AttachmentFileMissing,
+
+    /// <summary>A payee merge needs a survivor and at least one other payee (transfer payees cannot merge).</summary>
+    PayeeMergeInvalid,
 }
 
 /// <summary>A ledger rule was violated; nothing was written.</summary>

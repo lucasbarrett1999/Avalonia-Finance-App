@@ -74,6 +74,316 @@ private Stats page (PRD 4, 9.9 Privacy & Stats) and command palette completeness
 All notable changes to Keel are recorded here, one entry per milestone (PRD 12). Each entry lists
 the commands used to demonstrate the exit criteria and their results.
 
+## M9c — Tags, attachments and payee merge
+
+Milestone 9 stream C (PRD 12 P1 backlog): tags and attachments (F-TXN-8) and payee merge (F-TXN-9), with the
+tag parts of search (F-TXN-7). No schema change: the `Tag`, `TransactionTag` and `Attachment` tables existed.
+
+### Added
+
+- **Tags in the register** (ADR 0096): a Tags box on the editor's second line with chips, type-ahead over the
+  file's tags, `Enter` adds (the highlighted suggestion or the typed text), `Backspace` in the empty box
+  removes the last chip; `T` on a row opens the editor there. New tags are created in the same ledger action
+  as the transaction save (`SaveTransactionRequest.Tags`), so one undo removes them. Tag chips before the memo
+  (clipped, never overlapping), a tag filter in the filter bar (`RegisterFilter.TagId`, shown when the file
+  has tags), free words that match tag names, and `has:tag` / `has:attachment` in the search syntax. In
+  registers narrower than 1000 px the filters wrap under the search box (the bar overflowed at 960 × 540 with the extra
+  filter).
+- **Settings → Tags**: every tag with transaction and rule counts, a link to its transactions, rename (rules
+  that name the tag follow), merge into another tag (links, rules and the subscription designation move),
+  delete with a count confirmation; each undoable. The reserved `Flagged` tag (the rules' flag) can only be
+  deleted; subscription-marker tags keep working through rename, merge and delete.
+- **Attachments** (ADR 0097): `IAttachmentService` stores files content-addressed (SHA-256 names) in the
+  `Name.keel-attachments` folder next to the budget file; the copy happens before the row is written in an
+  undoable `LedgerWriter` action; identical content is stored once. The editor lists attachments with open
+  (a read-only copy under the original name, opened with the system app through Avalonia's launcher) and
+  remove (undoable), an **Attach file…** picker, and drag and drop onto the editor; files for a new
+  transaction are attached after its save. A paperclip with the count on register rows. The daily
+  maintenance job deletes files no row refers to, keeping any named by an attachment change of the last 30
+  days (undo) or written in the last day. Backups, restore and "Move budget file" carry the folder (tested
+  with real attachments). Not encrypted (PRD 10; the data guide says so).
+- **Payee merge** (ADR 0097): Settings → Payees gets a check box per payee and **Merge into…**; the dialog
+  picks the survivor and shows the counts (transactions, scheduled transactions, recurring items, rules) and
+  the default-category outcome. One undoable action moves transactions (deleted ones too), schedules and
+  recurring items, rewrites "set payee" and "payee equals" rules, keeps the survivor's default category or
+  takes the first merged payee's, and removes the others; the learner follows through the audit log.
+- **Palette and keys**: `T` (edit tags), `Enter`/`Backspace` in the Tags box in the registry and the keyboard
+  guide; palette commands "Manage tags", "Merge payees", and, with one register row selected, "Attach a file to
+  the selected transaction" and "Edit tags of the selected transaction"; Settings section `Tags`.
+- **Docs**: `docs/user-guide/transactions.md` (register, full search syntax, tags, attachments), payee merge
+  in the review and rules guide, attachments in the data guide, keyboard guide, QA checklist items.
+
+### Changed
+
+- Renaming a payee onto an existing name now uses the merge (it failed with a foreign-key error when the
+  renamed payee had scheduled transactions or recurring items), and a rename also rewrites rules that set or
+  equal the old name.
+- Purging deleted transactions removes their tag and attachment rows explicitly, so undo restores them.
+- Rules and imports (the M9d YNAB flag and Monarch tags) add tags through the tag service: the same
+  case-insensitive lookup as the editor, so `Flagged` and subscription-marker tags are reused by id.
+- The register footer's key hints mention `T`.
+
+### Decisions and deviations
+
+- [ADR 0096](docs/decisions/0096-tags-in-the-ledger.md): tag names, editing in the save action, register,
+  management rules, `Flagged` reserved, change messages.
+- [ADR 0097](docs/decisions/0097-attachments-and-payee-merge.md): the per-file `Name.keel-attachments` folder
+  instead of the PRD's literal `attachments/` (M8 backups, restore and moves already use it), orphan grace
+  period, opening copies, pending files on new transactions, payee merge semantics.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test` per project, `-m:1` (after merging M9d) | 1,887 passed, 4 skipped (gated): Domain 1,046, Infrastructure 529 + 4 skipped, Desktop 312 |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Tags\|FullyQualifiedName~Tests.Attachments\|FullyQualifiedName~PayeeMerge"` | 23 passed (tags with undo, rules and designations; attachments with dedup, undo, clean-up, backup/restore and move; merge with undo and the learner equal to a retrain) |
+| `dotnet test tests/Keel.Desktop.Tests --filter "TagsAttachmentsTests\|TokenContrastTests\|M9cRenderingTests"` plus the two new accessibility and 2x tests | all pass; audits report no unnamed controls, low-contrast text or proportional amounts |
+| `KEEL_SCREENSHOT_DIR=... dotnet test tests/Keel.Desktop.Tests --filter "M9cRenderingTests\|HighDpiRenderingTests"` | 16 M9c PNGs (light and dark) and the 2x captures reviewed by eye; the register filter bar at 960 × 540 fixed |
+
+A domain timing test (`BudgetPerformanceTests`, 200 ms) failed once while other worktrees were running their
+suites on the same machine and passed on the rerun; this stream did not touch budget code.
+
+### Not done here
+
+- Windows and macOS (file picker, drag and drop from Explorer/Finder, opening with the default app) run only
+  in CI and the QA checklist; the windowed app was not launched.
+- Recurring items flagged as subscriptions through a merged or deleted tag are reclassified at the next
+  detection run, not at once. Deleting a tag does not rewrite rules that add it (the confirmation says so).
+- No saved filters (F-TXN-7) and no attachment previews (thumbnails) in the register.
+## M9b — Debt payoff, budget health and PNG export
+
+Milestone 9 (PRD 12, P1 backlog), stream B: the debt payoff planner (F-GOAL-2, PRD 9.7), age of money
+and budget health (F-REP-5) and PNG export of report charts (PRD 9.8).
+
+### Added
+
+- **Debt terms on accounts** (ADR 0093): `Account.InterestRateBps` (annual basis points) and
+  `MinimumPayment` (minor units), migration `DebtPayoffFields` (two nullable columns, no table rebuild);
+  the account editor shows "Interest rate (APR %)" and "Minimum payment" for cards, lines of credit,
+  loans/mortgages and other liabilities; edits are audited and undoable.
+- **`DebtPayoffCalculator`** (pure domain): monthly amortization with interest = balance × APR / 12
+  rounded half to even; snowball and avalanche priority with rollover of freed minimums and payoff-month
+  leftovers; the minimum-only baseline ("at current payment"); a debt whose interest reaches the whole
+  monthly outlay is reported as never paid off while the others still finish; balances saturate.
+- **Debt payoff tab on Goals** (`2`/`1` switch tabs; palette "Open the debt payoff planner"): headline
+  debt-free month, monthly outlay, total interest and the saving versus minimums; extra per month and
+  ordering; a table of balance, rate, minimum, this month's payment, payoff month and interest (with the
+  minimum-alone payoff and interest under each row); a stacked-area chart of balances with the
+  minimum-only total as a dashed line (rows and bands open the account); "Add details" list with Edit
+  account for debts missing a rate or minimum; designed loading, error and empty states.
+- **Set payment targets**: one click writes debt-payment targets (this month's planned payment) on each
+  debt's payment category through the new `IBudgetService.SetTargetsAsync`, one undo step; loans without
+  a payment category get "{name} payment" in "Debt payments".
+- **Age of money** (ADR 0094): FIFO over daily inflows and outflows of on-budget cash accounts (one SQL
+  `GROUP BY` day), average of the last 10 outflows; transfers between cash accounts left out, card
+  spending counted when the card is paid, unfunded spending left out.
+- **Budget health report** (Reports, fifth report; palette "Open the budget health report"): age of
+  money with its month-end history, months ahead, targets funded and overspent categories (cash vs
+  credit), each with the numbers behind it and a "How these are calculated" card; drill-down to the
+  register; CSV. `IReportService.GetAgeOfMoneyAsync` and `GetBudgetHealthAsync`.
+- **Home: age-of-money card** with a 12-month sparkline, linking to Budget health.
+- **Export PNG** (ADR 0095) on every report (`Ctrl/⌘+Shift+E`, palette): the chart rendered through
+  `RenderTargetBitmap` at 2x onto the theme's chart surface, saved through `IFileDialogs.SavePngAsync`.
+- Shortcut registry: `reports-export-png`, `goals-tabs`, report picker `1–5`; `ShortcutRegistry.All` is
+  now stably sorted by scope so entries can be appended. User guide (reports and goals, keyboard
+  shortcuts, index) and QA checklist updated.
+
+### Decisions and deviations
+
+- ADR 0093 (debt payoff rules, target write path, payment-category resolution), ADR 0094 (age of money
+  and budget-health definitions), ADR 0095 (PNG export).
+- Budget health's targets-funded, overspending and months-ahead buffer come from
+  `IBudgetService.GetMonthAsync` (so from `BudgetCalculator`) rather than new raw SQL, because budget math
+  lives only in the calculator; `ReportService` takes the budget service as an optional dependency.
+  Spending averages and age of money are raw SQL aggregates (no row loads).
+- Export PNG is a second toolbar button beside Export CSV (the toolbar had a button, not a menu).
+- Home gains an eighth card (age of money) after the PRD 9.2 cards.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` (after merging origin/main with M9d) | 1,890 passed, 4 skipped (gated: Plaid sandbox, Secret Service, Keychain, DPAPI): Domain 1,068, Infrastructure 516 + 4 skipped, Desktop 306 |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Domain.Tests --filter "FullyQualifiedName~Debt\|FullyQualifiedName~AgeOfMoney"` | 37 pass (table tests, CsCheck cross-check against a decimal reference) |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter "BudgetHealthReportTests"` (100k fixture) | age of money over all history: best of 3 = 192 ms; budget health for the last month: 546 ms (limits 1.5 s and 3 s) |
+| `dotnet test tests/Keel.Desktop.Tests --filter "DebtHealthExportTests\|DebtHealthRenderingTests"` | all pass; every report's PNG has the PNG signature and 2x the chart's size; screenshots reviewed in light and dark and at 960 × 540 / 192 DPI |
+
+### Not done here
+
+- Interest is APR/12 on the balance at the start of each month: daily compounding, promotional rates,
+  fees and minimums that shrink with the balance are not modelled.
+- Age of money is aggregated per day, so outflows on one day share one age.
+## M9a — Flex mode and three-month view
+
+P1 backlog stream A (PRD 12, M9): the three-month side-by-side budget (F-BUD-2 P1) and Flex mode
+(F-BUD-6), both from PRD 9.3. No schema change: tags use the existing `Category.FlexKind` column.
+
+### Added
+
+- **Three months side by side** (ADR 0090): `W`, a header toggle, the palette and View → Three-month
+  budget show the shown month and the next two, each with Assigned/Activity/Available, group sums and
+  its own Ready to Assign in the column header (select it for the breakdown). The cell cursor crosses
+  months with `←/→`; typing, `Enter`, `Tab`/`Shift+Tab`, `Esc`, `M`, `T`, `Q`, quick assign, Activity
+  and the inspector act in the cursor's month; clicks pick the month; `Alt+←/→` shift the window. Uses
+  the loaded ledger data (ADR 0041): switching or shifting recomputes nothing and reloads nothing inside
+  the loaded range. The mode is remembered in `settings.json` (`BudgetThreeMonths`). At 960 × 540 or
+  with the inspector open the grid scrolls sideways and keeps the cursor's cell in view.
+- **Flex mode** (ADR 0091): tag categories Fixed, Non-monthly or Flex (Automatic by default: monthly
+  targets → Fixed, savings-by-date → Non-monthly, no target → Flex; a user's tag is never overridden)
+  in the inspector ("Flex view group") and in Manage categories; each change is one undoable action
+  (`ICategoryService.SetFlexKindAsync`, `LedgerAction.TagCategoryFlex`). The **Flex view** (`F`, header
+  toggle, palette, View menu; remembered as `BudgetFlexView`) shows income (InflowRTA), Fixed assigned,
+  Non-monthly set-aside and saved so far, and one Flex number (carry + assigned of Flex categories) with
+  a spending bar, a today marker, what is left or over, days left and safe-to-spend per day. Every
+  number drills down: to the grid filtered to its categories (with a "Show all categories" banner) or,
+  for income, to the register. All numbers come from `FlexSummary.Compute` (Keel.Domain, pure) over the
+  same `BudgetMonthResult` as the grid, carried on `BudgetMonthDto.Flex`.
+- Shortcuts `budget-three-months` (`W`) and `budget-flex` (`F`) in the registry, the palette, the View
+  menu, Settings → Keyboard shortcuts and `docs/user-guide/keyboard-shortcuts.md`; the budgeting guide
+  and the QA checklist cover both views.
+
+### Changed
+
+- The grid's Assigned editor is created only while a cell edits (both templates), which keeps
+  building rows cheap.
+- At Budget view widths under 760 px, Fund targets and Move money show icons only (names and tooltips
+  unchanged) to make room for the two toggles. The Manage categories dialog is 560 px wide (the tag
+  pickers) and its list is at most 440 px high, so it fits at 960 × 540.
+
+### Verification
+
+```bash
+dotnet build Keel.sln -c Release                 # 0 warnings, 0 errors
+dotnet format Keel.sln --verify-no-changes       # clean
+dotnet test Keel.sln -m:1                        # Domain 1,051 passed; Infrastructure 473 passed, 4 skipped
+                                                 # (keys/services not present); Desktop 294 passed
+dotnet test tests/Keel.Domain.Tests --filter FlexSummaryTests                  # 19 passed (6.4.7 golden reviewed)
+dotnet test tests/Keel.Infrastructure.Tests --filter FlexTagTests              # 3 passed
+dotnet test tests/Keel.Desktop.Tests --filter "BudgetViewsTests|BudgetViewsRenderingTests|AccessibilityTests|HighDpiRenderingTests"
+```
+
+- `FlexSummaryTests`: the 6.4.7 example (plus a Non-monthly and a second Flex category) in the Flex view
+  with a Verify golden; buckets are sums of grid cells and add up to the visible group rows; generated
+  budgets put every visible regular category in exactly one bucket; default kinds from targets and tags
+  that always win; hidden categories left out; pace (days left including today, safe per day rounded
+  down, future and past months); overspent Flex.
+- `FlexTagTests`: tags stored by name, undoable, announced; protected categories refused; the month DTO
+  and the loaded-ledger path carry the same summary with target defaults and a tag override.
+- `BudgetViewsTests` (headless): three months from the loaded ledger (same `BudgetLedgerData`), per-month
+  numbers, colours and headers, rebuilt templates, remembered in settings; cursor across months, Enter
+  and Tab editing in September, move money in the cursor's month, `Alt+←/→` window shifts, clicking a
+  cell in October, undo; Flex view numbers against 6.4.7, drill-downs to the filtered grid and to the
+  register; tagging in the inspector and in Manage categories with undo; registry, palette and View
+  menu; the mode restored from settings. Over the 100k fixture a three-month window shift measured a
+  view-model median of 5.6 ms and 33.3 ms with layout on a quiet run (the test allows 100 ms and 250 ms).
+- Screenshots of both views at 1440 × 900 and 960 × 540 in light and dark (`BudgetViewsRenderingTests`,
+  also `HighDpiRenderingTests` at 2x) were reviewed; `AccessibilityTests` audit the three-month grid, the
+  Flex view, a drill-down and Manage categories in both themes.
+
+### Decisions and deviations
+
+- [ADR 0090](docs/decisions/0090-three-month-budget-view.md): one active month (`CurrentMonth` = the
+  cursor's month), row month cells, template selector, sideways scroll, `W`. A three-month window shift
+  lays out three times the cells: its headless timing budget is 250 ms (PRD 11's 100 ms stays asserted
+  for the one-month switch).
+- [ADR 0091](docs/decisions/0091-flex-mode.md): tags and computed defaults, what counts (visible regular
+  categories; card payments in no bucket), the Flex number as carry + assigned, pace rules, `F`.
+
+## M9d — Export, bundle import and YNAB/Monarch importers
+
+Milestone 9 stream D (P1 backlog): full export to CSV and a lossless JSON bundle with re-import into a new
+budget file (F-REP-6), and migration importers for YNAB and Monarch exports (PRD 9.10 step 1; PRD 14 open
+question 2 answered: build them). Branch `claude/keel-m9-data-portability`.
+
+### Added
+
+- **CSV export** (`IDataExportService.ExportCsvAsync`, ADR 0098): `transactions.csv` (splits flattened to one
+  line per split with `Parent Id`, tags, account, payee, category, transfer account, cleared status,
+  approval, source, import id), `budget.csv` (assigned per month), `accounts.csv` (with balances),
+  `categories.csv` (groups and categories), `payees.csv`, `rules.csv` (conditions and actions as JSON),
+  `targets.csv`, `scheduled-transactions.csv`, `recurring-items.csv`; into a folder or a zip. Stable column
+  order, ISO dates, invariant decimal amounts in the account's currency, UTF-8 without BOM. One read snapshot;
+  transactions in keyset pages of 2,000; files written as `.partial` and renamed.
+- **JSON bundle** `keel-export` version 1 (ADR 0098): every EF table except the audit log, ids included,
+  soft-deleted rows included, plus the attachment files; tables and columns come from the EF model, so later
+  migrations are carried without code changes. Streamed export; streamed import (`JsonTokenStream`) into a new
+  or empty file through `BulkTableWriter` (one prepared upsert per table plus one audit row per row, ADR 0052
+  style) in one transaction with deferred foreign keys; `PRAGMA foreign_key_check`, the split-sum violation
+  table and the header's row counts are checked before the commit; a failed import leaves no file. Newer
+  format versions, newer schemas and unknown tables, columns or enum values are refused (`BundleError.TooNew`);
+  files with data are never targets (`TargetNotEmpty`).
+- **YNAB and Monarch importers** (ADR 0099): `YnabRegisterParser`, `YnabBudgetParser`, `MonarchImportParser`,
+  recognized by header ahead of the generic CSV detector. `IMigrationImportService`: plan (accounts matched by
+  name or a suggested type, categories and tags to create), a rolled-back dry run as the preview
+  (`LedgerWriter.DryRunAsync`), and the import as one undoable action that creates on-budget accounts
+  (with Credit Card Payment categories), groups, categories and tags and runs each account through the unified
+  pipeline (dedup, payees, rules and learner, transfer detection, bulk insert) with the file's category,
+  cleared state, approval and tags (`IncomingTransaction.Status`, `IsApproved`, `Tags`). YNAB budget exports
+  write assigned amounts per category and month (Inflow skipped, card payment rows to the matching card).
+  Re-importing an export adds nothing.
+- **Desktop** (ADR 0100): Settings → General "Export and import" (Export… with CSV zip, CSV folder or bundle;
+  Import bundle into a new file…, which opens the new file in a new session; Import from YNAB or Monarch…);
+  the migration preview (target and type per source account, categories and tags, a live dry-run line) and the
+  YNAB budget dialog; the register's Import file hands YNAB/Monarch files to the migration preview; first run:
+  "Restore from a Keel export bundle…" (inline details, "Restore and open") and "Import from YNAB or Monarch
+  export…" (creates the named file, imports, lands on Budget); palette commands `export-data`, `import-bundle`,
+  `import-ynab-monarch`. 99 new strings (`Export_`, `Bundle_`, `Ynab_`, `Monarch_`).
+- **Tests**: Infrastructure: migration fixtures (`Import/Fixtures/Migration`: YNAB register with transfers,
+  flags, reconciled rows and split lines; YNAB budget; Monarch with tags, income, card payment and an
+  uncategorized row) with reviewed `.expected.json`, recognition by header, day-first YNAB dates and decimal
+  commas, plan, import twice (idempotent), preview equals import, one undo removes everything, skipped and
+  existing accounts, refused targets, budget import twice; CSV export (headers, formats, flattened splits,
+  transfers, deleted rows, zip equals folder, paging over 4,321 rows, refused non-empty folder); bundle round
+  trip of the fixture plus every other PRD 6.2 table compared table by table on stored values (row counts and
+  SHA-256), the restored file opening with the real services, header read, newer version/schema/table/column
+  refused, damaged and truncated bundles, a missing referenced row and unbalanced splits refused before commit
+  with no file left, never into a file with data; the 100k round trip with its timing line (`BundleTimingTests`,
+  `TimingCollection`). Desktop: export in three forms through the dialog, bundle into a new file and session
+  switch, first-run restore, first-run YNAB import to Budget, register Import file with a Monarch export,
+  YNAB budget dialog, refusals and palette commands; rendering in light and dark; the new dialogs in
+  `AccessibilityTests` and `HighDpiRenderingTests`.
+- **Docs**: user guide (Importing files → "Moving to Keel from YNAB or Monarch", Backups and the data file →
+  "Export and import", Getting started), QA checklist items, CLAUDE.md commands and solution map.
+
+### Decisions and deviations
+
+- [ADR 0098](docs/decisions/0098-full-export-and-json-bundle.md): CSV formats and file set; bundle format; the
+  audit log and the two audit-derived `Setting` keys (learner cache, recurring watermark) are not exported; the
+  import upserts the seeded system rows and writes its own audit rows; not undoable (the file is new).
+- [ADR 0099](docs/decisions/0099-ynab-and-monarch-migration.md): parsers keep app-specific fields in `Extras`;
+  three additive `IncomingTransaction` properties; `ImportService.ImportCoreAsync` became internal static so a
+  migration is one unit of work; mapping rules (Ready to Assign, transfers, Monarch groups, approval, flags as
+  the "Flagged" tag); YNAB split lines stay separate transactions; new accounts get no starting-balance row.
+- [ADR 0100](docs/decisions/0100-export-and-migration-ui.md): placement in Settings → General, a separate
+  `IPortabilityDialogs`, the inline first-run restore (dialogs sit under the first-run layer), the register
+  hand-off, and why the high-DPI test saves 1x frames for dialogs (the headless 2x bitmap of the dialog layer
+  scales dialog content twice, for existing dialogs too).
+- No EF model change and no migration.
+
+### Verification (Linux sandbox, .NET SDK 10.0)
+
+| Command | Result |
+|---|---|
+| `dotnet build Keel.sln -c Release` | 0 warnings, 0 errors |
+| `dotnet test Keel.sln -m:1` | 1,837 passed, 4 skipped (gated: Plaid sandbox, Secret Service, Keychain, DPAPI): Domain 1,032, Infrastructure 508 + 4 skipped, Desktop 297 |
+| `dotnet format Keel.sln --verify-no-changes` | clean |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Portability\|FullyQualifiedName~Import.Migration"` | 38 passed (includes the 100k round trip) |
+| `dotnet test tests/Keel.Infrastructure.Tests --filter BundleTimingTests` | 100,000 transactions (101,779 rows, 31 MB bundle): export 2.3 s, import 9.2 s, CSV export 3.8 s (100,930 transaction lines); every table identical |
+| `dotnet test tests/Keel.Desktop.Tests --filter "PortabilityTests\|PortabilityRenderingTests"` | 9 passed; screenshots reviewed in light and dark |
+
+### Not done here
+
+- Real YNAB and Monarch exports from live accounts were not available; the fixtures follow the documented
+  column sets and are anonymized. QA checklist items cover real files.
+- YNAB split sub-rows are not recombined into one split transaction, and scheduled transactions, targets and
+  notes are not read from YNAB (its exports do not contain them).
+- The bundle import does not reuse `EntityChange` snapshots for undo: a restored file starts with an empty undo
+  history, as any newly opened file does.
+
 ## M8 — Polish, first-run, backups and packaging
 
 Milestone 8 (PRD 12): the first-run experience (PRD 9.10), data-file management and backups (F-SET-1,

@@ -23,6 +23,9 @@
       <Button x:Name="MoveFileButton" Command="{Binding ChangeLocationCommand}" Content="{x:Static res:Strings.Menu_ChangeLocation}" IsEnabled="{Binding HasFile}" />
     </WrapPanel>
 
+    <!-- Export and import (M9, F-REP-6) -->
+    <ContentControl x:Name="PortabilityHost" Content="{Binding Portability}" />
+
     <!-- Backups -->
     <TextBlock Classes="sectionHeader" Text="{x:Static res:Strings.DataFile_Backups}" Margin="0,8,0,0" />
     <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">

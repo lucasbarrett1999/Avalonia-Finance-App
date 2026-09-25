@@ -83,6 +83,36 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
         return result;
     }
 
+    /// <summary>
+    /// Runs <paramref name="work"/> like a user action and then rolls it back: nothing is committed, recorded or
+    /// published. Previews that must match their action exactly (the migration importer, ADR 0099) use it.
+    /// </summary>
+    internal Task<T> DryRunAsync<T>(Func<LedgerSession, Task<T>> work, CancellationToken ct) => Task.Run(
+        async () =>
+        {
+            await _gate.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var db = factory.CreateDbContext();
+                await using (db.ConfigureAwait(false))
+                {
+                    var transaction = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+                    await using (transaction.ConfigureAwait(false))
+                    {
+                        var session = new LedgerSession(db, time);
+                        var result = await work(session).ConfigureAwait(false);
+                        await transaction.RollbackAsync(ct).ConfigureAwait(false);
+                        return result;
+                    }
+                }
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        },
+        ct);
+
     /// <summary>Changes of the most recent unit of work (for undo bookkeeping and tests).</summary>
     internal IReadOnlyList<EntityChange> LastChanges { get; private set; } = [];
 
@@ -139,6 +169,11 @@ public sealed class LedgerWriter(IDbContextFactory<KeelDbContext> factory, UndoH
             else if (change.EntityType == typeof(TransactionSplit))
             {
                 splitParents.UnionWith(change.Values(nameof(TransactionSplit.TransactionId)).OfType<Guid>());
+            }
+            else if (change.EntityType == typeof(TransactionTag) || change.EntityType == typeof(Attachment))
+            {
+                // Tags and attachments (F-TXN-8) belong to their transaction's account and month.
+                splitParents.UnionWith(change.Values(nameof(TransactionTag.TransactionId)).OfType<Guid>());
             }
             else if (change.EntityType == typeof(Account))
             {

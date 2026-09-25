@@ -9,6 +9,7 @@ using Keel.Application.Categories;
 using Keel.Application.Ledger;
 using Keel.Application.Messaging;
 using Keel.Application.Navigation;
+using Keel.Application.Settings;
 using Keel.Application.Undo;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
@@ -60,8 +61,10 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
         StatusService status,
         PlatformShortcuts shortcuts,
         TimeProvider time,
-        IMessenger messenger)
+        IMessenger messenger,
+        IAppSettingsStore settings)
     {
+        ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(undo);
         ArgumentNullException.ThrowIfNull(navigation);
         ArgumentNullException.ThrowIfNull(time);
@@ -73,7 +76,11 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
         _dialogs = dialogs;
         _status = status;
         _time = time;
+        _settings = settings;
         Shortcuts = shortcuts;
+        Flex = new BudgetFlexViewModel(this);
+        IsThreeMonths = settings.Current.BudgetThreeMonths;
+        IsFlexView = settings.Current.BudgetFlexView && !IsThreeMonths;
         CurrentMonth = Today;
         PickerYear = CurrentMonth.Year;
         Inspector = new BudgetInspectorViewModel(this, budget, categories, accounts);
@@ -109,11 +116,11 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
 
     /// <summary>The month shown (first day).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MonthTitle), nameof(IsThisMonth))]
+    [NotifyPropertyChangedFor(nameof(MonthTitle), nameof(IsThisMonth), nameof(WindowStart))]
     public partial DateOnly CurrentMonth { get; private set; }
 
-    /// <summary>"September 2026".</summary>
-    public string MonthTitle => BudgetText.Month(CurrentMonth);
+    /// <summary>"September 2026" ("Sep – Nov 2026" in three-month mode).</summary>
+    public string MonthTitle => IsThreeMonths ? BudgetText.MonthRange(WindowStart, BudgetMonth.Add(WindowStart, WindowMonths - 1)) : BudgetText.Month(CurrentMonth);
 
     /// <summary>Whether the shown month is the current calendar month.</summary>
     public bool IsThisMonth => CurrentMonth == Today;
@@ -176,12 +183,12 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
 
     /// <summary>First load in progress (or loading a month outside the loaded range).</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowGrid), nameof(ShowEmptyState), nameof(ShowLoading), nameof(ShowHeader))]
+    [NotifyPropertyChangedFor(nameof(ShowGrid), nameof(ShowEmptyState), nameof(ShowLoading), nameof(ShowHeader), nameof(ShowTable), nameof(ShowFlex))]
     public partial bool IsLoading { get; private set; } = true;
 
     /// <summary>Load error.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasError), nameof(ShowGrid), nameof(ShowEmptyState), nameof(ShowLoading), nameof(ShowHeader))]
+    [NotifyPropertyChangedFor(nameof(HasError), nameof(ShowGrid), nameof(ShowEmptyState), nameof(ShowLoading), nameof(ShowHeader), nameof(ShowTable), nameof(ShowFlex))]
     public partial string? ErrorMessage { get; private set; }
 
     /// <summary>Whether loading failed.</summary>
@@ -189,7 +196,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
 
     /// <summary>No user categories exist yet.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowGrid), nameof(ShowEmptyState))]
+    [NotifyPropertyChangedFor(nameof(ShowGrid), nameof(ShowEmptyState), nameof(ShowTable), nameof(ShowFlex))]
     public partial bool HasNoCategories { get; private set; }
 
     /// <summary>Whether the grid is shown.</summary>
@@ -256,9 +263,9 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
             CurrentMonth = BudgetMonth.Of(month);
         }
 
-        if (_ledger is null || _ledgerDirty || _numbersDirty || !_ledger.Covers(CurrentMonth))
+        if (_ledger is null || _ledgerDirty || _numbersDirty || !Covers(CurrentMonth))
         {
-            Invalidate(ledger: _ledger is null || _ledgerDirty || !_ledger.Covers(CurrentMonth));
+            Invalidate(ledger: _ledger is null || _ledgerDirty || !Covers(CurrentMonth));
         }
         else
         {
@@ -302,7 +309,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
 
         CurrentMonth = month;
         PickerYear = month.Year;
-        if (_ledger is not null && _ledger.Covers(month) && _months.ContainsKey(month))
+        if (_ledger is not null && IsShownLoaded(month))
         {
             Apply();
         }
@@ -342,6 +349,22 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
 
         var index = SelectedRow is null ? -1 : Rows.IndexOf(SelectedRow);
         var next = index < 0 ? 0 : Math.Clamp(index + rows, 0, Rows.Count - 1);
+        if (IsThreeMonths && columns != 0)
+        {
+            // Name, then Assigned/Activity/Available of each visible month, left to right.
+            var linear = SelectedColumn == BudgetColumn.Name ? 0 : 1 + (MonthOffset * 3) + ((int)SelectedColumn - 1);
+            linear = Math.Clamp(linear + columns, 0, WindowMonths * 3);
+            if (linear == 0)
+            {
+                Select(Rows[next], BudgetColumn.Name);
+                return;
+            }
+
+            SelectMonth((linear - 1) / 3);
+            Select(Rows[next], (BudgetColumn)(1 + ((linear - 1) % 3)));
+            return;
+        }
+
         var column = (BudgetColumn)Math.Clamp((int)SelectedColumn + columns, 0, (int)BudgetColumn.Available);
         Select(Rows[next], column);
     }
@@ -705,7 +728,11 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
 
     /// <summary>The current calendar month.</summary>
     [RelayCommand]
-    public void GoToToday() => GoToMonth(Today);
+    public void GoToToday()
+    {
+        MonthOffset = 0;
+        GoToMonth(Today);
+    }
 
     /// <summary>Jump-to-month picker: a month of <see cref="PickerYear"/>.</summary>
     [RelayCommand]
@@ -713,6 +740,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
     {
         if (choice is not null)
         {
+            MonthOffset = 0;
             GoToMonth(choice.Month);
         }
     }
@@ -830,7 +858,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
         {
             while (_ledgerDirty || _numbersDirty)
             {
-                var reloadLedger = _ledgerDirty || _ledger is null || !_ledger.Covers(CurrentMonth);
+                var reloadLedger = _ledgerDirty || _ledger is null || !Covers(CurrentMonth);
                 _ledgerDirty = false;
                 _numbersDirty = false;
                 var ledger = _ledger;
@@ -843,7 +871,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
                 var months = await Task.Run(() => _budget.GetRangeAsync(ledger, ledger.From, ledger.To, CancellationToken.None));
                 _ledger = ledger;
                 _months = months.ToDictionary(m => m.Month);
-                if (!_ledger.Covers(CurrentMonth))
+                if (!Covers(CurrentMonth))
                 {
                     _ledgerDirty = true;    // the user moved on while loading
                     continue;
@@ -865,7 +893,7 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
     }
 
     private (DateOnly From, DateOnly To) RangeFor(DateOnly month) =>
-        _ledger is { } current && current.Covers(month)
+        _ledger is { } current && Covers(month)
             ? (current.From, current.To)          // keep the loaded range so reloads cost the same
             : (BudgetMonth.Add(month, -MonthsBack), BudgetMonth.Add(month, MonthsAhead));
 
@@ -940,22 +968,29 @@ public sealed partial class BudgetViewModel : PageViewModel, INavigationTarget, 
             Select(first, BudgetColumn.Assigned);
         }
 
+        ApplyViews();
         Inspector.Refresh();
     }
 
-    private void Flatten()
+    private void Flatten(bool force = false)
     {
         var rows = new List<BudgetRowViewModel>();
         foreach (var group in _groups)
         {
+            var children = group.Children.Where(IsShown).ToList();
+            if (FlexFilter is not null && children.Count == 0)
+            {
+                continue;
+            }
+
             rows.Add(group);
             if (group.IsExpanded)
             {
-                rows.AddRange(group.Children);
+                rows.AddRange(children);
             }
         }
 
-        if (Rows.SequenceEqual(rows))
+        if (!force && Rows.SequenceEqual(rows))
         {
             return;
         }

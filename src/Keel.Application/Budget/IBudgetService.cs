@@ -34,6 +34,12 @@ public interface IBudgetService
     /// <summary>Creates or replaces the target of a category (F-BUD-4).</summary>
     Task SetTargetAsync(TargetDto target, CancellationToken ct);
 
+    /// <summary>
+    /// Creates or replaces several targets at once as one undoable action (the debt payoff planner's
+    /// "Set payment targets", F-GOAL-2); categories must be distinct.
+    /// </summary>
+    Task SetTargetsAsync(IReadOnlyList<TargetDto> targets, CancellationToken ct);
+
     /// <summary>Removes the target of a category (no-op when there is none).</summary>
     Task DeleteTargetAsync(Guid categoryId, CancellationToken ct);
 
@@ -90,6 +96,7 @@ public enum OverspendingKind
 /// <param name="Groups">Group rows in display order (the Inflow group is not shown).</param>
 /// <param name="AssignedInFuture">Assigned in later months (already subtracted from RTA).</param>
 /// <param name="UncategorizedActivity">On-budget activity with no envelope; prompt the user to categorize it.</param>
+/// <param name="Flex">The Flex view of the month (F-BUD-6), summed from the same calculator result as the grid.</param>
 public sealed record BudgetMonthDto(
     DateOnly Month,
     Money ReadyToAssign,
@@ -98,7 +105,8 @@ public sealed record BudgetMonthDto(
     Money TotalAvailable,
     IReadOnlyList<BudgetGroupDto> Groups,
     Money AssignedInFuture,
-    Money UncategorizedActivity);
+    Money UncategorizedActivity,
+    FlexSummary? Flex = null);
 
 /// <summary>A category group row with totals of its visible categories.</summary>
 /// <param name="Id">Group id.</param>
@@ -131,6 +139,8 @@ public sealed record BudgetGroupDto(
 /// <param name="IsHidden">Hidden (itself or via its group).</param>
 /// <param name="Kind">Regular or Credit Card Payment.</param>
 /// <param name="CardPayment">Card details for a Credit Card Payment category.</param>
+/// <param name="FlexTag">The user's Flex-mode tag (F-BUD-6); <see cref="FlexKind.Unset"/> means automatic.</param>
+/// <param name="Flex">The kind the category counts as in the Flex view (<see cref="FlexKind.Unset"/> for Credit Card Payment categories).</param>
 public sealed record BudgetCategoryDto(
     Guid Id,
     string Name,
@@ -142,7 +152,9 @@ public sealed record BudgetCategoryDto(
     Money Carry,
     bool IsHidden,
     BudgetCategoryKind Kind,
-    CardPaymentDto? CardPayment);
+    CardPaymentDto? CardPayment,
+    FlexKind FlexTag = FlexKind.Unset,
+    FlexKind Flex = FlexKind.Unset);
 
 /// <summary>Card context shown next to a Credit Card Payment category (6.4.5).</summary>
 /// <param name="CardAccountId">The credit account.</param>

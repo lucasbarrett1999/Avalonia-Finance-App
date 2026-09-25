@@ -33,8 +33,24 @@ public sealed partial class FirstRunViewModel : ViewModelBase
     private ShellViewModel? _shell;
 
     /// <summary>Creates the setup.</summary>
-    public FirstRunViewModel(BudgetSessions sessions, IFileDialogs files, ICategoryService categories, IAccountService accounts, IAppSettingsStore settings, IDataDirectory data, TimeProvider time, Sync.IBrowserLauncher? browser = null)
+    public FirstRunViewModel(
+        BudgetSessions sessions,
+        IFileDialogs files,
+        ICategoryService categories,
+        IAccountService accounts,
+        IAppSettingsStore settings,
+        IDataDirectory data,
+        TimeProvider time,
+        Sync.IBrowserLauncher? browser = null,
+        Keel.Application.Portability.IBundleImportService? bundles = null,
+        IPortabilityDialogs? portability = null,
+        Keel.Application.Import.IFileImportParserResolver? parsers = null,
+        Import.IImportFilePicker? importPicker = null)
     {
+        _bundles = bundles;
+        _portability = portability;
+        _parsers = parsers;
+        ImportPicker = importPicker;
         _browser = browser;
         _sessions = sessions;
         _files = files;

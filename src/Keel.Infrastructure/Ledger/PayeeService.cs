@@ -1,4 +1,5 @@
 using Keel.Application.Ledger;
+using Keel.Application.Messaging;
 using Keel.Application.Payees;
 using Keel.Application.Undo;
 using Keel.Domain.Ledger;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Keel.Infrastructure.Ledger;
 
 /// <summary>Payee lookup and creation.</summary>
-public sealed class PayeeService(IDbContextFactory<KeelDbContext> factory, LedgerWriter writer) : IPayeeService
+public sealed partial class PayeeService(IDbContextFactory<KeelDbContext> factory, LedgerWriter writer, IMessageBus bus) : IPayeeService
 {
     /// <inheritdoc />
     public async Task<PayeeDto> GetOrCreateAsync(string name, CancellationToken ct)
@@ -169,7 +170,7 @@ public sealed class PayeeService(IDbContextFactory<KeelDbContext> factory, Ledge
             ct);
 
     /// <inheritdoc />
-    public Task<PayeeDto> RenameAsync(Guid payeeId, string name, CancellationToken ct)
+    public async Task<PayeeDto> RenameAsync(Guid payeeId, string name, CancellationToken ct)
     {
         var clean = PayeeNames.Clean(name);
         if (clean.Length == 0)
@@ -177,7 +178,7 @@ public sealed class PayeeService(IDbContextFactory<KeelDbContext> factory, Ledge
             throw new LedgerValidationException(LedgerError.PayeeNameRequired);
         }
 
-        return writer.RunAsync(
+        var (result, rules) = await writer.RunAsync(
             LedgerAction.UpdatePayee,
             async session =>
             {
@@ -188,18 +189,23 @@ public sealed class PayeeService(IDbContextFactory<KeelDbContext> factory, Ledge
                 var other = await db.Payees.SingleOrDefaultAsync(p => p.NormalizedName == normalized && p.Id != payeeId, ct).ConfigureAwait(false);
                 if (other is null)
                 {
+                    var oldName = payee.Name;
                     payee.Name = clean;
                     payee.NormalizedName = normalized;
-                    return new PayeeDto(payee.Id, payee.Name, payee.DefaultCategoryId);
+                    var renamedRules = await RenamePayeeInRulesAsync(db, [oldName], clean, ct).ConfigureAwait(false);
+                    return (new PayeeDto(payee.Id, payee.Name, payee.DefaultCategoryId), renamedRules);
                 }
 
-                // The name is taken: this payee's transactions join that payee (F-TXN-9 rename is retroactive).
-                var rows = await db.Transactions.IgnoreQueryFilters().Where(t => t.PayeeId == payeeId).ToListAsync(ct).ConfigureAwait(false);
-                rows.ForEach(t => t.PayeeId = other.Id);
-                other.DefaultCategoryId ??= payee.DefaultCategoryId;
-                db.Payees.Remove(payee);
-                return new PayeeDto(other.Id, other.Name, other.DefaultCategoryId);
+                // The name is taken: this payee merges into that payee (F-TXN-9 rename is retroactive).
+                var counts = await MergeCoreAsync(db, other, [payee], ct).ConfigureAwait(false);
+                return (new PayeeDto(other.Id, other.Name, other.DefaultCategoryId), counts.Rules);
             },
-            ct);
+            ct).ConfigureAwait(false);
+        if (rules > 0)
+        {
+            bus.Publish(new Keel.Application.Rules.RulesChanged());
+        }
+
+        return result;
     }
 }

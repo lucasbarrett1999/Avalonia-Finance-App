@@ -61,6 +61,11 @@ public sealed record AppSettings
 
     /// <summary>Local measurements for Settings → Privacy &amp; Stats (PRD 4); never transmitted.</summary>
     public Stats.LocalStats Stats { get; init; } = new();
+    /// <summary>The Budget screen shows three months side by side (F-BUD-2 P1).</summary>
+    public bool BudgetThreeMonths { get; init; }
+
+    /// <summary>The Budget screen shows the Flex view instead of the grid (F-BUD-6).</summary>
+    public bool BudgetFlexView { get; init; }
 
     /// <summary>Returns a copy with the placement for <paramref name="displayKey"/> replaced.</summary>
     public AppSettings WithWindowPlacement(string displayKey, WindowPlacement placement)

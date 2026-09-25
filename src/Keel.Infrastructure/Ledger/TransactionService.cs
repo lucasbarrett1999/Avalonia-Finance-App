@@ -28,7 +28,8 @@ public sealed class TransactionService(IDbContextFactory<KeelDbContext> factory,
                 var payee = txn.PayeeId is { } payeeId
                     ? await db.Payees.AsNoTracking().Where(p => p.Id == payeeId).Select(p => p.Name).SingleOrDefaultAsync(ct).ConfigureAwait(false)
                     : null;
-                return ToDto(txn, payee);
+                var tags = await Tags.TagService.NamesByTransactionAsync(db, [id], ct).ConfigureAwait(false);
+                return ToDto(txn, payee) with { Tags = tags.GetValueOrDefault(id) ?? [] };
             }
         },
         ct);
@@ -114,9 +115,15 @@ public sealed class TransactionService(IDbContextFactory<KeelDbContext> factory,
             LedgerAction.PurgeTransactions,
             async session =>
             {
-                var deleted = session.Db.Transactions.IgnoreQueryFilters().Include(t => t.Splits).Where(t => t.IsDeleted);
+                var db = session.Db;
+                var deleted = db.Transactions.IgnoreQueryFilters().Include(t => t.Splits).Where(t => t.IsDeleted);
                 var rows = await WithPairsAsync(deleted, ids, ct).ConfigureAwait(false);
-                session.Db.Transactions.RemoveRange(rows);
+
+                // Tags and attachment rows go explicitly (not by cascade), so undo brings them back too (F-TXN-8).
+                var rowIds = rows.Select(r => r.Id).ToList();
+                db.TransactionTags.RemoveRange(await db.TransactionTags.IgnoreQueryFilters().Where(t => rowIds.Contains(t.TransactionId)).ToListAsync(ct).ConfigureAwait(false));
+                db.Attachments.RemoveRange(await db.Attachments.IgnoreQueryFilters().Where(a => rowIds.Contains(a.TransactionId)).ToListAsync(ct).ConfigureAwait(false));
+                db.Transactions.RemoveRange(rows);
                 return rows.Count(r => ids.Contains(r.Id));
             },
             ct);
@@ -341,6 +348,18 @@ public sealed class TransactionService(IDbContextFactory<KeelDbContext> factory,
     }
 
     internal static async Task<Guid> SaveCoreAsync(LedgerSession session, SaveTransactionRequest request, IReadOnlyList<SplitLine> splits, CancellationToken ct)
+    {
+        var id = await SaveRowsAsync(session, request, splits, ct).ConfigureAwait(false);
+        if (request.Tags is { } tags)
+        {
+            // New tag names are created in this same action (F-TXN-8); tags belong to this side of a transfer only.
+            await Tags.TagService.SetTransactionTagsAsync(session.Db, id, tags, ct).ConfigureAwait(false);
+        }
+
+        return id;
+    }
+
+    private static async Task<Guid> SaveRowsAsync(LedgerSession session, SaveTransactionRequest request, IReadOnlyList<SplitLine> splits, CancellationToken ct)
     {
         var db = session.Db;
         var account = await LedgerLookups.OpenAccountAsync(db, request.AccountId, ct).ConfigureAwait(false);

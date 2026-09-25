@@ -40,8 +40,10 @@ public sealed partial class DataFileSettingsViewModel : ViewModelBase
         DialogService dialogs,
         StatusService status,
         IFileDialogs files,
-        IAppSettingsStore settings)
+        IAppSettingsStore settings,
+        Portability.PortabilitySettingsViewModel? portability = null)
     {
+        Portability = portability;
         _session = session;
         _data = data;
         _backups = backups;
@@ -52,6 +54,9 @@ public sealed partial class DataFileSettingsViewModel : ViewModelBase
         _files = files;
         _settings = settings;
     }
+
+    /// <summary>Export, bundle import and YNAB/Monarch import (M9, F-REP-6).</summary>
+    public Portability.PortabilitySettingsViewModel? Portability { get; }
 
     /// <summary>Full path of the open budget file.</summary>
     public string BudgetFilePath => _session.BudgetFile?.Path ?? Strings.Shell_NoFile;

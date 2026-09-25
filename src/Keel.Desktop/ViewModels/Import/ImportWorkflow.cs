@@ -24,7 +24,8 @@ public sealed class ImportWorkflow(
     ICategoryService categories,
     DialogService dialogs,
     StatusService status,
-    IImportFilePicker picker)
+    IImportFilePicker picker,
+    Portability.MigrationWorkflow? migration = null)
 {
     /// <summary>Bytes the resolver looks at to recognize a format.</summary>
     private const int HeadLength = 4096;
@@ -60,6 +61,12 @@ public sealed class ImportWorkflow(
         var currency = account.Balance.Currency;
         var options = ImportOptions.Default with { Currency = currency };
         var result = await ParseAsync(parser, file.Bytes, options);
+        if (result.IsMigration && migration is not null)
+        {
+            // A YNAB or Monarch export holds several accounts and categories: the migration preview takes over (M9).
+            await migration.ImportParsedAsync(file, result, currency);
+            return null;
+        }
         if (result.CsvLayout is { } layout)
         {
             var remembered = await settings.GetCsvMappingAsync(account.Id, CancellationToken.None);

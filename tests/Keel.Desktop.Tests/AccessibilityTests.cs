@@ -106,6 +106,20 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
             await _host.Get<BudgetViewModel>().SettleAsync();
             await DialogAsync($"MoveMoney/{theme}", () => _host.Get<BudgetViewModel>().MoveMoneyAsync());
 
+            // M9a: the three-month grid, the Flex view, a Flex drill-down and the tag pickers.
+            var budget = _host.Get<BudgetViewModel>();
+            budget.SetThreeMonths(true);
+            await budget.SettleAsync();
+            await AuditAsync($"Budget.ThreeMonths/{theme}");
+            budget.SetFlexView(true);
+            await budget.SettleAsync();
+            await AuditAsync($"Budget.Flex/{theme}");
+            budget.Flex.ShowFlexCommand.Execute(null);
+            await budget.SettleAsync();
+            await AuditAsync($"Budget.FlexFiltered/{theme}");
+            budget.ClearFlexFilter();
+            await DialogAsync($"ManageCategories/{theme}", budget.ManageCategoriesAsync);
+
             shell.NavigateTo<GoalsViewModel>();
             await SettleAsync();
             await DialogAsync($"NewGoal/{theme}", () => _host.Get<GoalsViewModel>().NewGoalAsync());
@@ -213,6 +227,181 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
                 problems.AddRange(AccessibilityAudit.UnnamedControls(window, $"{step}/{theme}"));
                 problems.AddRange(AccessibilityAudit.LowContrastText(window, $"{step}/{theme}"));
             }
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
+    public async Task Debt_payoff_budget_health_and_debt_terms_are_named_and_readable_in_both_themes()
+    {
+        var fixture = await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(1_200, Seed: 9, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
+        await DebtHealthRenderingTests.AddDebtTermsAsync(_host, fixture);
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var goals = _host.Get<GoalsViewModel>();
+        var problems = new List<string>();
+
+        void Audit(string screen)
+        {
+            problems.AddRange(AccessibilityAudit.UnnamedControls(window, screen));
+            problems.AddRange(AccessibilityAudit.LowContrastText(window, screen));
+            problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, screen));
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            shell.NavigateTo<GoalsViewModel>();
+            goals.SelectedTab = GoalsTab.DebtPayoff;
+            await UiTestHelpers.WaitUntilAsync(() => goals.DebtPayoff!.IsInitialized, "debt plan loaded");
+            await SettleAsync();
+            goals.DebtPayoff!.Rows.ShouldNotBeEmpty();
+            Audit($"DebtPayoff/{theme}");
+
+            var editing = goals.DebtPayoff.EditAccountCommand.ExecuteAsync(goals.DebtPayoff.Missing[0]);
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, "editor shown");
+            await SettleAsync();
+            Audit($"AccountEditor.DebtTerms/{theme}");
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await editing;
+            goals.SelectedTab = GoalsTab.Goals;
+
+            shell.NavigateTo<ReportsViewModel>();
+            var reports = _host.Get<ReportsViewModel>();
+            reports.SelectedReport = reports.Reports.Single(r => r.Kind == Keel.Desktop.ViewModels.Reports.ReportKind.BudgetHealth);
+            await UiTestHelpers.WaitUntilAsync(() => reports.Loading.IsCompleted, "health loaded");
+            await SettleAsync();
+            Audit($"BudgetHealth/{theme}");
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
+    public async Task Export_bundle_and_migration_dialogs_are_named_and_readable_in_both_themes()
+    {
+        await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(300, Seed: 8, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var problems = new List<string>();
+        var scenes = await PortabilityScenes.DialogsAsync(_host, shell, Path.Combine(_host.Root, "exports"));
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            foreach (var (name, open) in scenes)
+            {
+                var showing = open();
+                await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, name + " shown");
+                await SettleAsync();
+                problems.AddRange(AccessibilityAudit.UnnamedControls(window, $"{name}/{theme}"));
+                problems.AddRange(AccessibilityAudit.LowContrastText(window, $"{name}/{theme}"));
+                problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, $"{name}/{theme}"));
+                shell.Dialogs.Current!.CancelCommand.Execute(null);
+                await showing;
+            }
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
+    public async Task Tags_attachments_and_payee_merge_are_named_and_readable_in_both_themes()
+    {
+        var ledger = await TagTestLedger.CreateAsync(_host);
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var problems = new List<string>();
+
+        async Task AuditAsync(string screen)
+        {
+            await SettleAsync();
+            problems.AddRange(AccessibilityAudit.UnnamedControls(window, screen));
+            problems.AddRange(AccessibilityAudit.LowContrastText(window, screen));
+            problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, screen));
+        }
+
+        async Task DialogAsync(string screen, Func<Task> open)
+        {
+            var opening = open();
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, screen + " shown");
+            if (shell.Dialogs.Current is Keel.Desktop.ViewModels.Rules.MergePayeesDialogViewModel merge)
+            {
+                await merge.Refreshing;
+            }
+
+            await AuditAsync(screen);
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is null, screen + " closed");
+            await opening;
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            shell.OpenAccount(ledger.Checking);
+            var register = _host.Get<AccountsViewModel>();
+            await register.SettleAsync();
+            await UiTestHelpers.WaitUntilAsync(() => register.Rows.LoadedRows.Any(r => r.Id == ledger.Hotel), "rows loaded");
+            await AuditAsync($"TaggedRegister/{theme}");
+            window.Register().Grid.SelectedItem = register.Rows.LoadedRows.First(r => r.Id == ledger.Hotel);
+            await SettleAsync();
+            await register.EditTagsAsync();
+            await UiTestHelpers.WaitUntilAsync(() => register.Editor?.Attachments?.Items.Count == 1, "attachments listed");
+            await AuditAsync($"TagAndAttachmentEditor/{theme}");
+            register.CancelEdit();
+
+            shell.NavigateToSettings("Tags");
+            var tags = _host.Get<Keel.Desktop.ViewModels.Settings.TagsSettingsViewModel>();
+            await UiTestHelpers.WaitUntilAsync(() => tags.Tags.Count == 3, "tags loaded");
+            await AuditAsync($"SettingsTags/{theme}");
+            var trip = tags.Tags.Single(t => t.Name == "Trip 2026");
+            await DialogAsync($"RenameTag/{theme}", () => tags.RenameCommand.ExecuteAsync(trip));
+            await DialogAsync($"MergeTag/{theme}", () => tags.MergeCommand.ExecuteAsync(trip));
+            await DialogAsync($"DeleteTag/{theme}", () => tags.DeleteCommand.ExecuteAsync(trip));
+
+            var payees = _host.Get<Keel.Desktop.ViewModels.Rules.PayeesViewModel>();
+            shell.NavigateToSettings("Payees");
+            await payees.EnsureLoadedAsync();
+            await payees.Loading;
+            foreach (var row in payees.Payees.Where(p => p.Name.StartsWith("am", StringComparison.OrdinalIgnoreCase)))
+            {
+                row.IsSelected = true;
+            }
+
+            await AuditAsync($"SettingsPayeesSelected/{theme}");
+            await DialogAsync($"MergePayees/{theme}", () => payees.MergeCommand.ExecuteAsync(null));
+            payees.ClearSelectionCommand.Execute(null);
         }
 
         themes.SetTheme(AppTheme.System);

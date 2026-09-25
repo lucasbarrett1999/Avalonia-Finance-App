@@ -74,6 +74,7 @@ public sealed record SplitLine(Guid? CategoryId, string? Memo, long Amount);
 /// <param name="IsApproved">Approval flag; manual entry is approved.</param>
 /// <param name="TransferAccountId">Other account of a transfer, or null.</param>
 /// <param name="Splits">Split lines, or null/empty for an unsplit transaction.</param>
+/// <param name="Tags">The transaction's tags after the save (new names create tags in the same action), or null to keep them (F-TXN-8).</param>
 public sealed record SaveTransactionRequest(
     Guid? Id,
     Guid AccountId,
@@ -85,7 +86,8 @@ public sealed record SaveTransactionRequest(
     TransactionStatus Status = TransactionStatus.Uncleared,
     bool IsApproved = true,
     Guid? TransferAccountId = null,
-    IReadOnlyList<SplitLine>? Splits = null);
+    IReadOnlyList<SplitLine>? Splits = null,
+    IReadOnlyList<string>? Tags = null);
 
 /// <summary>A transaction for editing.</summary>
 public sealed record TransactionDto(
@@ -103,7 +105,11 @@ public sealed record TransactionDto(
     Guid? TransferAccountId,
     Guid? TransferPairId,
     IReadOnlyList<SplitLine> Splits,
-    bool IsDeleted);
+    bool IsDeleted)
+{
+    /// <summary>Tag names by name (F-TXN-8).</summary>
+    public IReadOnlyList<string> Tags { get; init; } = [];
+}
 
 /// <summary>Where a reconciliation stands.</summary>
 public sealed record ReconciliationStatus(

@@ -99,6 +99,26 @@ dotnet run build/icons/generate-icons.cs
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Encryption|FullyQualifiedName~Tests.Stats" --logger "console;verbosity=detailed"
 dotnet test tests/Keel.Desktop.Tests --filter "EncryptionTests|StatsPageTests|CommandPaletteTests"
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter "M9eRenderingTests|Encryption_and_stats_render"
+# M9a: Flex summary goldens and tag service, three-month and Flex view flows (incl. 100k window-shift timing), screenshots
+dotnet test tests/Keel.Domain.Tests --filter FlexSummaryTests
+dotnet test tests/Keel.Infrastructure.Tests --filter FlexTagTests
+dotnet test tests/Keel.Desktop.Tests --filter "BudgetViewsTests" --logger "console;verbosity=detailed"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter BudgetViewsRenderingTests
+# M9d: CSV export, JSON bundle round trip (and its 100k timing line), YNAB/Monarch importers, UI flows
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Portability|FullyQualifiedName~Import.Migration"
+dotnet test tests/Keel.Infrastructure.Tests --filter BundleTimingTests --logger "console;verbosity=detailed"
+KEEL_UPDATE_FIXTURES=1 dotnet test tests/Keel.Infrastructure.Tests --filter MigrationFixtureTests
+dotnet test tests/Keel.Desktop.Tests --filter "PortabilityTests|PortabilityRenderingTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter PortabilityRenderingTests
+# M9c tags, attachments, payee merge: services on real SQLite, headless flows, audits, screenshots
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Tags|FullyQualifiedName~Tests.Attachments|FullyQualifiedName~PayeeMerge"
+dotnet test tests/Keel.Desktop.Tests --filter "TagsAttachmentsTests|FullyQualifiedName~AccessibilityTests.Tags|FullyQualifiedName~HighDpiRenderingTests.Tags"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter M9cRenderingTests
+# M9b: debt payoff math, age of money, budget health (hand-built ledgers + 100k timing), desktop flows and PNGs
+dotnet test tests/Keel.Domain.Tests --filter "FullyQualifiedName~Debt|FullyQualifiedName~AgeOfMoney"
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Debt|BudgetHealthReportTests" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter "DebtHealthExportTests|DebtHealthRenderingTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter DebtHealthRenderingTests
 ```
 
 The app applies pending migrations itself when it opens a budget file (after a `-before-migration`
@@ -343,6 +363,75 @@ M9e: encryption (F-SET-4), Stats page (PRD 4), palette completeness (F-SET-5):
   Rules                       Every connection to an encrypted file goes through a key from the factory (never log it);
                               new helper connections use BackupArchive/SqlCipher.ConnectionString(path, key, mode). A new
                               screen command must be added to AppCommands or classified in CommandPaletteTests.
+M9a: Flex mode and the three-month budget view (ADR 0090, 0091):
+  Keel.Domain/Budgeting/FlexSummary.cs  FlexClassifier (tag or default from the target), FlexSummary.Compute over a
+                              BudgetMonthResult (buckets = sums of grid cells; card payments in none), FlexBucket, Pace.
+  Keel.Application/           BudgetMonthDto.Flex, BudgetCategoryDto.FlexTag/Flex (mapper), ICategoryService.SetFlexKindAsync
+                              (+ CategoryDto.FlexKind, LedgerAction.TagCategoryFlex), AppSettings.BudgetThreeMonths/BudgetFlexView.
+  Keel.Desktop/ViewModels/Budget/  BudgetViewModel.Views (three-month window: CurrentMonth = cursor month, MonthOffset;
+                              Flex view toggle, Flex filter drill-down, tag writes), BudgetMonthCellViewModel (row months),
+                              BudgetMonthHeaderViewModel, BudgetFlexViewModel; inspector and Manage categories tag pickers.
+  Keel.Desktop/Views/         BudgetView (two row template sets via Views/Budget/BudgetRowTemplateSelector, sideways scroll
+                              at BudgetGridSizes.ThreeMonthMinWidth), Views/Budget/BudgetFlexView; Styles/Budget.axaml (M9a).
+  Tests: Domain FlexSummaryTests (+ Verify golden on 6.4.7), Infrastructure Ledger/FlexTagTests, Desktop BudgetViewsTests,
+                              BudgetViewsRenderingTests; Accessibility and HighDpi tests cover both views.
+M9d export, bundle import, YNAB/Monarch importers (F-REP-6, PRD 9.10; ADR 0098-0100):
+  Keel.Application/Portability/  IDataExportService (CsvExportFiles, CsvExportResult), IBundleImportService,
+                              BundleFormat ("keel-export" v1), BundleInfo, BundleImportResult, BundleException(BundleError).
+  Keel.Application/Import/    IMigrationImportService (+ MigrationPlan/Request/Summary, BudgetImportSummary);
+                              ImportFileFormat Ynab/YnabBudget/Monarch, ParseResult.BudgetRows/IsMigration;
+                              IncomingTransaction.Status/IsApproved/Tags (defaults keep the old behaviour).
+  Keel.Infrastructure/Portability/  DataExportService (CSV files + bundle from one ReadSnapshot), CsvTables (column
+                              order is the contract), BundleSchema (model-driven tables, AuditEvent and audit-derived
+                              Setting keys excluded, value codec), JsonTokenStream (streaming reader), BundleImportService,
+                              BulkTableWriter (prepared upsert + audit rows).
+  Keel.Infrastructure/Import/ Ynab/ (YnabRegisterParser, YnabBudgetParser), Monarch/ (MonarchImportParser,
+                              MonarchCategories), AppExportTable (header-named columns), Migration/
+                              (MigrationImportService, MigrationRows, CategoryCatalog). ImportService.ImportCoreAsync is
+                              internal static (several batches per unit of work); LedgerWriter.DryRunAsync rolls back.
+  Keel.Desktop/               ViewModels/Portability/ (PortabilitySettingsViewModel in Settings → General, ExportDialog,
+                              BundleImportDialog, MigrationDialog + rows, BudgetImportDialog, MigrationWorkflow,
+                              PortabilityText) + Views/Portability/; FirstRunViewModel.Portability (restore a bundle
+                              inline, import from YNAB/Monarch); Services/PortabilityDialogs (IPortabilityDialogs);
+                              ImportWorkflow hands YNAB/Monarch files to MigrationWorkflow.
+  Tests:                      Infrastructure Portability/ (PortabilityKit: every PRD 6.2 table + stored-value table
+                              hashes; CsvExportTests; BundleRoundTripTests; BundleTimingTests in TimingCollection) and
+                              Import/Migration/ (fixtures in Import/Fixtures/Migration with .expected.json); Desktop
+                              PortabilityTests (FakePortabilityDialogs, MigrationSamples), PortabilityRenderingTests
+                              (PortabilityScenes), new methods in AccessibilityTests and HighDpiRenderingTests.
+M9c tags, attachments and payee merge (F-TXN-8, F-TXN-9; ADR 0096, 0097):
+  Keel.Domain/Ledger/TagNames   Clean (trim, one leading '#', 100 chars), case-insensitive Same, reserved "Flagged".
+                              SearchQuery gains has:tag / has:attachment; free words also match tag names.
+  Keel.Application/           Tags/ITagService (ListAsync with counts, Rename, Merge, Delete; TagUsage, TagMergeResult);
+                              Attachments/IAttachmentService (+AttachmentDto); IPayeeService.PreviewMergeAsync/MergeAsync;
+                              SaveTransactionRequest.Tags (null keeps), TransactionDto.Tags, RegisterFilter.TagId,
+                              RegisterRow.Tags/AttachmentCount; LedgerAction and LedgerError values for all three.
+  Keel.Infrastructure/        Tags/TagService (GetOrAddAsync + SetTransactionTagsAsync: every tag write, rules too),
+                              Attachments/ (AttachmentService: hash-named files in Name.keel-attachments, copy before the
+                              row, orphan clean-up with a 30-day audit grace; AttachmentFiles), Ledger/PayeeService.Merge,
+                              Rules/RuleRewriter (renames/merges rewrite rules' tag and payee names in the same action).
+  Keel.Desktop/               Services/AttachmentFiles (IAttachmentFiles: picker + launcher; tests fake it), ViewModels/Register/
+                              TagEditorViewModel + EditorAttachmentsViewModel (editor second line), TagOption filter,
+                              Settings/TagsSettingsViewModel (+ rename/merge dialogs, Views/Settings/), Rules/PayeesViewModel
+                              selection + MergePayeesDialogViewModel (Views/Rules/MergePayeesDialogView), Styles/Tags.axaml.
+                              LedgerText looks up later features' texts under their prefix (Tag_Error_…, Attachment_Action_…).
+  tests/                      Infrastructure Tags/, Attachments/, Categorization/PayeeMergeTests; Desktop TagsAttachmentsTests,
+                              TagTestLedger + FakeAttachmentFiles, M9cRenderingTests, AccessibilityTests/HighDpiRenderingTests.Tags….
+M9b: debt payoff (F-GOAL-2), age of money and budget health (F-REP-5), PNG export of charts (PRD 9.8):
+  Keel.Domain/Debt/DebtPayoffCalculator  Amortization (APR/12, half-even interest), snowball/avalanche with rollover,
+                              MinimumOnly baseline, "never" when interest reaches the outlay (ADR 0093).
+  Keel.Domain/Reports/AgeOfMoney  FIFO over daily cash flows, last 10 outflows (ADR 0094).
+  Account.InterestRateBps/MinimumPayment (migration DebtPayoffFields); Application Accounts DebtTerms (+ requests, DTO).
+  Keel.Application/Debt/IDebtPayoffService (+ DTOs, NewPaymentCategory); IBudgetService.SetTargetsAsync (one undo step);
+                              IReportService.GetAgeOfMoneyAsync/GetBudgetHealthAsync (+ BudgetHealthReport DTOs).
+  Keel.Infrastructure/Debt/DebtPayoffService; ReportService daily cash-flow SQL + health (optional IBudgetService).
+  Keel.Desktop: ViewModels/Goals/DebtPayoffViewModel + Views/Goals/DebtPayoffView (Goals tab, GoalsTab enum, keys 1/2);
+                              ViewModels/Reports/BudgetHealthReportViewModel + Views/Reports/BudgetHealthReportView;
+                              HomeViewModel.Health (age-of-money card); Controls/ChartImage (2x PNG, ADR 0095),
+                              IFileDialogs.SavePngAsync, ReportsViewModel.ExportPngAsync/RenderChartPng; account editor debt fields.
+  ShortcutRegistry.All is stably sorted by scope, so new entries are appended at the end of the constructor.
+  Tests: Domain Debt/, Reports/AgeOfMoneyTests; Infrastructure Debt/, Reports/BudgetHealthReportTests (TimingCollection);
+                              Desktop DebtHealthExportTests, DebtHealthRenderingTests, additions to Accessibility/HighDpi tests.
 ```
 
 Dependency direction: `Desktop -> Application -> Domain`; `Infrastructure -> Application -> Domain`.

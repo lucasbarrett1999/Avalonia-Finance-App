@@ -17,6 +17,9 @@ public enum ReportKind
 
     /// <summary>Cash-flow forecast (F-REP-4, M5).</summary>
     Forecast,
+
+    /// <summary>Age of money and budget health (F-REP-5, M9).</summary>
+    BudgetHealth,
 }
 
 /// <summary>
@@ -58,6 +61,9 @@ public abstract partial class ReportViewModel : ViewModelBase
     /// <summary>Whether the "include tracking accounts" toggle applies.</summary>
     public virtual bool SupportsTracking => true;
 
+    /// <summary>Whether the toolbar's accounts filter applies (budget health is budget-wide).</summary>
+    public virtual bool SupportsAccounts => true;
+
     /// <summary>Text under the toolbar instead of the date range, when the report has its own period.</summary>
     public virtual string? RangeTextOverride => null;
 
@@ -87,6 +93,9 @@ public abstract partial class ReportViewModel : ViewModelBase
 
     /// <summary>Suggested CSV file name.</summary>
     public abstract string CsvFileName { get; }
+
+    /// <summary>Suggested PNG file name for the chart (PRD 9.8).</summary>
+    public string PngFileName => Path.ChangeExtension(CsvFileName, ".png");
 
     /// <summary>The screen that hosts the report (drill-down and navigation).</summary>
     protected ReportsViewModel Owner { get; }

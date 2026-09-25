@@ -29,7 +29,8 @@ public sealed partial class RegisterRowViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsLoaded), nameof(Id), nameof(Date), nameof(DateText), nameof(AccountName), nameof(Payee), nameof(IsTransfer),
         nameof(Category), nameof(IsUncategorized), nameof(Memo), nameof(Outflow), nameof(Inflow), nameof(Amount), nameof(Status), nameof(IsCleared),
         nameof(IsReconciled), nameof(IsUncleared), nameof(StatusName), nameof(IsUnapproved), nameof(RunningBalance), nameof(IsNegativeBalance),
-        nameof(IsSplit), nameof(Splits), nameof(AutomationName))]
+        nameof(IsSplit), nameof(Splits), nameof(AutomationName), nameof(Tags), nameof(HasTags), nameof(AttachmentCount), nameof(HasAttachments),
+        nameof(AttachmentText), nameof(AttachmentTip))]
     public partial RegisterRow? Row { get; private set; }
 
     /// <summary>Whether split lines are shown under the row.</summary>
@@ -121,9 +122,29 @@ public sealed partial class RegisterRowViewModel : ObservableObject
             s.Amount > 0 ? LedgerText.Money(s.Amount, r.Currency) : string.Empty)).ToList()
         : [];
 
+    /// <summary>Tag names (F-TXN-8), shown as chips.</summary>
+    public IReadOnlyList<string> Tags => Row?.Tags ?? [];
+
+    /// <summary>Whether the row has tags.</summary>
+    public bool HasTags => Tags.Count > 0;
+
+    /// <summary>Number of attached files (F-TXN-8).</summary>
+    public int AttachmentCount => Row?.AttachmentCount ?? 0;
+
+    /// <summary>Whether files are attached.</summary>
+    public bool HasAttachments => AttachmentCount > 0;
+
+    /// <summary>The count next to the paperclip.</summary>
+    public string AttachmentText => AttachmentCount.ToString(CultureInfo.CurrentCulture);
+
+    /// <summary>"2 attachments".</summary>
+    public string AttachmentTip => LedgerText.Format(Strings.Attachment_Count, AttachmentCount.ToString(CultureInfo.CurrentCulture));
+
     /// <summary>Screen-reader summary of the row.</summary>
     public string AutomationName => Row is { } r
         ? LedgerText.Format(Strings.Register_RowAutomation, DateText, Payee, Category, LedgerText.Money(r.Amount, r.Currency), StatusName)
+            + (HasTags ? ", " + LedgerText.Format(Strings.Tag_RowAutomation, string.Join(", ", Tags)) : string.Empty)
+            + (HasAttachments ? ", " + AttachmentTip : string.Empty)
         : Strings.Register_Loading;
 
     internal void Fill(RegisterRow row) => Row = row;

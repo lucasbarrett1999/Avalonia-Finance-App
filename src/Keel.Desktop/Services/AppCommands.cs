@@ -124,6 +124,15 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         list.Add(Cmd("bills-new", Strings.Shortcut_BillsNew, actions, () => OnPage<BillsViewModel>(shell, b => _ = b.AddItemAsync())));
         list.Add(Cmd("goals-new", Strings.Shortcut_GoalsNew, actions, () => OnPage<GoalsViewModel>(shell, g => _ = g.NewGoalAsync())));
         list.Add(Cmd("reports-export", Strings.Shortcut_ReportsExport, actions, () => OnPage<ReportsViewModel>(shell, r => _ = r.ExportCsvAsync())));
+        list.Add(Cmd("manage-tags", Strings.Tag_PaletteManage, actions, () => shell.NavigateToSettings("Tags")));
+        list.Add(Cmd("merge-payees", Strings.PayeeMerge_Palette, actions, () => shell.NavigateToSettings("Payees")));
+        if (shell.CurrentPage is AccountsViewModel register && register.Selection.Count == 1)
+        {
+            list.Add(Cmd("attach-file", Strings.Attachment_PaletteAttach, actions, () => _ = register.AttachToSelectedAsync()));
+            list.Add(Cmd("register-tags", Strings.Tag_PaletteEdit, actions, () => _ = register.EditTagsAsync()));
+        }
+        list.Add(Cmd("budget-three-months", Strings.BudgetMonths_Shortcut, view, () => OnPage<BudgetViewModel>(shell, b => b.ToggleThreeMonths())));
+        list.Add(Cmd("budget-flex", Strings.Flex_Shortcut, view, () => OnPage<BudgetViewModel>(shell, b => b.ToggleFlexView())));
 
         list.Add(Cmd("shortcuts", Strings.Menu_KeyboardShortcuts, help, () => shell.NavigateToSettings("Keyboard")));
         list.Add(Cmd("guide", Strings.Menu_UserGuide, help, () => _ = services.GetRequiredService<IBrowserLauncher>().OpenAsync(KeelInfo.UserGuide)));
@@ -132,6 +141,15 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         {
             list.Add(Cmd("quit", Strings.Shortcut_Quit, file, Quit));
         }
+
+        list.Add(Cmd("export-data", Strings.Export_Command, file, () => _ = Portability().ExportAsync()));
+        list.Add(Cmd("import-bundle", Strings.Bundle_Command, file, () => _ = Portability().ImportBundleAsync()));
+        list.Add(Cmd("import-ynab-monarch", Strings.Ynab_Command, file, () => _ = Portability().ImportFromAppAsync()));
+
+        // M9b: debt payoff planner, budget health report and PNG export.
+        list.Add(Cmd("goals-debt", Strings.Debt_OpenPlanner, actions, () => Navigation().NavigateTo<GoalsViewModel>(GoalsTab.DebtPayoff)));
+        list.Add(Cmd("reports-health", Strings.Health_OpenReport, actions, () => Navigation().NavigateTo<ReportsViewModel>(Keel.Desktop.ViewModels.Reports.ReportKind.BudgetHealth)));
+        list.Add(Cmd("reports-export-png", Strings.ExportPng_Shortcut, actions, () => OnPage<ReportsViewModel>(shell, r => _ = r.ExportPngAsync())));
 
         AddCompleteness(shell, list);
         return list;
@@ -179,6 +197,8 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
                 Leaf("sidebar"), MenuNode.Separator,
                 new(Strings.Menu_Theme, Children: [Leaf("theme-system", Strings.Settings_ThemeSystem), Leaf("theme-light", Strings.Settings_ThemeLight), Leaf("theme-dark", Strings.Settings_ThemeDark)]),
                 new(Strings.Menu_Density, Children: [Leaf("density-comfortable", Strings.Settings_DensityComfortable), Leaf("density-compact", Strings.Settings_DensityCompact)]),
+                MenuNode.Separator,
+                Leaf("budget-three-months", Strings.BudgetMonths_Menu), Leaf("budget-flex", Strings.Flex_Menu),
             ]),
             new(Strings.Menu_Go, Children: goItems),
             new(Strings.Menu_Help, Children: helpItems),
@@ -205,6 +225,7 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         ("Updates", Strings.Settings_UpdatesTitle),
         ("Privacy", Strings.Stats_SectionTitle),
         ("Encryption", Strings.Encrypt_Section),
+        ("Tags", Strings.Tag_SettingsTitle),
     ];
 
     private AppCommand Cmd(string id, string title, string section, Action execute)
@@ -343,7 +364,11 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
 
     private DataFileSettingsViewModel DataFile() => services.GetRequiredService<DataFileSettingsViewModel>();
 
+    private Keel.Application.Navigation.INavigationService Navigation() => services.GetRequiredService<Keel.Application.Navigation.INavigationService>();
+
     private AppearanceSettingsViewModel Appearance() => services.GetRequiredService<AppearanceSettingsViewModel>();
+
+    private Keel.Desktop.ViewModels.Portability.PortabilitySettingsViewModel Portability() => services.GetRequiredService<Keel.Desktop.ViewModels.Portability.PortabilitySettingsViewModel>();
 
     private static void Run(System.Windows.Input.ICommand? command)
     {

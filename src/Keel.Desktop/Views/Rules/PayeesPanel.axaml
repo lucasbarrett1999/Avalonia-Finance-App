@@ -10,16 +10,35 @@
     <TextBlock Classes="secondary" Text="{x:Static res:Strings.Payees_Description}" TextWrapping="Wrap" />
     <TextBox x:Name="PayeeSearchBox" Text="{Binding SearchText}" Watermark="{x:Static res:Strings.Payees_SearchWatermark}"
              AutomationProperties.Name="{x:Static res:Strings.Payees_SearchWatermark}" />
+    <!-- Merge (F-TXN-9): check payees, then "Merge into…" -->
+    <DockPanel x:Name="PayeeMergeBar">
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+        <Button Command="{Binding ClearSelectionCommand}" IsVisible="{Binding HasSelection}" Content="{x:Static res:Strings.PayeeMerge_ClearSelection}" />
+        <Button x:Name="MergePayeesButton" Command="{Binding MergeCommand}" ToolTip.Tip="{x:Static res:Strings.PayeeMerge_ButtonHint}"
+                AutomationProperties.Name="{x:Static res:Strings.PayeeMerge_Button}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <controls:Icon Data="{StaticResource Icon.Merge}" Width="14" Height="14" />
+            <TextBlock Text="{x:Static res:Strings.PayeeMerge_Button}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+      <TextBlock Classes="secondary" VerticalAlignment="Center" TextWrapping="Wrap"
+                 Text="{Binding SelectionText}" IsVisible="{Binding HasSelection}" />
+      <TextBlock Classes="secondary" VerticalAlignment="Center" TextWrapping="Wrap"
+                 Text="{x:Static res:Strings.PayeeMerge_Hint}" IsVisible="{Binding !HasSelection}" />
+    </DockPanel>
     <Panel>
       <ScrollViewer MaxHeight="360" HorizontalScrollBarVisibility="Disabled">
         <ItemsControl x:Name="PayeeRows" ItemsSource="{Binding Payees}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="rules:PayeeRowViewModel">
-              <Grid ColumnDefinitions="*,Auto,220,Auto" Margin="0,2">
-                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="1" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding CountText}"
+              <Grid ColumnDefinitions="Auto,*,Auto,220,Auto" Margin="0,2">
+                <CheckBox IsChecked="{Binding IsSelected}" MinWidth="0" Margin="0,0,4,0" AutomationProperties.Name="{Binding SelectName}"
+                          ToolTip.Tip="{Binding SelectName}" />
+                <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding CountText}"
                            VerticalAlignment="Center" Margin="8,0" />
-                <ComboBox Grid.Column="2" HorizontalAlignment="Stretch" ItemsSource="{Binding Choices}" SelectedItem="{Binding DefaultCategory}"
+                <ComboBox Grid.Column="3" HorizontalAlignment="Stretch" ItemsSource="{Binding Choices}" SelectedItem="{Binding DefaultCategory}"
                           AutomationProperties.Name="{x:Static res:Strings.Payees_DefaultFor}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="reg:CategoryOption">
@@ -27,7 +46,7 @@
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Button Grid.Column="3" Margin="6,0,0,0" Padding="6"
+                <Button Grid.Column="4" Margin="6,0,0,0" Padding="6"
                         Command="{Binding Owner.RenameCommand}" CommandParameter="{Binding}"
                         ToolTip.Tip="{x:Static res:Strings.Payees_Rename}" AutomationProperties.Name="{x:Static res:Strings.Payees_Rename}">
                   <controls:Icon Data="{StaticResource Icon.Edit}" Width="14" Height="14" />
