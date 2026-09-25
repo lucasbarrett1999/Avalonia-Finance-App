@@ -82,23 +82,18 @@ public sealed class EncryptionTests : IDisposable
     }
 
     // Whether the key of the budget file (by its SQLCipher salt) is in the secret store.
-    private bool KeyRemembered(string path)
-    {
-        var salt = new byte[16];
-        using (var stream = File.OpenRead(path))
-        {
-            stream.ReadExactly(salt);
-        }
+    private bool KeyRemembered(string path) => _secrets.Contains(SecretKeys.BudgetFile(Convert.ToHexStringLower(Header(path))));
 
-        return _secrets.Contains(SecretKeys.BudgetFile(Convert.ToHexStringLower(salt)));
-    }
+    private static bool IsPlain(string path) => System.Text.Encoding.ASCII.GetString(Header(path)) == "SQLite format 3\0";
 
-    private static bool IsPlain(string path)
+    // The first 16 bytes (the SQLite magic, or the SQLCipher salt). The session keeps the file open for
+    // writing, so the read must share write access or Windows refuses it.
+    private static byte[] Header(string path)
     {
-        using var stream = File.OpenRead(path);
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         var header = new byte[16];
         stream.ReadExactly(header);
-        return System.Text.Encoding.ASCII.GetString(header) == "SQLite format 3\0";
+        return header;
     }
 
     private async Task<ShellViewModel> EncryptAsync(ShellWindow window, ShellViewModel shell, bool remember)
@@ -199,7 +194,7 @@ public sealed class EncryptionTests : IDisposable
         unlocked.LockedFile.ShouldBeNull();
         (await AccountNamesAsync()).ShouldBe(["Everyday"]);
         KeyRemembered(FilePath).ShouldBeTrue();
-        (await _secrets.GetAsync(SecretKeys.BudgetFile(Convert.ToHexStringLower(File.ReadAllBytes(FilePath).AsSpan(0, 16)))))!.ShouldNotContain(Passphrase);
+        (await _secrets.GetAsync(SecretKeys.BudgetFile(Convert.ToHexStringLower(Header(FilePath)))))!.ShouldNotContain(Passphrase);
         window.Close();
 
         // Remembered: the next run opens it without asking; Settings can forget the key again.
@@ -256,7 +251,7 @@ public sealed class EncryptionTests : IDisposable
         var (window, shell) = await ShowAsync();
         shell = await EncryptAsync(window, shell, remember: true);
         KeyRemembered(FilePath).ShouldBeTrue();
-        var fileId = Convert.ToHexStringLower(File.ReadAllBytes(FilePath).AsSpan(0, 16));
+        var fileId = Convert.ToHexStringLower(Header(FilePath));
 
         var commands = _host.Current<AppCommands>().Build(shell);
         commands.Single(c => c.Id == "encrypt-file").IsEnabled.ShouldBeFalse();
@@ -297,7 +292,7 @@ public sealed class EncryptionTests : IDisposable
         var other = Path.Combine(_host.DataDirectory.BudgetsDirectory, "Other.keel");
         await _host.Sessions.OpenAsync(other);
         shell = await SwitchedAsync(window, shell);
-        _host.Sessions.KeyRing.Forget(Convert.ToHexStringLower(File.ReadAllBytes(encryptedPath).AsSpan(0, 16)));
+        _host.Sessions.KeyRing.Forget(Convert.ToHexStringLower(Header(encryptedPath)));
 
         var data = _host.Current<DataFileSettingsViewModel>();
         _files.OpenBudgetFiles.Enqueue(encryptedPath);
