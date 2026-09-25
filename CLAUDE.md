@@ -110,6 +110,11 @@ KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filte
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Tags|FullyQualifiedName~Tests.Attachments|FullyQualifiedName~PayeeMerge"
 dotnet test tests/Keel.Desktop.Tests --filter "TagsAttachmentsTests|FullyQualifiedName~AccessibilityTests.Tags|FullyQualifiedName~HighDpiRenderingTests.Tags"
 KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter M9cRenderingTests
+# M9b: debt payoff math, age of money, budget health (hand-built ledgers + 100k timing), desktop flows and PNGs
+dotnet test tests/Keel.Domain.Tests --filter "FullyQualifiedName~Debt|FullyQualifiedName~AgeOfMoney"
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Debt|BudgetHealthReportTests" --logger "console;verbosity=detailed"
+dotnet test tests/Keel.Desktop.Tests --filter "DebtHealthExportTests|DebtHealthRenderingTests"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter DebtHealthRenderingTests
 ```
 
 The app applies pending migrations itself when it opens a budget file (after a `-before-migration`
@@ -378,6 +383,21 @@ M9c tags, attachments and payee merge (F-TXN-8, F-TXN-9; ADR 0096, 0097):
                               LedgerText looks up later features' texts under their prefix (Tag_Error_…, Attachment_Action_…).
   tests/                      Infrastructure Tags/, Attachments/, Categorization/PayeeMergeTests; Desktop TagsAttachmentsTests,
                               TagTestLedger + FakeAttachmentFiles, M9cRenderingTests, AccessibilityTests/HighDpiRenderingTests.Tags….
+M9b: debt payoff (F-GOAL-2), age of money and budget health (F-REP-5), PNG export of charts (PRD 9.8):
+  Keel.Domain/Debt/DebtPayoffCalculator  Amortization (APR/12, half-even interest), snowball/avalanche with rollover,
+                              MinimumOnly baseline, "never" when interest reaches the outlay (ADR 0093).
+  Keel.Domain/Reports/AgeOfMoney  FIFO over daily cash flows, last 10 outflows (ADR 0094).
+  Account.InterestRateBps/MinimumPayment (migration DebtPayoffFields); Application Accounts DebtTerms (+ requests, DTO).
+  Keel.Application/Debt/IDebtPayoffService (+ DTOs, NewPaymentCategory); IBudgetService.SetTargetsAsync (one undo step);
+                              IReportService.GetAgeOfMoneyAsync/GetBudgetHealthAsync (+ BudgetHealthReport DTOs).
+  Keel.Infrastructure/Debt/DebtPayoffService; ReportService daily cash-flow SQL + health (optional IBudgetService).
+  Keel.Desktop: ViewModels/Goals/DebtPayoffViewModel + Views/Goals/DebtPayoffView (Goals tab, GoalsTab enum, keys 1/2);
+                              ViewModels/Reports/BudgetHealthReportViewModel + Views/Reports/BudgetHealthReportView;
+                              HomeViewModel.Health (age-of-money card); Controls/ChartImage (2x PNG, ADR 0095),
+                              IFileDialogs.SavePngAsync, ReportsViewModel.ExportPngAsync/RenderChartPng; account editor debt fields.
+  ShortcutRegistry.All is stably sorted by scope, so new entries are appended at the end of the constructor.
+  Tests: Domain Debt/, Reports/AgeOfMoneyTests; Infrastructure Debt/, Reports/BudgetHealthReportTests (TimingCollection);
+                              Desktop DebtHealthExportTests, DebtHealthRenderingTests, additions to Accessibility/HighDpi tests.
 ```
 
 Dependency direction: `Desktop -> Application -> Domain`; `Infrastructure -> Application -> Domain`.

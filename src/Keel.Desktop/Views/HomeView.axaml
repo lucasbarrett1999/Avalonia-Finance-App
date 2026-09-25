@@ -251,6 +251,21 @@
                                        AutomationProperties.Name="{x:Static res:Strings.Home_NetWorthTrend}" />
             </StackPanel>
           </Border>
+
+          <!-- Age of money (F-REP-5, M9) -->
+          <Border x:Name="AgeOfMoneyCard" Grid.Row="3" Grid.Column="2" Classes="card" Margin="0,0,0,16">
+            <StackPanel Spacing="6">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" x:Name="BudgetHealthButton" Classes="link" Command="{Binding OpenBudgetHealthCommand}"
+                        Content="{x:Static res:Strings.Health_Home_Open}" />
+                <TextBlock Classes="cardTitle" Text="{x:Static res:Strings.Health_AgeOfMoney}" />
+              </DockPanel>
+              <TextBlock x:Name="AgeOfMoneyValue" Text="{Binding AgeOfMoneyText}" FontSize="22" FontWeight="SemiBold" FontFeatures="+tnum" />
+              <TextBlock Classes="secondary" Text="{Binding AgeOfMoneyDetail}" TextWrapping="Wrap" />
+              <controls:ChartSparkline Height="64" Margin="0,6,0,0" Values="{Binding AgeOfMoneyValues}" Slot="3" IsVisible="{Binding HasAgeOfMoneyTrend}"
+                                       AutomationProperties.Name="{x:Static res:Strings.Health_Home_Trend}" />
+            </StackPanel>
+          </Border>
         </Grid>
       </ScrollViewer>
     </Panel>

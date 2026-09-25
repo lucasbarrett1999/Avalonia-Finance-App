@@ -119,7 +119,7 @@ public sealed class ShortcutRegistry
         Add("bills-detect", ShortcutScope.Bills, Strings.Shortcut_BillsDetect, new KeyGesture(Key.R));
         Add("bills-close", ShortcutScope.Bills, Strings.Shortcut_BillsClose, new KeyGesture(Key.Escape));
 
-        AddText("reports-pick", ShortcutScope.Reports, Strings.Shortcut_ReportsPick, "1–4");
+        AddText("reports-pick", ShortcutScope.Reports, Strings.Shortcut_ReportsPick, "1–5");
         Add("reports-export", ShortcutScope.Reports, Strings.Shortcut_ReportsExport, new KeyGesture(Key.E, cmd));
 
         Add("goals-new", ShortcutScope.Goals, Strings.Shortcut_GoalsNew, new KeyGesture(Key.N));
@@ -129,7 +129,13 @@ public sealed class ShortcutRegistry
         Add("dialog-confirm", ShortcutScope.Dialogs, Strings.Shortcut_DialogConfirm, new KeyGesture(Key.Enter));
         Add("dialog-cancel", ShortcutScope.Dialogs, Strings.Shortcut_DialogCancel, new KeyGesture(Key.Escape));
         AddText("money-math", ShortcutScope.Dialogs, Strings.Shortcut_MoneyMath, "+ − × ÷");
-        All = list;
+
+        // M9b: PNG export of report charts and the Goals tabs.
+        Add("reports-export-png", ShortcutScope.Reports, Strings.ExportPng_Shortcut, new KeyGesture(Key.E, cmd | KeyModifiers.Shift));
+        AddText("goals-tabs", ShortcutScope.Goals, Strings.Debt_Shortcut_Tabs, "1 / 2");
+
+        // Entries added later append above; the reference lists them grouped by scope (a stable sort).
+        All = [.. list.OrderBy(e => e.Scope)];
     }
 
     /// <summary>The platform the keys are formatted for.</summary>

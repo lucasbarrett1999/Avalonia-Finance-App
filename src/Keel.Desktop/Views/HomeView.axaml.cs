@@ -33,7 +33,7 @@ public partial class HomeView : UserControl
         }
 
         _twoColumns = two;
-        Control[] cards = [ReadyToAssignCard, ReviewCard, AccountsCard, UpcomingBillsCard, BudgetAlertsCard, ForecastCard, NetWorthCard];
+        Control[] cards = [ReadyToAssignCard, ReviewCard, AccountsCard, UpcomingBillsCard, BudgetAlertsCard, ForecastCard, NetWorthCard, AgeOfMoneyCard];
         for (var i = 0; i < cards.Length; i++)
         {
             Grid.SetRow(cards[i], two ? i / 2 : i);

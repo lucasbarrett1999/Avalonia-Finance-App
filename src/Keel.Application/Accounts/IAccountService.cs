@@ -47,6 +47,8 @@ public interface IAccountService
 /// <param name="SyncStatus">Health of the linked connection, when linked.</param>
 /// <param name="OpeningDate">Date of the opening balance.</param>
 /// <param name="Notes">Notes.</param>
+/// <param name="InterestRateBps">Debt interest rate, annual, in basis points (F-GOAL-2); null when unknown.</param>
+/// <param name="MinimumPayment">Debt minimum monthly payment in minor units (F-GOAL-2); null when unknown.</param>
 public sealed record AccountDto(
     Guid Id,
     string Name,
@@ -60,7 +62,9 @@ public sealed record AccountDto(
     Money? ReportedBalance,
     SyncStatus? SyncStatus,
     DateOnly OpeningDate = default,
-    string? Notes = null)
+    string? Notes = null,
+    int? InterestRateBps = null,
+    long? MinimumPayment = null)
 {
     /// <summary>Balance of uncleared transactions (ledger minus cleared).</summary>
     public Money UnclearedBalance => Balance - ClearedBalance;
@@ -70,6 +74,35 @@ public sealed record AccountDto(
 
     /// <summary>Whether the user may change the on-budget flag of this type (Savings and Cash).</summary>
     public bool CanOverrideOnBudget => AccountTypeInfo.CanOverrideOnBudget(Type);
+
+    /// <summary>Whether the account can carry debt terms (rate and minimum payment): liability types.</summary>
+    public bool CanHaveDebtTerms => DebtTerms.AppliesTo(Type);
+}
+
+/// <summary>Interest rate and minimum payment of a debt account (F-GOAL-2); either may be unknown.</summary>
+/// <param name="InterestRateBps">Annual rate in basis points (0 to 10,000, i.e. 0% to 100%), or null.</param>
+/// <param name="MinimumPayment">Minimum monthly payment in minor units (≥ 0), or null.</param>
+public sealed record DebtTerms(int? InterestRateBps, long? MinimumPayment)
+{
+    /// <summary>No terms.</summary>
+    public static DebtTerms None { get; } = new(null, null);
+
+    /// <summary>Whether accounts of <paramref name="type"/> carry debt terms (liabilities: cards, lines of credit, loans and mortgages).</summary>
+    public static bool AppliesTo(AccountType type) => AccountTypeInfo.IsLiability(type);
+
+    /// <summary>Throws <see cref="ArgumentOutOfRangeException"/> for a rate outside 0–100% or a negative minimum.</summary>
+    public void Validate()
+    {
+        if (InterestRateBps is < 0 or > Keel.Domain.Debt.DebtPayoffCalculator.MaxRateBps)
+        {
+            throw new ArgumentOutOfRangeException(nameof(InterestRateBps), InterestRateBps, "The interest rate must be between 0% and 100%.");
+        }
+
+        if (MinimumPayment is < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(MinimumPayment), MinimumPayment, "The minimum payment cannot be negative.");
+        }
+    }
 }
 
 /// <summary>Input for <see cref="IAccountService.CreateAccountAsync"/>.</summary>
@@ -80,6 +113,7 @@ public sealed record AccountDto(
 /// <param name="OpeningBalance">Opening balance in minor units (liabilities are negative).</param>
 /// <param name="IsOnBudget">Override of the type default; null keeps the default.</param>
 /// <param name="Notes">Notes.</param>
+/// <param name="Debt">Interest rate and minimum payment (liability types only; ignored otherwise).</param>
 public sealed record CreateAccountRequest(
     string Name,
     AccountType Type,
@@ -87,11 +121,13 @@ public sealed record CreateAccountRequest(
     DateOnly OpeningDate,
     long OpeningBalance,
     bool? IsOnBudget = null,
-    string? Notes = null);
+    string? Notes = null,
+    DebtTerms? Debt = null);
 
 /// <summary>Input for <see cref="IAccountService.UpdateAccountAsync"/>.</summary>
 /// <param name="Id">Account.</param>
 /// <param name="Name">New name.</param>
 /// <param name="IsOnBudget">New on-budget flag (only Savings and Cash may differ from the default).</param>
 /// <param name="Notes">New notes.</param>
-public sealed record UpdateAccountRequest(Guid Id, string Name, bool IsOnBudget, string? Notes);
+/// <param name="Debt">New debt terms (liability types only); null leaves them unchanged, <see cref="DebtTerms.None"/> clears them.</param>
+public sealed record UpdateAccountRequest(Guid Id, string Name, bool IsOnBudget, string? Notes, DebtTerms? Debt = null);

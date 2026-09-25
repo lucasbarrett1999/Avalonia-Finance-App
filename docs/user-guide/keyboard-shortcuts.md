@@ -78,14 +78,16 @@ or screen by typing part of its name, and shows each action's shortcut.
 
 | Keys | Action |
 |---|---|
-| `1`–`4` | Choose a report |
+| `1`–`5` | Choose a report |
 | `Ctrl+E` | Export the report as CSV |
+| `Ctrl+Shift+E` | Export the report chart as PNG |
 
 ## Goals
 
 | Keys | Action |
 |---|---|
 | `N` | New goal |
+| `1` / `2` | Goals: switch between goals and debt payoff |
 
 ## Bank connections
 

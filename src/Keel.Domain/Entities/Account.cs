@@ -45,6 +45,15 @@ public class Account
     /// <summary>When the provider reported <see cref="ReportedBalance"/> (UTC).</summary>
     public DateTime? ReportedBalanceAt { get; set; }
 
+    /// <summary>
+    /// Annual interest rate of a debt in basis points (1999 = 19.99% APR), for the debt payoff planner
+    /// (F-GOAL-2); null when unknown. Only liability accounts carry it.
+    /// </summary>
+    public int? InterestRateBps { get; set; }
+
+    /// <summary>Minimum monthly payment of a debt in minor units (F-GOAL-2); null when unknown.</summary>
+    public long? MinimumPayment { get; set; }
+
     /// <summary>Creates an account whose on-budget flag follows the type default (6.3).</summary>
     public static Account Create(string name, AccountType type, DateOnly openingDate, string currency = Keel.Domain.Currency.Default) => new()
     {

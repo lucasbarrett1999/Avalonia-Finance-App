@@ -129,6 +129,12 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
         list.Add(Cmd("export-data", Strings.Export_Command, file, () => _ = Portability().ExportAsync()));
         list.Add(Cmd("import-bundle", Strings.Bundle_Command, file, () => _ = Portability().ImportBundleAsync()));
         list.Add(Cmd("import-ynab-monarch", Strings.Ynab_Command, file, () => _ = Portability().ImportFromAppAsync()));
+
+        // M9b: debt payoff planner, budget health report and PNG export.
+        list.Add(Cmd("goals-debt", Strings.Debt_OpenPlanner, actions, () => Navigation().NavigateTo<GoalsViewModel>(GoalsTab.DebtPayoff)));
+        list.Add(Cmd("reports-health", Strings.Health_OpenReport, actions, () => Navigation().NavigateTo<ReportsViewModel>(Keel.Desktop.ViewModels.Reports.ReportKind.BudgetHealth)));
+        list.Add(Cmd("reports-export-png", Strings.ExportPng_Shortcut, actions, () => OnPage<ReportsViewModel>(shell, r => _ = r.ExportPngAsync())));
+
         return list;
     }
 
@@ -210,6 +216,8 @@ public sealed class AppCommands(IServiceProvider services, ShortcutRegistry regi
     }
 
     private DataFileSettingsViewModel DataFile() => services.GetRequiredService<DataFileSettingsViewModel>();
+
+    private Keel.Application.Navigation.INavigationService Navigation() => services.GetRequiredService<Keel.Application.Navigation.INavigationService>();
 
     private AppearanceSettingsViewModel Appearance() => services.GetRequiredService<AppearanceSettingsViewModel>();
 

@@ -71,6 +71,7 @@ public static class DependencyInjection
         services.AddSingleton<Keel.Desktop.ViewModels.Portability.PortabilitySettingsViewModel>();
         services.AddSingleton<IAttachmentFiles, StorageAttachmentFiles>();
         services.AddSingleton<Keel.Desktop.ViewModels.Settings.TagsSettingsViewModel>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Goals.DebtPayoffViewModel>();
         return services;
     }
 }

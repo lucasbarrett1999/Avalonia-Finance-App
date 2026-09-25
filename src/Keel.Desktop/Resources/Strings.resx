@@ -5241,6 +5241,387 @@
   <data name="Ynab_FirstRunButton" xml:space="preserve">
     <value>Import from YNAB or Monarch export…</value>
   </data>
+  <data name="ExportPng_Button" xml:space="preserve">
+    <value>Export PNG</value>
+  </data>
+  <data name="ExportPng_Tip" xml:space="preserve">
+    <value>Save the chart as a PNG image at twice its on-screen size</value>
+  </data>
+  <data name="ExportPng_Title" xml:space="preserve">
+    <value>Export chart as PNG</value>
+  </data>
+  <data name="ExportPng_Saved" xml:space="preserve">
+    <value>Chart saved as {0}</value>
+  </data>
+  <data name="ExportPng_Failed" xml:space="preserve">
+    <value>Could not save the image: {0}</value>
+  </data>
+  <data name="ExportPng_NoChart" xml:space="preserve">
+    <value>This report has no chart to export yet.</value>
+  </data>
+  <data name="ExportPng_Shortcut" xml:space="preserve">
+    <value>Export the report chart as PNG</value>
+  </data>
+  <data name="Health_Title" xml:space="preserve">
+    <value>Budget health</value>
+  </data>
+  <data name="Health_Description" xml:space="preserve">
+    <value>Age of money, months ahead, targets and overspending</value>
+  </data>
+  <data name="Health_EmptyHeading" xml:space="preserve">
+    <value>No budget activity yet</value>
+  </data>
+  <data name="Health_EmptyMessage" xml:space="preserve">
+    <value>Budget health appears once money comes into and goes out of your on-budget accounts.</value>
+  </data>
+  <data name="Health_MonthHeading" xml:space="preserve">
+    <value>Budget numbers for {0} (as of {1}); age of money over the selected range.</value>
+  </data>
+  <data name="Health_AgeOfMoney" xml:space="preserve">
+    <value>Age of money</value>
+  </data>
+  <data name="Health_AgeOfMoneyDays" xml:space="preserve">
+    <value>{0} days</value>
+  </data>
+  <data name="Health_AgeOfMoneyOneDay" xml:space="preserve">
+    <value>1 day</value>
+  </data>
+  <data name="Health_NoValue" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Health_AgeOfMoneyDetail" xml:space="preserve">
+    <value>Your last {0} outflows spent money received {1} days earlier on average.</value>
+  </data>
+  <data name="Health_AgeOfMoneyNone" xml:space="preserve">
+    <value>Not enough spending yet: age of money needs an outflow paid from money you received.</value>
+  </data>
+  <data name="Health_AgeOfMoneyExplain" xml:space="preserve">
+    <value>money received into on-budget cash accounts is spent first in, first out; the age is the average number of days between receiving and spending over your last 10 outflows. Transfers between those accounts don't count, and card spending counts when you pay the card.</value>
+  </data>
+  <data name="Health_MonthsAhead" xml:space="preserve">
+    <value>Months ahead</value>
+  </data>
+  <data name="Health_MonthsAheadValue" xml:space="preserve">
+    <value>{0} months</value>
+  </data>
+  <data name="Health_MonthsAheadDetail" xml:space="preserve">
+    <value>{0} in your budget ÷ {1} average monthly spending ({2})</value>
+  </data>
+  <data name="Health_MonthsAheadNone" xml:space="preserve">
+    <value>Needs a complete month of spending to compare with.</value>
+  </data>
+  <data name="Health_MonthsAheadExplain" xml:space="preserve">
+    <value>Ready to Assign plus every positive Available (credit card payment categories left out), divided by your average monthly spending over the last three complete months, rounded down to a tenth.</value>
+  </data>
+  <data name="Health_TargetsFunded" xml:space="preserve">
+    <value>Targets funded</value>
+  </data>
+  <data name="Health_TargetsPercent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Health_TargetsDetail" xml:space="preserve">
+    <value>{0} of {1} targets funded · {2} of {3} needed this month</value>
+  </data>
+  <data name="Health_TargetsNone" xml:space="preserve">
+    <value>No targets yet. Set targets in Budget to see how well they are funded.</value>
+  </data>
+  <data name="Health_TargetsExplain" xml:space="preserve">
+    <value>the share of what your targets ask for this month that is already assigned.</value>
+  </data>
+  <data name="Health_Overspent" xml:space="preserve">
+    <value>Overspent categories</value>
+  </data>
+  <data name="Health_OverspentDetail" xml:space="preserve">
+    <value>{0} with cash overspending, which reduces next month's Ready to Assign</value>
+  </data>
+  <data name="Health_OverspentNone" xml:space="preserve">
+    <value>Nothing is overspent this month.</value>
+  </data>
+  <data name="Health_OverspentExplain" xml:space="preserve">
+    <value>categories whose Available is below zero this month. Cash overspending (red) comes out of next month's Ready to Assign; credit overspending (yellow) leaves the card payment underfunded.</value>
+  </data>
+  <data name="Health_OverspentKindCash" xml:space="preserve">
+    <value>Cash overspent</value>
+  </data>
+  <data name="Health_OverspentKindCredit" xml:space="preserve">
+    <value>Credit overspent</value>
+  </data>
+  <data name="Health_OverspentRowAutomation" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="Health_OpenCategoryTip" xml:space="preserve">
+    <value>Open this category's transactions for the month</value>
+  </data>
+  <data name="Health_HistoryTitle" xml:space="preserve">
+    <value>Age of money over time</value>
+  </data>
+  <data name="Health_ChartName" xml:space="preserve">
+    <value>Chart of age of money at the end of each month</value>
+  </data>
+  <data name="Health_ChartHint" xml:space="preserve">
+    <value>Each point is the age of money at the end of a month (today for this month). Select a point to see that month's transactions.</value>
+  </data>
+  <data name="Health_OpenBudget" xml:space="preserve">
+    <value>Open Budget</value>
+  </data>
+  <data name="Health_HowCalculated" xml:space="preserve">
+    <value>How these are calculated</value>
+  </data>
+  <data name="Health_Csv_Metric" xml:space="preserve">
+    <value>Metric</value>
+  </data>
+  <data name="Health_Csv_Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Health_Csv_Month" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="Health_Csv_AsOf" xml:space="preserve">
+    <value>As of</value>
+  </data>
+  <data name="Health_Csv_AgeOfMoney" xml:space="preserve">
+    <value>Age of money (days)</value>
+  </data>
+  <data name="Health_Csv_MonthsAhead" xml:space="preserve">
+    <value>Months ahead</value>
+  </data>
+  <data name="Health_Csv_Buffer" xml:space="preserve">
+    <value>Money in the budget</value>
+  </data>
+  <data name="Health_Csv_AverageSpending" xml:space="preserve">
+    <value>Average monthly spending</value>
+  </data>
+  <data name="Health_Csv_TargetsFunded" xml:space="preserve">
+    <value>Targets funded (%)</value>
+  </data>
+  <data name="Health_Csv_TargetsCount" xml:space="preserve">
+    <value>Targets funded (count)</value>
+  </data>
+  <data name="Health_Csv_OfFormat" xml:space="preserve">
+    <value>{0} of {1}</value>
+  </data>
+  <data name="Health_Csv_Overspent" xml:space="preserve">
+    <value>Overspent categories</value>
+  </data>
+  <data name="Health_Csv_AgeOn" xml:space="preserve">
+    <value>Age of money on {0} (days)</value>
+  </data>
+  <data name="Health_Home_Open" xml:space="preserve">
+    <value>Budget health</value>
+  </data>
+  <data name="Health_Home_Trend" xml:space="preserve">
+    <value>Age of money at the end of each of the last 12 months</value>
+  </data>
+  <data name="Health_Home_Empty" xml:space="preserve">
+    <value>Appears once you spend money you've received.</value>
+  </data>
+  <data name="Health_Home_MonthsAhead" xml:space="preserve">
+    <value>{0} months ahead</value>
+  </data>
+  <data name="Health_OpenReport" xml:space="preserve">
+    <value>Open the budget health report</value>
+  </data>
+  <data name="Debt_GoalsTab" xml:space="preserve">
+    <value>Goals</value>
+  </data>
+  <data name="Debt_Tab" xml:space="preserve">
+    <value>Debt payoff</value>
+  </data>
+  <data name="Debt_TabsName" xml:space="preserve">
+    <value>Goals sections</value>
+  </data>
+  <data name="Debt_EmptyHeading" xml:space="preserve">
+    <value>No debts to plan</value>
+  </data>
+  <data name="Debt_EmptyMessage" xml:space="preserve">
+    <value>Credit cards, lines of credit, loans and mortgages you owe money on appear here. Add each one's interest rate and minimum payment in Edit account to plan the payoff.</value>
+  </data>
+  <data name="Debt_AddAccount" xml:space="preserve">
+    <value>Add a loan or card</value>
+  </data>
+  <data name="Debt_Loading" xml:space="preserve">
+    <value>Planning your debts…</value>
+  </data>
+  <data name="Debt_ErrorLoading" xml:space="preserve">
+    <value>Couldn't plan your debts: {0}</value>
+  </data>
+  <data name="Debt_Extra" xml:space="preserve">
+    <value>Extra per month</value>
+  </data>
+  <data name="Debt_ExtraName" xml:space="preserve">
+    <value>Extra payment per month on top of the minimums</value>
+  </data>
+  <data name="Debt_Ordering" xml:space="preserve">
+    <value>Pay first</value>
+  </data>
+  <data name="Debt_OrderingName" xml:space="preserve">
+    <value>Payoff order</value>
+  </data>
+  <data name="Debt_Avalanche" xml:space="preserve">
+    <value>Avalanche: highest rate first</value>
+  </data>
+  <data name="Debt_Snowball" xml:space="preserve">
+    <value>Snowball: smallest balance first</value>
+  </data>
+  <data name="Debt_OrderingHint" xml:space="preserve">
+    <value>The extra, and each minimum freed when a debt is paid off, go to the first unpaid debt in this order.</value>
+  </data>
+  <data name="Debt_DebtFree" xml:space="preserve">
+    <value>Debt-free by {0}</value>
+  </data>
+  <data name="Debt_NeverFree" xml:space="preserve">
+    <value>Not every debt is paid off at these payments</value>
+  </data>
+  <data name="Debt_PlanSummary" xml:space="preserve">
+    <value>{0} a month · {1} interest in total</value>
+  </data>
+  <data name="Debt_Comparison" xml:space="preserve">
+    <value>{0} sooner and {1} less interest than paying only the minimums</value>
+  </data>
+  <data name="Debt_ComparisonSame" xml:space="preserve">
+    <value>The same as paying only the minimums</value>
+  </data>
+  <data name="Debt_ComparisonNeverMin" xml:space="preserve">
+    <value>Paying only the minimums would never clear every debt</value>
+  </data>
+  <data name="Debt_Months" xml:space="preserve">
+    <value>{0} months</value>
+  </data>
+  <data name="Debt_OneMonth" xml:space="preserve">
+    <value>1 month</value>
+  </data>
+  <data name="Debt_Col_Debt" xml:space="preserve">
+    <value>Debt</value>
+  </data>
+  <data name="Debt_Col_Balance" xml:space="preserve">
+    <value>Owed</value>
+  </data>
+  <data name="Debt_Col_Rate" xml:space="preserve">
+    <value>Rate</value>
+  </data>
+  <data name="Debt_Col_Minimum" xml:space="preserve">
+    <value>Minimum</value>
+  </data>
+  <data name="Debt_Col_Payment" xml:space="preserve">
+    <value>This month</value>
+  </data>
+  <data name="Debt_Col_Payoff" xml:space="preserve">
+    <value>Paid off</value>
+  </data>
+  <data name="Debt_Col_Interest" xml:space="preserve">
+    <value>Interest</value>
+  </data>
+  <data name="Debt_RateValue" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="Debt_Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Debt_NeverHint" xml:space="preserve">
+    <value>The payment doesn't cover the interest</value>
+  </data>
+  <data name="Debt_AtMinimum" xml:space="preserve">
+    <value>At the minimum alone: paid off {0} with {1} interest</value>
+  </data>
+  <data name="Debt_AtMinimumNever" xml:space="preserve">
+    <value>At the minimum alone: never paid off</value>
+  </data>
+  <data name="Debt_PlanOutlay" xml:space="preserve">
+    <value>{0} a month</value>
+  </data>
+  <data name="Debt_ComparisonNeverPlan" xml:space="preserve">
+    <value>Raise the extra per month until every debt is paid off.</value>
+  </data>
+  <data name="Debt_PaymentCategory" xml:space="preserve">
+    <value>Budgeted in {0}</value>
+  </data>
+  <data name="Debt_PaymentTarget" xml:space="preserve">
+    <value>Budgeted in {0} · target {1}</value>
+  </data>
+  <data name="Debt_NoPaymentCategory" xml:space="preserve">
+    <value>No payment category yet: one is created when you set targets</value>
+  </data>
+  <data name="Debt_ChartTitle" xml:space="preserve">
+    <value>Balances under this plan</value>
+  </data>
+  <data name="Debt_ChartName" xml:space="preserve">
+    <value>Chart of each debt's balance by month under this plan</value>
+  </data>
+  <data name="Debt_MinimumLine" xml:space="preserve">
+    <value>Minimum payments only (total)</value>
+  </data>
+  <data name="Debt_ChartHint" xml:space="preserve">
+    <value>Each band is one debt's balance under this plan; the line is the total when paying only the minimums. Select a band or a row to open that account.</value>
+  </data>
+  <data name="Debt_SetTargets" xml:space="preserve">
+    <value>Set payment targets</value>
+  </data>
+  <data name="Debt_SetTargetsHint" xml:space="preserve">
+    <value>Sets a debt-payment target equal to this month's planned payment on each debt's payment category. You can undo it.</value>
+  </data>
+  <data name="Debt_TargetsSet" xml:space="preserve">
+    <value>Set {0} debt-payment targets</value>
+  </data>
+  <data name="Debt_TargetsSetOne" xml:space="preserve">
+    <value>Set 1 debt-payment target</value>
+  </data>
+  <data name="Debt_TargetsSetCreated" xml:space="preserve">
+    <value>Set {0} debt-payment targets and created {1} payment categories</value>
+  </data>
+  <data name="Debt_TargetsNone" xml:space="preserve">
+    <value>Nothing to set: no payment is planned this month.</value>
+  </data>
+  <data name="Debt_TargetsFailed" xml:space="preserve">
+    <value>Couldn't set the targets: {0}</value>
+  </data>
+  <data name="Debt_MissingTitle" xml:space="preserve">
+    <value>Add details to plan these debts</value>
+  </data>
+  <data name="Debt_MissingHint" xml:space="preserve">
+    <value>The planner needs each debt's interest rate and minimum payment. Add them in Edit account.</value>
+  </data>
+  <data name="Debt_Missing_Rate" xml:space="preserve">
+    <value>No interest rate</value>
+  </data>
+  <data name="Debt_Missing_Minimum" xml:space="preserve">
+    <value>No minimum payment</value>
+  </data>
+  <data name="Debt_Missing_Both" xml:space="preserve">
+    <value>No interest rate or minimum payment</value>
+  </data>
+  <data name="Debt_EditAccount" xml:space="preserve">
+    <value>Edit account</value>
+  </data>
+  <data name="Debt_EditAccountName" xml:space="preserve">
+    <value>Edit {0}</value>
+  </data>
+  <data name="Debt_RowAutomation" xml:space="preserve">
+    <value>{0}: {1} owed at {2}, paid off {3}</value>
+  </data>
+  <data name="Debt_PaymentGroup" xml:space="preserve">
+    <value>Debt payments</value>
+  </data>
+  <data name="Debt_PaymentCategoryFormat" xml:space="preserve">
+    <value>{0} payment</value>
+  </data>
+  <data name="Debt_OpenPlanner" xml:space="preserve">
+    <value>Open the debt payoff planner</value>
+  </data>
+  <data name="Debt_Shortcut_Tabs" xml:space="preserve">
+    <value>Goals: switch between goals and debt payoff</value>
+  </data>
+  <data name="Debt_Editor_Rate" xml:space="preserve">
+    <value>Interest rate (APR %)</value>
+  </data>
+  <data name="Debt_Editor_Minimum" xml:space="preserve">
+    <value>Minimum payment</value>
+  </data>
+  <data name="Debt_Editor_Hint" xml:space="preserve">
+    <value>Used by the debt payoff planner on Goals. Leave empty if you don't know.</value>
+  </data>
+  <data name="Debt_Editor_RateInvalid" xml:space="preserve">
+    <value>Enter an interest rate between 0 and 100, for example 19.99.</value>
+  </data>
   <data name="Tag_SettingsTitle" xml:space="preserve">
     <value>Tags</value>
   </data>

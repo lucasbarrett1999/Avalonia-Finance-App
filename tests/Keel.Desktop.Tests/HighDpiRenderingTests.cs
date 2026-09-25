@@ -90,6 +90,65 @@ public sealed class HighDpiRenderingTests : IDisposable
     }
 
     [AvaloniaFact]
+    public async Task Debt_payoff_budget_health_and_debt_terms_render_at_2x_on_a_1080p_display()
+    {
+        var fixture = await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(1_000, Seed: 3, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
+        await DebtHealthRenderingTests.AddDebtTermsAsync(_host, fixture);
+        LogCapture.Instance.Clear();
+        var window = _host.Get<ShellWindow>();
+        window.Width = 960;
+        window.Height = 540;
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var goals = _host.Get<GoalsViewModel>();
+        var reports = _host.Get<ReportsViewModel>();
+        var outputDir = Environment.GetEnvironmentVariable("KEEL_SCREENSHOT_DIR");
+
+        async Task RenderAsync(string name)
+        {
+            for (var i = 0; i < 8; i++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                await Task.Delay(25);
+            }
+
+            using var bitmap = new RenderTargetBitmap(new PixelSize(1920, 1080), new Vector(192, 192));
+            bitmap.Render(window);
+            if (!string.IsNullOrEmpty(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+                bitmap.Save(Path.Combine(outputDir, name + ".png"));
+            }
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            _host.Get<ThemeService>().SetTheme(theme);
+            shell.NavigateTo<GoalsViewModel>();
+            goals.SelectedTab = GoalsTab.DebtPayoff;
+            await UiTestHelpers.WaitUntilAsync(() => goals.DebtPayoff!.IsInitialized, "debt plan loaded");
+            await RenderAsync($"DebtPayoff-2x-{theme}");
+
+            var editing = goals.DebtPayoff!.EditAccountCommand.ExecuteAsync(goals.DebtPayoff.Missing[0]);
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, "editor shown");
+            await RenderAsync($"AccountEditorDebt-2x-{theme}");
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await editing;
+            goals.SelectedTab = GoalsTab.Goals;
+
+            shell.NavigateTo<ReportsViewModel>();
+            reports.SelectedReport = reports.Reports.Single(r => r.Kind == Keel.Desktop.ViewModels.Reports.ReportKind.BudgetHealth);
+            await UiTestHelpers.WaitUntilAsync(() => reports.Loading.IsCompleted, "health loaded");
+            await RenderAsync($"BudgetHealth-2x-{theme}");
+        }
+
+        _host.Get<ThemeService>().SetTheme(AppTheme.System);
+        window.Close();
+        LogCapture.Instance.Messages.ShouldBeEmpty();
+    }
+
+    [AvaloniaFact]
     public async Task Export_bundle_and_migration_dialogs_render_at_2x_on_a_1080p_display()
     {
         await Task.Run(() => LedgerFixtureGenerator.GenerateAsync(_host.Get<IDbContextFactory<KeelDbContext>>(), new LedgerFixtureOptions(300, Seed: 6, EndDate: DateOnly.FromDateTime(DateTime.Today)), CancellationToken.None));
