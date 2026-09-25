@@ -4,11 +4,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Keel.Application.Accounts;
+using Keel.Application.Attachments;
 using Keel.Application.Categories;
 using Keel.Application.Ledger;
 using Keel.Application.Messaging;
 using Keel.Application.Navigation;
 using Keel.Application.Payees;
+using Keel.Application.Tags;
 using Keel.Desktop.Resources;
 using Keel.Desktop.Services;
 using Keel.Desktop.ViewModels.Dialogs;
@@ -25,7 +27,8 @@ namespace Keel.Desktop.ViewModels;
 /// <param name="AccountId">Account, or null for All Accounts.</param>
 /// <param name="Search">Search text in the F-TXN-7 syntax.</param>
 /// <param name="Category">Category filter to apply (report drill-down; <see cref="CategoryOption.All"/> clears it); other filters are reset.</param>
-public sealed record RegisterNavigation(Guid? AccountId, string? Search = null, CategoryOption? Category = null);
+/// <param name="TagId">Tag filter to apply (Settings → Tags); other filters are reset.</param>
+public sealed record RegisterNavigation(Guid? AccountId, string? Search = null, CategoryOption? Category = null, Guid? TagId = null);
 
 /// <summary>
 /// The account register and the "All accounts" register (PRD 9.4, F-ACC-2..5): header balances,
@@ -44,6 +47,8 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
     private readonly DialogService _dialogs;
     private readonly StatusService _status;
     private readonly ImportWorkflow _import;
+    private readonly ITagService? _tags;
+    private readonly AttachmentContext? _attachmentContext;
     private IReadOnlyList<RegisterRowViewModel> _selection = [];
     private RegisterSort _sort = RegisterSort.Default;
     private Guid? _selectAfterRefresh;
@@ -64,9 +69,14 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         ImportWorkflow import,
         RuleEditorFlow ruleEditor,
         SyncCoordinator sync,
-        Bills.ScheduledGhostsViewModel? scheduled = null)
+        Bills.ScheduledGhostsViewModel? scheduled = null,
+        ITagService? tags = null,
+        IAttachmentService? attachments = null,
+        IAttachmentFiles? attachmentFiles = null)
     {
         Scheduled = scheduled;
+        _tags = tags;
+        _attachmentContext = attachments is not null && attachmentFiles is not null ? new AttachmentContext(attachments, attachmentFiles, status) : null;
         ArgumentNullException.ThrowIfNull(messenger);
         AttachSync(sync);
         _import = import;
@@ -91,6 +101,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         SelectedDatePreset = DatePresets[0];
         SelectedStatusFilter = StatusFilters[0];
         SelectedCategoryFilter = CategoryOption.All;
+        SelectedTagFilter = TagOption.All;
         messenger.Register(this);
     }
 
@@ -256,9 +267,26 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
     [NotifyPropertyChangedFor(nameof(HasActiveFilters))]
     public partial bool UnapprovedOnly { get; set; }
 
+    /// <summary>Tag filter options ("All tags" first; F-TXN-8).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTagFilters))]
+    public partial IReadOnlyList<TagOption> TagFilters { get; private set; } = [TagOption.All];
+
+    /// <summary>Selected tag filter.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasActiveFilters))]
+    public partial TagOption SelectedTagFilter { get; set; }
+
+    /// <summary>Whether the file has tags (the tag filter shows only then).</summary>
+    public bool HasTagFilters => TagFilters.Count > 1;
+
+    /// <summary>Tag names of the file, for the editor's type-ahead.</summary>
+    public IReadOnlyList<string> KnownTags { get; private set; } = [];
+
     /// <summary>Whether any filter is active.</summary>
     public bool HasActiveFilters => !string.IsNullOrWhiteSpace(SearchText) || (SelectedDatePreset?.Value ?? DatePreset.AllDates) != DatePreset.AllDates
-        || (SelectedStatusFilter?.Value ?? StatusFilter.All) != StatusFilter.All || SelectedCategoryFilter?.Id is not null || UnapprovedOnly;
+        || (SelectedStatusFilter?.Value ?? StatusFilter.All) != StatusFilter.All || SelectedCategoryFilter?.Id is not null || UnapprovedOnly
+        || SelectedTagFilter?.Id is not null;
 
     /// <summary>The inline editor, when open.</summary>
     [ObservableProperty]
@@ -340,6 +368,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
             SelectedDatePreset = DatePresets[0];
             SelectedStatusFilter = StatusFilters[0];
             SelectedCategoryFilter = CategoryOption.All;
+            SelectedTagFilter = TagOption.All;
             UnapprovedOnly = false;
             _sort = RegisterSort.Default;
             Rows.SortDescriptions.Clear();
@@ -352,6 +381,15 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
             SelectedStatusFilter = StatusFilters[0];
             UnapprovedOnly = false;
             SelectedCategoryFilter = CategoryFilters.FirstOrDefault(f => f.Id == category.Id) ?? category;
+        }
+
+        if (parameter is RegisterNavigation { TagId: { } tagId })
+        {
+            SelectedDatePreset = DatePresets[0];
+            SelectedStatusFilter = StatusFilters[0];
+            SelectedCategoryFilter = CategoryOption.All;
+            UnapprovedOnly = false;
+            SelectedTagFilter = TagFilters.FirstOrDefault(f => f.Id == tagId) ?? new TagOption(tagId, string.Empty);
         }
 
         _suppressFilterReload = false;
@@ -396,13 +434,29 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         await Loading;
         var open = AccountOptions.Where(a => !a.IsClosed).ToList();
         var account = AccountId is { } id ? open.FirstOrDefault(a => a.Id == id) : open.FirstOrDefault();
-        Editor = new TransactionEditorViewModel(_payees, open, CategoryOptions, account, existing: null, canChooseAccount: IsAllAccounts);
+        Editor = new TransactionEditorViewModel(_payees, open, CategoryOptions, account, existing: null, canChooseAccount: IsAllAccounts, KnownTags, _attachmentContext);
         EditorOpened?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>Opens the editor for the selected row (Enter).</summary>
     [RelayCommand]
-    public async Task EditSelectedAsync()
+    public Task EditSelectedAsync() => OpenEditorAsync(focusTags: false);
+
+    /// <summary>Opens the editor for the selected row with the tag box focused (T, F-TXN-8).</summary>
+    [RelayCommand]
+    public Task EditTagsAsync() => OpenEditorAsync(focusTags: true);
+
+    /// <summary>Opens the selected row's editor and the file picker to attach receipts (palette, F-TXN-8).</summary>
+    public async Task AttachToSelectedAsync()
+    {
+        await OpenEditorAsync(focusTags: false);
+        if (Editor?.Attachments is { } attachments)
+        {
+            await attachments.AttachCommand.ExecuteAsync(null);
+        }
+    }
+
+    private async Task OpenEditorAsync(bool focusTags)
     {
         if (_selection.Count != 1)
         {
@@ -417,8 +471,23 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
 
         var choices = AccountOptions.Where(a => !a.IsClosed || a.Id == dto.AccountId || a.Id == dto.TransferAccountId).ToList();
         var account = choices.FirstOrDefault(a => a.Id == dto.AccountId);
-        Editor = new TransactionEditorViewModel(_payees, choices, CategoryOptions, account, dto, canChooseAccount: IsAllAccounts);
+        var editor = new TransactionEditorViewModel(_payees, choices, CategoryOptions, account, dto, canChooseAccount: IsAllAccounts, KnownTags, _attachmentContext)
+        {
+            FocusTagsOnOpen = focusTags,
+        };
+        Editor = editor;
         EditorOpened?.Invoke(this, EventArgs.Empty);
+        if (editor.Attachments is { } attachments)
+        {
+            try
+            {
+                await attachments.LoadAsync();
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or System.Data.Common.DbException)
+            {
+                attachments.Error = ex.Message;
+            }
+        }
     }
 
     /// <summary>Saves the editor (Enter).</summary>
@@ -594,6 +663,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         SelectedDatePreset = DatePresets[0];
         SelectedStatusFilter = StatusFilters[0];
         SelectedCategoryFilter = CategoryOption.All;
+        SelectedTagFilter = TagOption.All;
         UnapprovedOnly = false;
         _suppressFilterReload = false;
         _ = ReloadRowsAsync();
@@ -625,7 +695,7 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
             StatusFilter.NotReconciled => [TransactionStatus.Uncleared, TransactionStatus.Cleared],
             _ => null,
         };
-        return new RegisterFilter(AccountId, from, to, statuses, SelectedCategoryFilter?.Id, UnapprovedOnly, SearchText);
+        return new RegisterFilter(AccountId, from, to, statuses, SelectedCategoryFilter?.Id, UnapprovedOnly, SearchText, SelectedTagFilter?.Id);
     }
 
     /// <summary>First and last day of a preset relative to <paramref name="today"/>.</summary>
@@ -652,6 +722,8 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
     partial void OnSelectedCategoryFilterChanged(CategoryOption value) => FilterChanged();
 
     partial void OnUnapprovedOnlyChanged(bool value) => FilterChanged();
+
+    partial void OnSelectedTagFilterChanged(TagOption value) => FilterChanged();
 
     private static string Label(string key) => Strings.ResourceManager.GetString(key, Strings.Culture) ?? key;
 
@@ -686,10 +758,11 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
             var saved = await _transactions.SaveAsync(request, CancellationToken.None);
             _selectAfterRefresh = saved.Id;
             _status.Show(editor.IsNew ? Strings.Status_Added : Strings.Status_Saved, offerUndo: true);
+            await AttachPendingAsync(editor, saved.Id);
             if (andNew)
             {
                 var account = editor.Account;
-                Editor = new TransactionEditorViewModel(_payees, AccountOptions.Where(a => !a.IsClosed).ToList(), CategoryOptions, account, null, IsAllAccounts);
+                Editor = new TransactionEditorViewModel(_payees, AccountOptions.Where(a => !a.IsClosed).ToList(), CategoryOptions, account, null, IsAllAccounts, KnownTags, _attachmentContext);
                 if (editor.Date is { } date)
                 {
                     Editor.Date = date;
@@ -707,6 +780,34 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
         {
             editor.Error = LedgerText.Error(ex.Error);
         }
+    }
+
+    // Files dropped on or picked for a new transaction are attached once it has an id (ADR 0097).
+    private async Task AttachPendingAsync(TransactionEditorViewModel editor, Guid transactionId)
+    {
+        if (_attachmentContext is not { } context || editor.Attachments?.PendingPaths is not { Count: > 0 } paths)
+        {
+            return;
+        }
+
+        var failed = new List<string>();
+        foreach (var path in paths)
+        {
+            try
+            {
+                await Task.Run(() => context.Service.AddAsync(transactionId, path, CancellationToken.None));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or LedgerValidationException)
+            {
+                failed.Add(Path.GetFileName(path));
+            }
+        }
+
+        _status.Show(
+            failed.Count == 0 ? LedgerText.Format(Strings.Attachment_AddedWithNew, paths.Count.ToString(CultureInfo.CurrentCulture))
+                : LedgerText.Format(Strings.Attachment_AddFailed, string.Join(", ", failed)),
+            offerUndo: failed.Count < paths.Count,
+            isError: failed.Count > 0);
     }
 
     private async Task RunAsync(Func<Task> action)
@@ -745,9 +846,11 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
                 var accountsTask = _accounts.GetAccountsAsync(includeClosed: true, CancellationToken.None);
                 var categoriesTask = _categories.GetCategoriesAsync(includeHidden: false, CancellationToken.None);
                 var summaryTask = _register.GetSummaryAsync(AccountId, CancellationToken.None);
+                var tagsTask = _tags?.GetTagsAsync(CancellationToken.None) ?? Task.FromResult<IReadOnlyList<TagDto>>([]);
                 var accounts = await accountsTask;
                 var categories = await categoriesTask;
                 var summary = await summaryTask;
+                var tags = await tagsTask;
                 if (version != _loadVersion)
                 {
                     return;
@@ -763,6 +866,18 @@ public sealed partial class AccountsViewModel : PageViewModel, INavigationTarget
                     _suppressFilterReload = true;
                     CategoryFilters = filters;
                     SelectedCategoryFilter = filters.FirstOrDefault(f => f.Id == selected?.Id) ?? CategoryOption.All;
+                    _suppressFilterReload = false;
+                }
+
+                KnownTags = tags.Select(t => t.Name).ToList();
+                var tagFilters = new List<TagOption> { TagOption.All };
+                tagFilters.AddRange(tags.Select(t => new TagOption(t.Id, t.Name)));
+                if (!TagFilters.SequenceEqual(tagFilters))
+                {
+                    var selectedTag = SelectedTagFilter;
+                    _suppressFilterReload = true;
+                    TagFilters = tagFilters;
+                    SelectedTagFilter = tagFilters.FirstOrDefault(f => f.Id == selectedTag?.Id) ?? (selectedTag?.Id is null ? TagOption.All : selectedTag);
                     _suppressFilterReload = false;
                 }
 

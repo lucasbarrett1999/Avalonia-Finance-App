@@ -7,6 +7,40 @@
              xmlns:res="using:Keel.Desktop.Resources"
              x:Class="Keel.Desktop.Views.AccountsView"
              x:DataType="vm:AccountsViewModel">
+  <UserControl.Styles>
+    <Style Selector="WrapPanel#FilterControls">
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Grid.Column" Value="1" />
+      <Setter Property="Margin" Value="8,0,0,0" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowFilters WrapPanel#FilterControls">
+      <Setter Property="Grid.Row" Value="1" />
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+      <Setter Property="Margin" Value="0,8,0,0" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowFilters TextBox#RegisterSearchBox">
+      <Setter Property="Grid.ColumnSpan" Value="2" />
+    </Style>
+    <Style Selector="ComboBox#DatePresetBox, ComboBox#StatusFilterBox">
+      <Setter Property="MinWidth" Value="130" />
+    </Style>
+    <Style Selector="ComboBox#CategoryFilterBox">
+      <Setter Property="MinWidth" Value="160" />
+    </Style>
+    <Style Selector="ComboBox#TagFilterBox">
+      <Setter Property="MinWidth" Value="110" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowFilters ComboBox#DatePresetBox, :is(UserControl).narrowFilters ComboBox#StatusFilterBox">
+      <Setter Property="MinWidth" Value="104" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowFilters ComboBox#CategoryFilterBox">
+      <Setter Property="MinWidth" Value="120" />
+    </Style>
+    <Style Selector=":is(UserControl).narrowFilters ComboBox#TagFilterBox">
+      <Setter Property="MinWidth" Value="96" />
+    </Style>
+  </UserControl.Styles>
   <DockPanel Margin="{StaticResource Keel.PagePadding}">
     <!-- Header: name, type, actions -->
     <DockPanel DockPanel.Dock="Top">
@@ -175,8 +209,8 @@
       </ContentControl>
     </Border>
 
-    <!-- Filter bar -->
-    <Grid DockPanel.Dock="Top" Margin="0,0,0,8" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8"
+    <!-- Filter bar: search, then the filters (they move under the search in narrow windows, AccountsView.axaml.cs) -->
+    <Grid DockPanel.Dock="Top" x:Name="FilterBar" Margin="0,0,0,8" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto"
           IsVisible="{Binding !HasNoAccounts}">
       <TextBox x:Name="RegisterSearchBox" Text="{Binding SearchText}" Watermark="{x:Static res:Strings.Register_SearchWatermark}"
                AutomationProperties.Name="{x:Static res:Strings.Register_SearchName}">
@@ -185,16 +219,21 @@
                          Foreground="{DynamicResource Keel.TextSecondary}" />
         </TextBox.InnerLeftContent>
       </TextBox>
-      <ComboBox Grid.Column="1" x:Name="DatePresetBox" MinWidth="130" ItemsSource="{Binding DatePresets}" SelectedItem="{Binding SelectedDatePreset}"
-                AutomationProperties.Name="{x:Static res:Strings.Register_DateFilterName}" />
-      <ComboBox Grid.Column="2" x:Name="StatusFilterBox" MinWidth="130" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding SelectedStatusFilter}"
-                AutomationProperties.Name="{x:Static res:Strings.Register_StatusFilterName}" />
-      <ComboBox Grid.Column="3" x:Name="CategoryFilterBox" MinWidth="160" MaxWidth="240" ItemsSource="{Binding CategoryFilters}"
-                SelectedItem="{Binding SelectedCategoryFilter}" AutomationProperties.Name="{x:Static res:Strings.Register_CategoryFilterName}" />
-      <ToggleButton Grid.Column="4" x:Name="UnapprovedToggle" IsChecked="{Binding UnapprovedOnly}"
-                    Content="{x:Static res:Strings.Register_UnapprovedOnly}" />
-      <Button Grid.Column="5" Command="{Binding ClearFiltersCommand}" IsVisible="{Binding HasActiveFilters}"
-              Content="{x:Static res:Strings.Register_ClearFilters}" />
+      <WrapPanel x:Name="FilterControls" ItemSpacing="8" LineSpacing="8">
+        <ComboBox x:Name="DatePresetBox" ItemsSource="{Binding DatePresets}" SelectedItem="{Binding SelectedDatePreset}"
+                  AutomationProperties.Name="{x:Static res:Strings.Register_DateFilterName}" />
+        <ComboBox x:Name="StatusFilterBox" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding SelectedStatusFilter}"
+                  AutomationProperties.Name="{x:Static res:Strings.Register_StatusFilterName}" />
+        <ComboBox x:Name="CategoryFilterBox" MaxWidth="240" ItemsSource="{Binding CategoryFilters}"
+                  SelectedItem="{Binding SelectedCategoryFilter}" AutomationProperties.Name="{x:Static res:Strings.Register_CategoryFilterName}" />
+        <ComboBox x:Name="TagFilterBox" MaxWidth="180" ItemsSource="{Binding TagFilters}"
+                  SelectedItem="{Binding SelectedTagFilter}" IsVisible="{Binding HasTagFilters}"
+                  AutomationProperties.Name="{x:Static res:Strings.Tag_FilterName}" />
+        <ToggleButton x:Name="UnapprovedToggle" IsChecked="{Binding UnapprovedOnly}"
+                      Content="{x:Static res:Strings.Register_UnapprovedOnly}" />
+        <Button Command="{Binding ClearFiltersCommand}" IsVisible="{Binding HasActiveFilters}"
+                Content="{x:Static res:Strings.Register_ClearFilters}" />
+      </WrapPanel>
     </Grid>
     <TextBlock DockPanel.Dock="Top" Classes="secondary" Margin="0,-4,0,8" FontSize="{StaticResource Keel.FontSize.Small}"
                Text="{Binding SearchErrorText}" IsVisible="{Binding SearchErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -295,6 +334,78 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
+              <!-- Tags and attachments (F-TXN-8) -->
+              <Grid x:Name="EditorExtras" Margin="32,2,8,0" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <DockPanel>
+                  <controls:Icon DockPanel.Dock="Left" Data="{StaticResource Icon.Tag}" Width="14" Height="14" Margin="0,0,8,0"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource Keel.TextSecondary}" />
+                  <WrapPanel DataContext="{Binding Tags}" x:DataType="reg:TagEditorViewModel" VerticalAlignment="Center">
+                    <ItemsControl x:Name="EditorTagChips" ItemsSource="{Binding Chips}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="reg:TagChipViewModel">
+                          <Border Classes="tagChip" Margin="0,2,6,2">
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                              <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                              <Button Classes="tagChipRemove" Command="{Binding Owner.RemoveCommand}" CommandParameter="{Binding}" Focusable="False"
+                                      ToolTip.Tip="{Binding RemoveName}" AutomationProperties.Name="{Binding RemoveName}">
+                                <controls:Icon Data="{StaticResource Icon.Close}" Width="10" Height="10" />
+                              </Button>
+                            </StackPanel>
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <AutoCompleteBox x:Name="EditorTags" MinWidth="160" Margin="0,2" Text="{Binding Text}" ItemsSource="{Binding Suggestions}"
+                                     FilterMode="Contains" MinimumPrefixLength="1"
+                                     Watermark="{x:Static res:Strings.Tag_EditorWatermark}" AutomationProperties.Name="{x:Static res:Strings.Tag_EditorName}"
+                                     ToolTip.Tip="{x:Static res:Strings.Tag_EditorHint}" />
+                  </WrapPanel>
+                </DockPanel>
+                <StackPanel Grid.Column="1" x:Name="EditorAttachments" Orientation="Horizontal" Spacing="6" IsVisible="{Binding CanAttach}"
+                            VerticalAlignment="Center">
+                  <ItemsControl ItemsSource="{Binding Attachments.Items, FallbackValue={x:Null}}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="6" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="reg:AttachmentRowViewModel">
+                        <Border Classes="attachmentChip" Classes.pending="{Binding IsPending}" ToolTip.Tip="{Binding Detail}">
+                          <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Classes="attachmentOpen" Command="{Binding Owner.OpenCommand}" CommandParameter="{Binding}"
+                                    AutomationProperties.Name="{Binding OpenName}">
+                              <StackPanel Orientation="Horizontal" Spacing="4">
+                                <controls:Icon Data="{StaticResource Icon.Paperclip}" Width="12" Height="12" />
+                                <TextBlock Text="{Binding FileName}" MaxWidth="160" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                              </StackPanel>
+                            </Button>
+                            <Button Classes="tagChipRemove" Command="{Binding Owner.RemoveCommand}" CommandParameter="{Binding}"
+                                    ToolTip.Tip="{Binding RemoveName}" AutomationProperties.Name="{Binding RemoveName}">
+                              <controls:Icon Data="{StaticResource Icon.Close}" Width="10" Height="10" />
+                            </Button>
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <Button x:Name="EditorAttach" Classes="tool" Command="{Binding Attachments.AttachCommand, FallbackValue={x:Null}}"
+                          ToolTip.Tip="{x:Static res:Strings.Attachment_AttachHint}" AutomationProperties.Name="{x:Static res:Strings.Attachment_Attach}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <controls:Icon Data="{StaticResource Icon.Paperclip}" Width="14" Height="14" />
+                      <TextBlock Text="{x:Static res:Strings.Attachment_Attach}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Grid>
+              <TextBlock Classes="error" Margin="32,0,8,0" Text="{Binding Attachments.Error, FallbackValue={x:Null}}"
+                         IsVisible="{Binding Attachments.HasError, FallbackValue=False}" TextWrapping="Wrap" />
+
               <DockPanel Margin="32,0,8,0">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsSplit}">
                   <TextBlock Classes="amount" Classes.negative="{Binding !IsBalanced}" Text="{Binding RemainingText}" VerticalAlignment="Center" />
@@ -362,7 +473,7 @@
     <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0" IsVisible="{Binding !HasNoAccounts}">
       <TextBlock DockPanel.Dock="Left" x:Name="RowCountLabel" Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding RowCountText}" />
       <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" HorizontalAlignment="Right"
-                 Text="{x:Static res:Strings.Register_KeyHints}" />
+                 Text="{x:Static res:Strings.Tag_KeyHints}" />
     </DockPanel>
 
     <!-- Content: grid, empty, loading, error -->
@@ -425,7 +536,31 @@
           <DataGridTemplateColumn Header="{x:Static res:Strings.Column_Memo}" Width="*" MinWidth="80" SortMemberPath="Memo">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="reg:RegisterRowViewModel">
-                <TextBlock Classes="cell" Classes.secondary="True" Text="{Binding Memo}" />
+                <DockPanel>
+                  <!-- Attachments and tags (F-TXN-8); the memo takes what is left, and chips that do not fit are clipped -->
+                  <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2" Margin="4,0,6,0" IsVisible="{Binding HasAttachments}"
+                              VerticalAlignment="Center" ToolTip.Tip="{Binding AttachmentTip}">
+                    <controls:Icon Data="{StaticResource Icon.Paperclip}" Width="13" Height="13" Foreground="{DynamicResource Keel.TextSecondary}" />
+                    <TextBlock Classes="secondary" FontSize="{StaticResource Keel.FontSize.Small}" Text="{Binding AttachmentText}" FontFeatures="+tnum" />
+                  </StackPanel>
+                  <Grid ColumnDefinitions="Auto,*" ClipToBounds="True">
+                    <ItemsControl ItemsSource="{Binding Tags}" IsVisible="{Binding HasTags}" Margin="8,0,0,0" VerticalAlignment="Center">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" Spacing="4" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <Border Classes="tagChip small">
+                            <TextBlock Text="{Binding}" />
+                          </Border>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Grid.Column="1" Classes="cell" Classes.secondary="True" Text="{Binding Memo}" />
+                  </Grid>
+                </DockPanel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

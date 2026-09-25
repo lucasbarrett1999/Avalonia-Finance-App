@@ -16,6 +16,7 @@ needs no account; bank sync is optional.
 8. [Backups and the data file](backups-and-data.md): where your data is, backups, restore, moving
    the file, the integrity check, diagnostics, privacy.
 9. [Keyboard shortcuts](keyboard-shortcuts.md) and the command palette.
+10. [Transactions, tags and attachments](transactions.md): the register, search, tags, receipts.
 
 Keyboard keys are written for Windows and Linux (`Ctrl`); on macOS use `⌘` wherever this guide says
 `Ctrl`. Settings → Keyboard shortcuts always shows the keys for your system.

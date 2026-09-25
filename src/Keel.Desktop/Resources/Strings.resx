@@ -4803,4 +4803,277 @@
   <data name="FirstRun_BankGuide" xml:space="preserve">
     <value>Read the bank sync guide</value>
   </data>
+  <data name="Tag_SettingsTitle" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="Tag_SettingsDescription" xml:space="preserve">
+    <value>Tags are free-form labels on transactions (for example "Trip 2026" or "Tax"). Search with tag:name or has:tag. Renaming or merging updates every transaction and the rules that name the tag. "Flagged" is the rules' flag: it can be deleted but not renamed or merged.</value>
+  </data>
+  <data name="Tag_SettingsEmpty" xml:space="preserve">
+    <value>No tags yet. Add one in a transaction's Tags box (press T on a register row).</value>
+  </data>
+  <data name="Tag_LoadFailed" xml:space="preserve">
+    <value>Tags could not be loaded: {0}</value>
+  </data>
+  <data name="Tag_TransactionCount" xml:space="preserve">
+    <value>{0} transaction(s)</value>
+  </data>
+  <data name="Tag_ShowTransactionsName" xml:space="preserve">
+    <value>Show the {0} transaction(s) tagged {1}</value>
+  </data>
+  <data name="Tag_RuleCount" xml:space="preserve">
+    <value>Used by {0} rule(s)</value>
+  </data>
+  <data name="Tag_ReservedNote" xml:space="preserve">
+    <value>Rules' flag</value>
+  </data>
+  <data name="Tag_SubscriptionNote" xml:space="preserve">
+    <value>Marks subscriptions</value>
+  </data>
+  <data name="Tag_RenameName" xml:space="preserve">
+    <value>Rename tag {0}</value>
+  </data>
+  <data name="Tag_MergeName" xml:space="preserve">
+    <value>Merge tag {0} into another tag</value>
+  </data>
+  <data name="Tag_DeleteName" xml:space="preserve">
+    <value>Delete tag {0}</value>
+  </data>
+  <data name="Tag_RenameTitle" xml:space="preserve">
+    <value>Rename tag</value>
+  </data>
+  <data name="Tag_RenameMessage" xml:space="preserve">
+    <value>"{0}" is on {1} transaction(s). They keep the tag under its new name, and rules that name it follow.</value>
+  </data>
+  <data name="Tag_NewName" xml:space="preserve">
+    <value>New name</value>
+  </data>
+  <data name="Tag_Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Tag_Renamed" xml:space="preserve">
+    <value>Renamed tag {0} to {1}.</value>
+  </data>
+  <data name="Tag_MergeTitle" xml:space="preserve">
+    <value>Merge tag</value>
+  </data>
+  <data name="Tag_MergeInto" xml:space="preserve">
+    <value>Merge into</value>
+  </data>
+  <data name="Tag_MergeMessage" xml:space="preserve">
+    <value>The {2} transaction(s) tagged "{0}" get "{1}" instead, and "{0}" is removed.</value>
+  </data>
+  <data name="Tag_MergeRulesNote" xml:space="preserve">
+    <value>{0} rule(s) that name it will name the other tag instead.</value>
+  </data>
+  <data name="Tag_MergeNoTargets" xml:space="preserve">
+    <value>There is no other tag to merge into.</value>
+  </data>
+  <data name="Tag_MergeConfirm" xml:space="preserve">
+    <value>Merge</value>
+  </data>
+  <data name="Tag_Merged" xml:space="preserve">
+    <value>Merged tag {0} into {1}.</value>
+  </data>
+  <data name="Tag_DeleteTitle" xml:space="preserve">
+    <value>Delete tag?</value>
+  </data>
+  <data name="Tag_DeleteMessage" xml:space="preserve">
+    <value>Remove "{0}" from {1} transaction(s) and delete it?</value>
+  </data>
+  <data name="Tag_DeleteRulesNote" xml:space="preserve">
+    <value>{0} rule(s) still add this tag and will create it again when they run.</value>
+  </data>
+  <data name="Tag_DeleteFlaggedNote" xml:space="preserve">
+    <value>Every flagged transaction is unflagged.</value>
+  </data>
+  <data name="Tag_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Tag_Deleted" xml:space="preserve">
+    <value>Deleted tag {0} from {1} transaction(s).</value>
+  </data>
+  <data name="Tag_FilterAll" xml:space="preserve">
+    <value>All tags</value>
+  </data>
+  <data name="Tag_FilterName" xml:space="preserve">
+    <value>Tag filter</value>
+  </data>
+  <data name="Tag_EditorWatermark" xml:space="preserve">
+    <value>Add tag</value>
+  </data>
+  <data name="Tag_EditorName" xml:space="preserve">
+    <value>Tags</value>
+  </data>
+  <data name="Tag_EditorHint" xml:space="preserve">
+    <value>Type a tag and press Enter; Backspace removes the last one.</value>
+  </data>
+  <data name="Tag_RemoveChip" xml:space="preserve">
+    <value>Remove tag {0}</value>
+  </data>
+  <data name="Tag_RowAutomation" xml:space="preserve">
+    <value>tags {0}</value>
+  </data>
+  <data name="Tag_KeyHints" xml:space="preserve">
+    <value>N new · Enter edit · T tags · C cleared · A approve · Delete delete · Esc cancel</value>
+  </data>
+  <data name="Tag_ShortcutEdit" xml:space="preserve">
+    <value>Edit tags of the selected transaction</value>
+  </data>
+  <data name="Tag_ShortcutAdd" xml:space="preserve">
+    <value>Add the typed tag (in the Tags box)</value>
+  </data>
+  <data name="Tag_ShortcutRemove" xml:space="preserve">
+    <value>Remove the last tag (in the empty Tags box)</value>
+  </data>
+  <data name="Tag_PaletteManage" xml:space="preserve">
+    <value>Manage tags</value>
+  </data>
+  <data name="Tag_PaletteEdit" xml:space="preserve">
+    <value>Edit tags of the selected transaction</value>
+  </data>
+  <data name="Tag_Error_TagNameRequired" xml:space="preserve">
+    <value>A tag needs a name.</value>
+  </data>
+  <data name="Tag_Error_TagNotFound" xml:space="preserve">
+    <value>The tag no longer exists.</value>
+  </data>
+  <data name="Tag_Error_TagNameTaken" xml:space="preserve">
+    <value>Another tag already has that name. Merge the two tags instead.</value>
+  </data>
+  <data name="Tag_Error_TagReserved" xml:space="preserve">
+    <value>"Flagged" is the rules' flag: it cannot be renamed or merged, and no other tag can be renamed to it.</value>
+  </data>
+  <data name="Tag_Error_TagMergeSame" xml:space="preserve">
+    <value>Choose a different tag to merge into.</value>
+  </data>
+  <data name="Tag_Action_RenameTag" xml:space="preserve">
+    <value>rename tag</value>
+  </data>
+  <data name="Tag_Action_MergeTags" xml:space="preserve">
+    <value>merge tags</value>
+  </data>
+  <data name="Tag_Action_DeleteTag" xml:space="preserve">
+    <value>delete tag</value>
+  </data>
+  <data name="Attachment_Attach" xml:space="preserve">
+    <value>Attach file…</value>
+  </data>
+  <data name="Attachment_AttachHint" xml:space="preserve">
+    <value>Attach receipts or documents; you can also drop files on the editor.</value>
+  </data>
+  <data name="Attachment_PickTitle" xml:space="preserve">
+    <value>Attach files</value>
+  </data>
+  <data name="Attachment_Count" xml:space="preserve">
+    <value>{0} attachment(s)</value>
+  </data>
+  <data name="Attachment_Added" xml:space="preserve">
+    <value>Attached {0} file(s).</value>
+  </data>
+  <data name="Attachment_AddedWithNew" xml:space="preserve">
+    <value>Saved, and attached {0} file(s).</value>
+  </data>
+  <data name="Attachment_AddFailed" xml:space="preserve">
+    <value>Could not attach {0}. Check that the file exists and can be read.</value>
+  </data>
+  <data name="Attachment_Removed" xml:space="preserve">
+    <value>Removed {0}.</value>
+  </data>
+  <data name="Attachment_OpenFailed" xml:space="preserve">
+    <value>Could not open {0} with its default app.</value>
+  </data>
+  <data name="Attachment_OpenName" xml:space="preserve">
+    <value>Open {0}</value>
+  </data>
+  <data name="Attachment_RemoveName" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="Attachment_Pending" xml:space="preserve">
+    <value>Attached when you save</value>
+  </data>
+  <data name="Attachment_Missing" xml:space="preserve">
+    <value>The file is missing from the attachments folder</value>
+  </data>
+  <data name="Attachment_SizeBytes" xml:space="preserve">
+    <value>{0} bytes</value>
+  </data>
+  <data name="Attachment_SizeKb" xml:space="preserve">
+    <value>{0} KB</value>
+  </data>
+  <data name="Attachment_SizeMb" xml:space="preserve">
+    <value>{0} MB</value>
+  </data>
+  <data name="Attachment_PaletteAttach" xml:space="preserve">
+    <value>Attach a file to the selected transaction</value>
+  </data>
+  <data name="Attachment_Error_AttachmentNotFound" xml:space="preserve">
+    <value>The attachment no longer exists.</value>
+  </data>
+  <data name="Attachment_Error_AttachmentFileMissing" xml:space="preserve">
+    <value>The attached file is missing from the attachments folder. Restore a backup to get it back.</value>
+  </data>
+  <data name="Attachment_Action_AddAttachment" xml:space="preserve">
+    <value>attach file</value>
+  </data>
+  <data name="Attachment_Action_RemoveAttachment" xml:space="preserve">
+    <value>remove attachment</value>
+  </data>
+  <data name="PayeeMerge_Button" xml:space="preserve">
+    <value>Merge into…</value>
+  </data>
+  <data name="PayeeMerge_ButtonHint" xml:space="preserve">
+    <value>Merge the checked payees into one of them</value>
+  </data>
+  <data name="PayeeMerge_Hint" xml:space="preserve">
+    <value>Check two or more payees to merge them.</value>
+  </data>
+  <data name="PayeeMerge_Selected" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="PayeeMerge_ClearSelection" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="PayeeMerge_SelectName" xml:space="preserve">
+    <value>Select {0} for merging</value>
+  </data>
+  <data name="PayeeMerge_Title" xml:space="preserve">
+    <value>Merge payees</value>
+  </data>
+  <data name="PayeeMerge_Instructions" xml:space="preserve">
+    <value>Choose the payee that stays. The others are removed and everything that refers to them moves to it.</value>
+  </data>
+  <data name="PayeeMerge_Choice" xml:space="preserve">
+    <value>{0} ({1} transaction(s))</value>
+  </data>
+  <data name="PayeeMerge_Counting" xml:space="preserve">
+    <value>Counting what moves…</value>
+  </data>
+  <data name="PayeeMerge_Summary" xml:space="preserve">
+    <value>Merge {0} payee(s) into {1}: {2} transaction(s), {3} scheduled transaction(s), {4} recurring item(s) and {5} rule(s) move.</value>
+  </data>
+  <data name="PayeeMerge_DefaultKept" xml:space="preserve">
+    <value>The payee that stays keeps its default category, or takes the first merged payee's.</value>
+  </data>
+  <data name="PayeeMerge_NoDefault" xml:space="preserve">
+    <value>None of these payees has a default category.</value>
+  </data>
+  <data name="PayeeMerge_UndoNote" xml:space="preserve">
+    <value>You can undo the merge.</value>
+  </data>
+  <data name="PayeeMerge_Confirm" xml:space="preserve">
+    <value>Merge</value>
+  </data>
+  <data name="PayeeMerge_Done" xml:space="preserve">
+    <value>Merged {0} payee(s) into {1}; {2} transaction(s) moved.</value>
+  </data>
+  <data name="PayeeMerge_Palette" xml:space="preserve">
+    <value>Merge payees</value>
+  </data>
+  <data name="PayeeMerge_Error_PayeeMergeInvalid" xml:space="preserve">
+    <value>Choose at least two payees, one of which stays. Transfer payees cannot be merged.</value>
+  </data>
+  <data name="PayeeMerge_Action_MergePayees" xml:space="preserve">
+    <value>merge payees</value>
+  </data>
 </root>

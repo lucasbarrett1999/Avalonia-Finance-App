@@ -95,6 +95,10 @@ pwsh build/package.ps1 -Rid win-x64,win-arm64
 actionlint .github/workflows/*.yml
 # App icons (checked in): regenerate from Assets/keel-icon.svg only when the design changes
 dotnet run build/icons/generate-icons.cs
+# M9c tags, attachments, payee merge: services on real SQLite, headless flows, audits, screenshots
+dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Tests.Tags|FullyQualifiedName~Tests.Attachments|FullyQualifiedName~PayeeMerge"
+dotnet test tests/Keel.Desktop.Tests --filter "TagsAttachmentsTests|FullyQualifiedName~AccessibilityTests.Tags|FullyQualifiedName~HighDpiRenderingTests.Tags"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter M9cRenderingTests
 ```
 
 The app applies pending migrations itself when it opens a budget file (after a `-before-migration`
@@ -309,6 +313,24 @@ docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs),
        nine guides incl. bank-sync.md), qa-checklist.md (run before each tag), images/ (README screenshots).
 .github/workflows/ci.yml       Build+test on windows/macos/ubuntu, format check, vulnerable-package scan, packaging dry run.
 .github/workflows/release.yml  On v* tags: version check, tests, packages on all three OSes, one GitHub release.
+M9c tags, attachments and payee merge (F-TXN-8, F-TXN-9; ADR 0096, 0097):
+  Keel.Domain/Ledger/TagNames   Clean (trim, one leading '#', 100 chars), case-insensitive Same, reserved "Flagged".
+                              SearchQuery gains has:tag / has:attachment; free words also match tag names.
+  Keel.Application/           Tags/ITagService (ListAsync with counts, Rename, Merge, Delete; TagUsage, TagMergeResult);
+                              Attachments/IAttachmentService (+AttachmentDto); IPayeeService.PreviewMergeAsync/MergeAsync;
+                              SaveTransactionRequest.Tags (null keeps), TransactionDto.Tags, RegisterFilter.TagId,
+                              RegisterRow.Tags/AttachmentCount; LedgerAction and LedgerError values for all three.
+  Keel.Infrastructure/        Tags/TagService (GetOrAddAsync + SetTransactionTagsAsync: every tag write, rules too),
+                              Attachments/ (AttachmentService: hash-named files in Name.keel-attachments, copy before the
+                              row, orphan clean-up with a 30-day audit grace; AttachmentFiles), Ledger/PayeeService.Merge,
+                              Rules/RuleRewriter (renames/merges rewrite rules' tag and payee names in the same action).
+  Keel.Desktop/               Services/AttachmentFiles (IAttachmentFiles: picker + launcher; tests fake it), ViewModels/Register/
+                              TagEditorViewModel + EditorAttachmentsViewModel (editor second line), TagOption filter,
+                              Settings/TagsSettingsViewModel (+ rename/merge dialogs, Views/Settings/), Rules/PayeesViewModel
+                              selection + MergePayeesDialogViewModel (Views/Rules/MergePayeesDialogView), Styles/Tags.axaml.
+                              LedgerText looks up later features' texts under their prefix (Tag_Error_…, Attachment_Action_…).
+  tests/                      Infrastructure Tags/, Attachments/, Categorization/PayeeMergeTests; Desktop TagsAttachmentsTests,
+                              TagTestLedger + FakeAttachmentFiles, M9cRenderingTests, AccessibilityTests/HighDpiRenderingTests.Tags….
 ```
 
 Dependency direction: `Desktop -> Application -> Domain`; `Infrastructure -> Application -> Domain`.

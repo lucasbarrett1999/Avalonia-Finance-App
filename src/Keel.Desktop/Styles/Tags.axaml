@@ -1,0 +1,68 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Tag chips and attachment chips (M9c, F-TXN-8). Chips carry their name as text; colour is never the only signal. -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="Keel.Tag.ChipBackground" Color="#E6F0F3" />
+          <SolidColorBrush x:Key="Keel.Tag.ChipBorder" Color="#C9DCE2" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="Keel.Tag.ChipBackground" Color="#243741" />
+          <SolidColorBrush x:Key="Keel.Tag.ChipBorder" Color="#34505C" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <Style Selector="Border.tagChip">
+    <Setter Property="Background" Value="{DynamicResource Keel.Tag.ChipBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Tag.ChipBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="8,1,4,1" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.tagChip TextBlock">
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
+  </Style>
+  <Style Selector="Border.tagChip.small">
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="Border.tagChip.small TextBlock">
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+
+  <Style Selector="Border.attachmentChip">
+    <Setter Property="Background" Value="{DynamicResource Keel.SurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.Tag.ChipBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Keel.CornerRadius}" />
+    <Setter Property="Padding" Value="2,0,2,0" />
+  </Style>
+  <Style Selector="Border.attachmentChip.pending">
+    <Setter Property="BorderBrush" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+
+  <!-- Small borderless buttons inside chips -->
+  <Style Selector="Button.tagChipRemove">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="3" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextSecondary}" />
+  </Style>
+  <Style Selector="Button.attachmentOpen">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="4,2" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="{StaticResource Keel.FontSize.Small}" />
+    <Setter Property="Foreground" Value="{DynamicResource Keel.TextPrimary}" />
+  </Style>
+</Styles>

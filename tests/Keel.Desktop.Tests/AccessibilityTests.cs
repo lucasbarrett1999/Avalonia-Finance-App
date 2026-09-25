@@ -224,4 +224,86 @@ public sealed class AccessibilityTests(ITestOutputHelper output) : IDisposable
 
         problems.Distinct().ShouldBeEmpty();
     }
+
+    [AvaloniaFact]
+    public async Task Tags_attachments_and_payee_merge_are_named_and_readable_in_both_themes()
+    {
+        var ledger = await TagTestLedger.CreateAsync(_host);
+        var window = _host.Get<ShellWindow>();
+        window.Show();
+        var shell = (ShellViewModel)window.DataContext!;
+        await shell.AccountsLoading;
+        var themes = _host.Get<ThemeService>();
+        var problems = new List<string>();
+
+        async Task AuditAsync(string screen)
+        {
+            await SettleAsync();
+            problems.AddRange(AccessibilityAudit.UnnamedControls(window, screen));
+            problems.AddRange(AccessibilityAudit.LowContrastText(window, screen));
+            problems.AddRange(AccessibilityAudit.AmountsWithoutTabularFigures(window, screen));
+        }
+
+        async Task DialogAsync(string screen, Func<Task> open)
+        {
+            var opening = open();
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is not null, screen + " shown");
+            if (shell.Dialogs.Current is Keel.Desktop.ViewModels.Rules.MergePayeesDialogViewModel merge)
+            {
+                await merge.Refreshing;
+            }
+
+            await AuditAsync(screen);
+            shell.Dialogs.Current!.CancelCommand.Execute(null);
+            await UiTestHelpers.WaitUntilAsync(() => shell.Dialogs.Current is null, screen + " closed");
+            await opening;
+        }
+
+        foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
+        {
+            themes.SetTheme(theme);
+            shell.OpenAccount(ledger.Checking);
+            var register = _host.Get<AccountsViewModel>();
+            await register.SettleAsync();
+            await UiTestHelpers.WaitUntilAsync(() => register.Rows.LoadedRows.Any(r => r.Id == ledger.Hotel), "rows loaded");
+            await AuditAsync($"TaggedRegister/{theme}");
+            window.Register().Grid.SelectedItem = register.Rows.LoadedRows.First(r => r.Id == ledger.Hotel);
+            await SettleAsync();
+            await register.EditTagsAsync();
+            await UiTestHelpers.WaitUntilAsync(() => register.Editor?.Attachments?.Items.Count == 1, "attachments listed");
+            await AuditAsync($"TagAndAttachmentEditor/{theme}");
+            register.CancelEdit();
+
+            shell.NavigateToSettings("Tags");
+            var tags = _host.Get<Keel.Desktop.ViewModels.Settings.TagsSettingsViewModel>();
+            await UiTestHelpers.WaitUntilAsync(() => tags.Tags.Count == 3, "tags loaded");
+            await AuditAsync($"SettingsTags/{theme}");
+            var trip = tags.Tags.Single(t => t.Name == "Trip 2026");
+            await DialogAsync($"RenameTag/{theme}", () => tags.RenameCommand.ExecuteAsync(trip));
+            await DialogAsync($"MergeTag/{theme}", () => tags.MergeCommand.ExecuteAsync(trip));
+            await DialogAsync($"DeleteTag/{theme}", () => tags.DeleteCommand.ExecuteAsync(trip));
+
+            var payees = _host.Get<Keel.Desktop.ViewModels.Rules.PayeesViewModel>();
+            shell.NavigateToSettings("Payees");
+            await payees.EnsureLoadedAsync();
+            await payees.Loading;
+            foreach (var row in payees.Payees.Where(p => p.Name.StartsWith("am", StringComparison.OrdinalIgnoreCase)))
+            {
+                row.IsSelected = true;
+            }
+
+            await AuditAsync($"SettingsPayeesSelected/{theme}");
+            await DialogAsync($"MergePayees/{theme}", () => payees.MergeCommand.ExecuteAsync(null));
+            payees.ClearSelectionCommand.Execute(null);
+        }
+
+        themes.SetTheme(AppTheme.System);
+        window.Close();
+        foreach (var problem in problems.Distinct())
+        {
+            output.WriteLine(problem);
+        }
+
+        problems.Distinct().ShouldBeEmpty();
+    }
 }

@@ -88,6 +88,9 @@ public sealed class ShortcutRegistry
         Add("register-delete", ShortcutScope.Register, Strings.Shortcut_Delete, new KeyGesture(Key.Delete));
         Add("register-save-new", ShortcutScope.Register, Strings.Shortcut_SaveAndNew, new KeyGesture(Key.Enter, cmd));
         Add("register-cancel", ShortcutScope.Register, Strings.Shortcut_Cancel, new KeyGesture(Key.Escape));
+        Add("register-tags", ShortcutScope.Register, Strings.Tag_ShortcutEdit, new KeyGesture(Key.T));
+        AddText("register-tag-add", ShortcutScope.Register, Strings.Tag_ShortcutAdd, "Enter");
+        AddText("register-tag-remove", ShortcutScope.Register, Strings.Tag_ShortcutRemove, "Backspace");
 
         Add("budget-previous", ShortcutScope.Budget, Strings.Shortcut_BudgetPreviousMonth, shortcuts.PreviousMonth);
         Add("budget-next", ShortcutScope.Budget, Strings.Shortcut_BudgetNextMonth, shortcuts.NextMonth);

@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Keel.Desktop.Controls;
@@ -35,13 +36,28 @@ public partial class AccountsView : UserControl
         RegisterGrid.AddHandler(Button.ClickEvent, OnGridButtonClick);
         RegisterGrid.LayoutUpdated += (_, _) => SyncEditorColumns();
         EditorBar.LayoutUpdated += (_, _) => SyncEditorColumns();
+        EditorBar.AddHandler(KeyDownEvent, OnTagBoxKeyDown, RoutingStrategies.Tunnel);
         EditorBar.AddHandler(KeyDownEvent, OnEditorKeyDown);
         EditorBar.AddHandler(LostFocusEvent, OnEditorLostFocus);
+        DragDrop.SetAllowDrop(EditorBar, true);
+        EditorBar.AddHandler(DragDrop.DragOverEvent, OnEditorDragOver);
+        EditorBar.AddHandler(DragDrop.DropEvent, OnEditorDrop);
         AddHandler(KeyDownEvent, OnViewKeyDown);
     }
 
     /// <summary>The register grid (tests drive it directly).</summary>
     public DataGrid Grid => RegisterGrid;
+
+    /// <summary>Below this width the filters move under the search box (PRD 11: usable at 200% scaling).</summary>
+    public const double NarrowFiltersWidth = 1000;
+
+    /// <inheritdoc />
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        ArgumentNullException.ThrowIfNull(e);
+        Classes.Set("narrowFilters", e.NewSize.Width < NarrowFiltersWidth);
+    }
 
     /// <inheritdoc />
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -92,7 +108,7 @@ public partial class AccountsView : UserControl
         }
     }
 
-    // Grid keys (F-ACC-2): N new, Enter edit, C cleared, A approve, Delete delete, Esc clear selection.
+    // Grid keys (F-ACC-2): N new, Enter edit, T tags, C cleared, A approve, Delete delete, Esc clear selection.
     private void OnGridKeyDown(object? sender, KeyEventArgs e)
     {
         if (_vm is null || e.KeyModifiers != KeyModifiers.None || e.Source is TextBox)
@@ -107,6 +123,9 @@ public partial class AccountsView : UserControl
                 break;
             case Key.Enter:
                 _ = _vm.EditSelectedCommand.ExecuteAsync(null);
+                break;
+            case Key.T:
+                _ = _vm.EditTagsCommand.ExecuteAsync(null);
                 break;
             case Key.C:
                 _ = _vm.ToggleClearedCommand.ExecuteAsync(null);
@@ -170,6 +189,61 @@ public partial class AccountsView : UserControl
         else if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
         {
             _vm.CancelEditCommand.Execute(null);
+            e.Handled = true;
+        }
+    }
+
+    // The tag box (F-TXN-8): Enter adds the typed tag (or the highlighted suggestion) instead of saving, Backspace in
+    // the empty box removes the last chip. Runs before the box and its suggestion list see the key.
+    private void OnTagBoxKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_vm?.Editor is not { } editor || e.KeyModifiers != KeyModifiers.None || e.Source is not Visual source
+            || (source as AutoCompleteBox ?? source.FindAncestorOfType<AutoCompleteBox>()) is not { Name: "EditorTags" } box)
+        {
+            return;
+        }
+
+        if (e.Key is Key.Enter or Key.Return)
+        {
+            if (box.IsDropDownOpen && box.SelectedItem is string suggestion)
+            {
+                editor.Tags.Text = suggestion;
+            }
+            else
+            {
+                editor.Tags.Text = box.Text;
+            }
+
+            if (editor.Tags.CommitText())
+            {
+                box.IsDropDownOpen = false;
+                box.Text = string.Empty;
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Back && string.IsNullOrEmpty(box.Text) && editor.Tags.RemoveLast())
+        {
+            e.Handled = true;
+        }
+    }
+
+    // Files dropped anywhere on the editor are attached (F-TXN-8).
+    private void OnEditorDragOver(object? sender, DragEventArgs e)
+    {
+#pragma warning disable CS0618 // DataFormats.Files and GetFiles are the Avalonia 11 drag-and-drop API.
+        e.DragEffects = _vm?.Editor?.Attachments is not null && e.Data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None;
+#pragma warning restore CS0618
+        e.Handled = true;
+    }
+
+    private void OnEditorDrop(object? sender, DragEventArgs e)
+    {
+#pragma warning disable CS0618
+        var files = e.Data.GetFiles();
+#pragma warning restore CS0618
+        if (_vm?.Editor?.Attachments is { } attachments && files is not null)
+        {
+            _ = attachments.AddFilesAsync(files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList());
             e.Handled = true;
         }
     }
@@ -250,9 +324,10 @@ public partial class AccountsView : UserControl
     private void OnEditorOpened(object? sender, EventArgs e) => Dispatcher.UIThread.Post(
         () =>
         {
-            var payee = EditorHost.GetVisualDescendants().OfType<AutoCompleteBox>().FirstOrDefault(b => b.Name == "EditorPayee");
-            var box = payee?.GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
-            (box ?? (InputElement?)payee)?.Focus(NavigationMethod.Tab);
+            var target = _vm?.Editor?.FocusTagsOnOpen == true ? "EditorTags" : "EditorPayee";
+            var auto = EditorHost.GetVisualDescendants().OfType<AutoCompleteBox>().FirstOrDefault(b => b.Name == target);
+            var box = auto?.GetVisualDescendants().OfType<TextBox>().FirstOrDefault();
+            (box ?? (InputElement?)auto)?.Focus(NavigationMethod.Tab);
             box?.SelectAll();
         },
         DispatcherPriority.Loaded);

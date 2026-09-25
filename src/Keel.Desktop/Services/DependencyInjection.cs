@@ -66,6 +66,8 @@ public static class DependencyInjection
         services.AddSingleton<Keel.Desktop.ViewModels.Settings.BillsSettingsViewModel>();
         services.AddSingleton<Keel.Desktop.ViewModels.Settings.UpdatesSettingsViewModel>();
         services.AddTransient<Keel.Desktop.ViewModels.FirstRun.FirstRunViewModel>();
+        services.AddSingleton<IAttachmentFiles, StorageAttachmentFiles>();
+        services.AddSingleton<Keel.Desktop.ViewModels.Settings.TagsSettingsViewModel>();
         return services;
     }
 }

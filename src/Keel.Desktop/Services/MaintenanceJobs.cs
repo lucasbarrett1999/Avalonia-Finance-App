@@ -10,7 +10,7 @@ namespace Keel.Desktop.Services;
 /// <summary>
 /// Daily care of the open budget file (F-SET-1, PRD 10): once per app day the <c>PRAGMA integrity_check</c>
 /// (a failure goes to the status strip as an error with the next step) and the automatic backup with
-/// keep-N, plus the opt-in update check. It starts a little after the session so it never competes
+/// keep-N, the clean-up of attachment files nothing refers to any more (F-TXN-8, ADR 0097), plus the opt-in update check. It starts a little after the session so it never competes
 /// with startup, then checks for a new day every few minutes. Successful runs are silent.
 /// </summary>
 public sealed partial class MaintenanceJobs : IDisposable
@@ -26,12 +26,23 @@ public sealed partial class MaintenanceJobs : IDisposable
     private readonly UpdateService _updates;
     private readonly TimeProvider _time;
     private readonly ILogger<MaintenanceJobs> _logger;
+    private readonly Keel.Application.Attachments.IAttachmentService? _attachments;
     private DispatcherTimer? _timer;
     private DateOnly? _lastDay;
 
     /// <summary>Creates the jobs (not started).</summary>
-    public MaintenanceJobs(IDataFileMaintenance maintenance, IBackupService backups, IAppSettingsStore settings, StatusService status, AppSession session, UpdateService updates, TimeProvider time, ILogger<MaintenanceJobs> logger)
+    public MaintenanceJobs(
+        IDataFileMaintenance maintenance,
+        IBackupService backups,
+        IAppSettingsStore settings,
+        StatusService status,
+        AppSession session,
+        UpdateService updates,
+        TimeProvider time,
+        ILogger<MaintenanceJobs> logger,
+        Keel.Application.Attachments.IAttachmentService? attachments = null)
     {
+        _attachments = attachments;
         _maintenance = maintenance;
         _backups = backups;
         _settings = settings;
@@ -73,7 +84,7 @@ public sealed partial class MaintenanceJobs : IDisposable
         _timer.Start();
     }
 
-    /// <summary>Runs the day's work now (integrity check if due, automatic backup if due, update check if enabled).</summary>
+    /// <summary>Runs the day's work now (integrity check if due, automatic backup if due, attachment clean-up, update check if enabled).</summary>
     public async Task RunAsync()
     {
         var today = Today;
@@ -95,6 +106,12 @@ public sealed partial class MaintenanceJobs : IDisposable
             if (settings.AutoBackupEnabled)
             {
                 await Task.Run(() => _backups.RunDailyBackupAsync(today, Math.Max(1, settings.AutoBackupKeep), CancellationToken.None)).ConfigureAwait(true);
+            }
+
+            if (_attachments is { } attachments)
+            {
+                // After the backup, so the day's backup still has anything this removes.
+                await Task.Run(() => attachments.CleanOrphansAsync(CancellationToken.None)).ConfigureAwait(true);
             }
 
             if (settings.CheckForUpdates)
