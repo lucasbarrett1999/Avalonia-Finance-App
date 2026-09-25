@@ -13,7 +13,9 @@ public static class LedgerText
     public static string Error(LedgerError error) => Lookup("LedgerError_" + error) ?? FeatureLookup("Error_" + error) ?? error.ToString();
 
     /// <summary>User-facing name of an undoable action, e.g. "delete transactions".</summary>
-    public static string Action(LedgerAction action) => Lookup("Action_" + action) ?? FeatureLookup("Action_" + action) ?? action.ToString();
+    public static string Action(LedgerAction action) => action == LedgerAction.TagCategoryFlex
+        ? Strings.Flex_ActionTagCategory
+        : Lookup("Action_" + action) ?? FeatureLookup("Action_" + action) ?? action.ToString();
 
     /// <summary>Display name of an account type.</summary>
     public static string AccountType(AccountType type) => Lookup("AccountType_" + type) ?? type.ToString();

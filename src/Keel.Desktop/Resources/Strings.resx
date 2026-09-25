@@ -4803,6 +4803,147 @@
   <data name="FirstRun_BankGuide" xml:space="preserve">
     <value>Read the bank sync guide</value>
   </data>
+  <data name="BudgetMonths_Toggle" xml:space="preserve">
+    <value>Three months side by side</value>
+  </data>
+  <data name="BudgetMonths_Shortcut" xml:space="preserve">
+    <value>Budget: show three months side by side</value>
+  </data>
+  <data name="BudgetMonths_Menu" xml:space="preserve">
+    <value>Three-month budget</value>
+  </data>
+  <data name="BudgetMonths_Range" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="BudgetMonths_CellAutomation" xml:space="preserve">
+    <value>{0}: assigned {1}, activity {2}, available {3}, {4}</value>
+  </data>
+  <data name="BudgetMonths_HeaderAutomation" xml:space="preserve">
+    <value>{0}: Ready to Assign {1}. Show how it is computed</value>
+  </data>
+  <data name="Flex_Toggle" xml:space="preserve">
+    <value>Flex view</value>
+  </data>
+  <data name="Flex_Shortcut" xml:space="preserve">
+    <value>Budget: switch between the grid and the Flex view</value>
+  </data>
+  <data name="Flex_Menu" xml:space="preserve">
+    <value>Flex view of the budget</value>
+  </data>
+  <data name="Flex_ActionTagCategory" xml:space="preserve">
+    <value>Flex view group</value>
+  </data>
+  <data name="Flex_InflowGroup" xml:space="preserve">
+    <value>Inflow</value>
+  </data>
+  <data name="Flex_Tagged" xml:space="preserve">
+    <value>{0} is now in the Flex view group {1}.</value>
+  </data>
+  <data name="Flex_Kind_Unset" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="Flex_Kind_Fixed" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="Flex_Kind_NonMonthly" xml:space="preserve">
+    <value>Non-monthly</value>
+  </data>
+  <data name="Flex_Kind_Flex" xml:space="preserve">
+    <value>Flex</value>
+  </data>
+  <data name="Flex_InspectorSection" xml:space="preserve">
+    <value>Flex view group</value>
+  </data>
+  <data name="Flex_HintAutomatic" xml:space="preserve">
+    <value>Automatic: counts as {0}, based on its target. Pick a group to decide yourself.</value>
+  </data>
+  <data name="Flex_HintTagged" xml:space="preserve">
+    <value>Counts as {0} in the Flex view.</value>
+  </data>
+  <data name="Flex_ManageTip" xml:space="preserve">
+    <value>Flex view group: Fixed, Non-monthly or Flex. Automatic follows the category's target.</value>
+  </data>
+  <data name="Flex_ManageLabel" xml:space="preserve">
+    <value>Flex view group of {0}</value>
+  </data>
+  <data name="Flex_FilterBanner" xml:space="preserve">
+    <value>Showing the {0} categories from the Flex view</value>
+  </data>
+  <data name="Flex_ClearFilter" xml:space="preserve">
+    <value>Show all categories</value>
+  </data>
+  <data name="Flex_FixedDetail" xml:space="preserve">
+    <value>Spent {0}</value>
+  </data>
+  <data name="Flex_NonMonthlyDetail" xml:space="preserve">
+    <value>Saved so far {0}</value>
+  </data>
+  <data name="Flex_Breakdown" xml:space="preserve">
+    <value>Assigned {0} + carried in {1}</value>
+  </data>
+  <data name="Flex_Spent" xml:space="preserve">
+    <value>Spent {0}</value>
+  </data>
+  <data name="Flex_Left" xml:space="preserve">
+    <value>{0} left</value>
+  </data>
+  <data name="Flex_Over" xml:space="preserve">
+    <value>{0} over</value>
+  </data>
+  <data name="Flex_MonthEnded" xml:space="preserve">
+    <value>This month has ended.</value>
+  </data>
+  <data name="Flex_Pace" xml:space="preserve">
+    <value>{0} days left · {1} a day is safe to spend</value>
+  </data>
+  <data name="Flex_ProgressName" xml:space="preserve">
+    <value>Flex spending</value>
+  </data>
+  <data name="Flex_ProgressAutomation" xml:space="preserve">
+    <value>Flex spending: {0} of {1}, {2}. {3}</value>
+  </data>
+  <data name="Flex_CardPaymentsNote" xml:space="preserve">
+    <value>Credit card payment categories are in no group: card spending already counts in the category it was spent from.</value>
+  </data>
+  <data name="Flex_TileAutomation" xml:space="preserve">
+    <value>{0}: {1}. {2}</value>
+  </data>
+  <data name="Flex_Income" xml:space="preserve">
+    <value>Income</value>
+  </data>
+  <data name="Flex_IncomeHint" xml:space="preserve">
+    <value>Money that arrived for Ready to Assign this month</value>
+  </data>
+  <data name="Flex_Fixed" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="Flex_NonMonthly" xml:space="preserve">
+    <value>Non-monthly set aside</value>
+  </data>
+  <data name="Flex_FlexNumber" xml:space="preserve">
+    <value>Flex</value>
+  </data>
+  <data name="Flex_FlexNumberLabel" xml:space="preserve">
+    <value>Flex: yours to spend this month</value>
+  </data>
+  <data name="Flex_NoFlexCategories" xml:space="preserve">
+    <value>No category counts as Flex yet. Choose a Flex view group for categories in the inspector or in Manage categories.</value>
+  </data>
+  <data name="Flex_Explainer" xml:space="preserve">
+    <value>The Flex view shows the same month as the grid, grouped: Fixed costs, Non-monthly savings and one Flex number for everything else. Assigned amounts stay as they are; select a number to see its categories.</value>
+  </data>
+  <data name="Flex_ShowCategoriesTip" xml:space="preserve">
+    <value>Show these categories in the grid</value>
+  </data>
+  <data name="Flex_ShowTransactionsTip" xml:space="preserve">
+    <value>Show this month's income in the register</value>
+  </data>
+  <data name="Flex_TodayMarker" xml:space="preserve">
+    <value>Today: spending left of this line is on pace</value>
+  </data>
+  <data name="Flex_HintAutomaticNoTarget" xml:space="preserve">
+    <value>Automatic: counts as {0} because it has no target. Pick a group to decide yourself.</value>
+  </data>
   <data name="Export_Command" xml:space="preserve">
     <value>Export data…</value>
   </data>

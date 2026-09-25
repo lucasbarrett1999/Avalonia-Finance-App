@@ -1,6 +1,7 @@
 using Keel.Application.Categories;
 using Keel.Application.Ledger;
 using Keel.Application.Undo;
+using Keel.Domain;
 using Keel.Domain.Entities;
 using Keel.Domain.Ledger;
 using Keel.Infrastructure.Persistence;
@@ -35,12 +36,13 @@ public sealed class CategoryService(IDbContextFactory<KeelDbContext> factory, Le
                         c.IsSystem,
                         c.IsHidden,
                         c.LinkedAccountId,
+                        c.FlexKind,
                     })
                     .ToListAsync(ct).ConfigureAwait(false);
                 IReadOnlyList<CategoryDto> result = rows
                     .OrderBy(r => r.GroupSort).ThenBy(r => r.GroupName, StringComparer.CurrentCultureIgnoreCase)
                     .ThenBy(r => r.SortOrder).ThenBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)
-                    .Select(r => new CategoryDto(r.Id, r.GroupId, r.GroupName, r.Name, r.IsSystem, r.IsHidden, r.LinkedAccountId))
+                    .Select(r => new CategoryDto(r.Id, r.GroupId, r.GroupName, r.Name, r.IsSystem, r.IsHidden, r.LinkedAccountId, r.FlexKind))
                     .ToList();
                 return result;
             }
@@ -96,7 +98,7 @@ public sealed class CategoryService(IDbContextFactory<KeelDbContext> factory, Le
                         g.IsHidden,
                         categories.Where(c => c.GroupId == g.Id)
                             .OrderBy(c => c.SortOrder).ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
-                            .Select(c => new CategoryDto(c.Id, g.Id, g.Name, c.Name, c.IsSystem, c.IsHidden, c.LinkedAccountId))
+                            .Select(c => new CategoryDto(c.Id, g.Id, g.Name, c.Name, c.IsSystem, c.IsHidden, c.LinkedAccountId, c.FlexKind))
                             .ToList()))
                     .ToList();
                 return result;
@@ -352,6 +354,30 @@ public sealed class CategoryService(IDbContextFactory<KeelDbContext> factory, Le
                 }
 
                 return created;
+            },
+            ct);
+    }
+
+    /// <inheritdoc />
+    public Task SetFlexKindAsync(Guid categoryId, FlexKind kind, CancellationToken ct)
+    {
+        if (!Enum.IsDefined(kind))
+        {
+            throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown Flex kind.");
+        }
+
+        return writer.RunAsync(
+            LedgerAction.TagCategoryFlex,
+            async session =>
+            {
+                var category = await UserCategoryAsync(session.Db, categoryId, ct).ConfigureAwait(false);
+                if (category.FlexKind == kind)
+                {
+                    return false;
+                }
+
+                category.FlexKind = kind;
+                return true;
             },
             ct);
     }

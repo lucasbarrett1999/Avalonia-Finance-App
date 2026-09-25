@@ -51,25 +51,42 @@ public sealed class HighDpiRenderingTests : IDisposable
                     await Task.Delay(20);
                 }
 
-                using var bitmap = new RenderTargetBitmap(new PixelSize(1920, 1080), new Vector(192, 192));
-                bitmap.Render(window);
-                bitmap.PixelSize.ShouldBe(new PixelSize(1920, 1080));
-                if (!string.IsNullOrEmpty(outputDir))
-                {
-                    Directory.CreateDirectory(outputDir);
-                    using (var frame = window.CaptureRenderedFrame()!)
-                    {
-                        frame.Save(Path.Combine(outputDir, $"{item.PageType.Name.Replace("ViewModel", string.Empty, StringComparison.Ordinal)}-narrow-{theme}.png"));
-                    }
-
-                    bitmap.Save(Path.Combine(outputDir, $"{item.PageType.Name.Replace("ViewModel", string.Empty, StringComparison.Ordinal)}-2x-{theme}.png"));
-                }
+                Render(item.PageType.Name.Replace("ViewModel", string.Empty, StringComparison.Ordinal), theme);
             }
+
+            // M9a: the Budget screen's three-month grid (scrolls sideways here, ADR 0090) and Flex view.
+            shell.NavigateTo<BudgetViewModel>();
+            var budget = _host.Get<BudgetViewModel>();
+            budget.SetThreeMonths(true);
+            await budget.SettleAsync();
+            Render("BudgetThreeMonths", theme);
+            budget.SetFlexView(true);
+            await budget.SettleAsync();
+            Render("BudgetFlex", theme);
+            budget.SetFlexView(false);
+            await budget.SettleAsync();
         }
 
         themes.SetTheme(AppTheme.System);
         window.Close();
         LogCapture.Instance.Messages.ShouldBeEmpty();
+
+        void Render(string name, AppTheme theme)
+        {
+            using var bitmap = new RenderTargetBitmap(new PixelSize(1920, 1080), new Vector(192, 192));
+            bitmap.Render(window);
+            bitmap.PixelSize.ShouldBe(new PixelSize(1920, 1080));
+            if (!string.IsNullOrEmpty(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+                using (var frame = window.CaptureRenderedFrame()!)
+                {
+                    frame.Save(Path.Combine(outputDir, $"{name}-narrow-{theme}.png"));
+                }
+
+                bitmap.Save(Path.Combine(outputDir, $"{name}-2x-{theme}.png"));
+            }
+        }
     }
 
     [AvaloniaFact]

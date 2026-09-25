@@ -32,6 +32,7 @@ public static class BudgetDtoMapper
         var categories = input.Categories.ToDictionary(c => c.Id);
         var groups = input.Groups.ToDictionary(g => g.Id);
         var cells = month.Categories.ToDictionary(c => c.CategoryId);
+        var flexKinds = FlexClassifier.Kinds(input.Categories, targets.ToDictionary(t => t.Key, t => t.Value.Type));
 
         var groupDtos = month.Groups.Select(g =>
         {
@@ -64,7 +65,9 @@ public static class BudgetDtoMapper
                     M(cell.Carry),
                     !cell.IsVisible,
                     cell.Kind,
-                    card);
+                    card,
+                    categories[id].FlexTag,
+                    flexKinds.TryGetValue(id, out var flex) ? flex : FlexKind.Unset);
             }).ToList();
 
             return new BudgetGroupDto(group.Id, group.Name, group.IsSystem, M(g.Assigned), M(g.Activity), M(g.Available), rows, g.IsHidden);
@@ -78,7 +81,8 @@ public static class BudgetDtoMapper
             M(month.TotalAvailable),
             groupDtos,
             M(month.AssignedInFuture),
-            M(month.UncategorizedActivity));
+            M(month.UncategorizedActivity),
+            FlexSummary.Compute(month, flexKinds));
     }
 
     /// <summary>Maps an explanation, resolving account and category names.</summary>

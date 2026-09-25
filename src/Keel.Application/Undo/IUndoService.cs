@@ -215,4 +215,6 @@ public enum LedgerAction
 
     /// <summary>Merge payees (F-TXN-9).</summary>
     MergePayees,
+    /// <summary>Tag a category Fixed, Non-monthly or Flex (F-BUD-6).</summary>
+    TagCategoryFlex,
 }

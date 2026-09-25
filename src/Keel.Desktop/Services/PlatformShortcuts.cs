@@ -60,6 +60,12 @@ public sealed class PlatformShortcuts
     /// <summary>Budget: quick-assign palette of the selected category.</summary>
     public KeyGesture QuickAssign { get; } = new(Key.Q);
 
+    /// <summary>Budget: three months side by side (W for "wide", F-BUD-2 P1).</summary>
+    public KeyGesture ToggleThreeMonths { get; } = new(Key.W);
+
+    /// <summary>Budget: switch between the grid and the Flex view (F-BUD-6).</summary>
+    public KeyGesture ToggleFlexView { get; } = new(Key.F);
+
     /// <summary>Ctrl/Cmd+Shift+Z, which redoes everywhere in addition to the platform's own redo gesture.</summary>
     public KeyGesture RedoAlternate => new(Key.Z, CommandModifiers | KeyModifiers.Shift);
 

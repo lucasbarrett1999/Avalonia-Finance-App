@@ -33,6 +33,51 @@ With no category selected it explains Ready to Assign.
   between categories. Overspent categories are preset to be covered.
 - Change month with `Alt+←`/`Alt+→` or the month picker. You can assign in future months.
 
+## Three months side by side
+
+Press `W` (or the columns button in the Budget header, or **View → Three-month budget**) to see the
+shown month and the next two next to each other. Each month has its own Assigned, Activity and
+Available columns, group rows add up per month, and each month's header shows its Ready to Assign
+(select it to see how it is computed).
+
+The cell cursor moves across all three months with the arrow keys: `→` from a month's Available goes
+to the next month's Assigned. Everything you do happens in the month the cursor is in: typing,
+`Enter` and `Tab` edit that month's Assigned (Tab stays in the same month), `M` moves money in that
+month, and the inspector explains that month. `Alt+←`/`Alt+→` shift the three months by one; the
+month picker starts the three months at the month you pick. Press `W` again for one month. Keel
+remembers your choice.
+
+Three months need a wide window. On a small screen (or at 200% scaling) the grid scrolls sideways and
+keeps the cursor's month in view; hiding the inspector (`I`) makes room for all three.
+
+## Flex view
+
+The Flex view (`F`, the gauge button, or **View → Flex view of the budget**) shows the same month as
+one number instead of the grid. Every category counts as one of:
+
+- **Fixed**: the same cost every month (rent, subscriptions, loan payments).
+- **Non-monthly**: money set aside for costs that come less often (insurance, car repairs, gifts).
+- **Flex**: everything else you spend flexibly (groceries, eating out, fun).
+
+The Flex view shows the month's **income** (what arrived for Ready to Assign), the **Fixed** total
+assigned, the **Non-monthly** total set aside (and how much those categories hold so far), and one
+**Flex** number: what the Flex categories have to spend this month (carried over plus assigned). Its
+bar shows how much of it you spent, with a line for today; below it, how many days are left and how
+much you can spend per day and stay within it. If you spend more than the Flex number, the bar turns
+red and shows how much you are over.
+
+Nothing changes underneath: your assignments stay as they are, and every number is a sum of the
+numbers in the grid. Select a number to open the grid with just its categories ("Show all
+categories" brings back the rest); Income opens this month's income in the register.
+
+**Choosing a category's group.** Categories start as **Automatic**: a category whose target asks for
+the same amount every month (monthly set-aside, monthly spending or a debt payment) counts as Fixed, a
+savings-by-date target counts as Non-monthly, and a category without a target counts as Flex. To
+decide yourself, pick Fixed, Non-monthly or Flex in the inspector (**Flex view group**) or in
+**Manage categories**; Keel never changes a group you picked, and `Ctrl+Z` undoes the change. Credit
+card payment categories belong to no group: card spending already counts in the category it was
+spent from.
+
 ## Targets
 
 Select a category and press `T` (or use the inspector). Target types:
