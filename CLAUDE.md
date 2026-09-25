@@ -95,6 +95,11 @@ pwsh build/package.ps1 -Rid win-x64,win-arm64
 actionlint .github/workflows/*.yml
 # App icons (checked in): regenerate from Assets/keel-icon.svg only when the design changes
 dotnet run build/icons/generate-icons.cs
+# M9a: Flex summary goldens and tag service, three-month and Flex view flows (incl. 100k window-shift timing), screenshots
+dotnet test tests/Keel.Domain.Tests --filter FlexSummaryTests
+dotnet test tests/Keel.Infrastructure.Tests --filter FlexTagTests
+dotnet test tests/Keel.Desktop.Tests --filter "BudgetViewsTests" --logger "console;verbosity=detailed"
+KEEL_SCREENSHOT_DIR=/tmp/keel-shots dotnet test tests/Keel.Desktop.Tests --filter BudgetViewsRenderingTests
 # M9d: CSV export, JSON bundle round trip (and its 100k timing line), YNAB/Monarch importers, UI flows
 dotnet test tests/Keel.Infrastructure.Tests --filter "FullyQualifiedName~Portability|FullyQualifiedName~Import.Migration"
 dotnet test tests/Keel.Infrastructure.Tests --filter BundleTimingTests --logger "console;verbosity=detailed"
@@ -320,6 +325,18 @@ docs/  PRD.md, competitive-analysis.md, build-environment.md, decisions/ (ADRs),
        nine guides incl. bank-sync.md), qa-checklist.md (run before each tag), images/ (README screenshots).
 .github/workflows/ci.yml       Build+test on windows/macos/ubuntu, format check, vulnerable-package scan, packaging dry run.
 .github/workflows/release.yml  On v* tags: version check, tests, packages on all three OSes, one GitHub release.
+M9a: Flex mode and the three-month budget view (ADR 0090, 0091):
+  Keel.Domain/Budgeting/FlexSummary.cs  FlexClassifier (tag or default from the target), FlexSummary.Compute over a
+                              BudgetMonthResult (buckets = sums of grid cells; card payments in none), FlexBucket, Pace.
+  Keel.Application/           BudgetMonthDto.Flex, BudgetCategoryDto.FlexTag/Flex (mapper), ICategoryService.SetFlexKindAsync
+                              (+ CategoryDto.FlexKind, LedgerAction.TagCategoryFlex), AppSettings.BudgetThreeMonths/BudgetFlexView.
+  Keel.Desktop/ViewModels/Budget/  BudgetViewModel.Views (three-month window: CurrentMonth = cursor month, MonthOffset;
+                              Flex view toggle, Flex filter drill-down, tag writes), BudgetMonthCellViewModel (row months),
+                              BudgetMonthHeaderViewModel, BudgetFlexViewModel; inspector and Manage categories tag pickers.
+  Keel.Desktop/Views/         BudgetView (two row template sets via Views/Budget/BudgetRowTemplateSelector, sideways scroll
+                              at BudgetGridSizes.ThreeMonthMinWidth), Views/Budget/BudgetFlexView; Styles/Budget.axaml (M9a).
+  Tests: Domain FlexSummaryTests (+ Verify golden on 6.4.7), Infrastructure Ledger/FlexTagTests, Desktop BudgetViewsTests,
+                              BudgetViewsRenderingTests; Accessibility and HighDpi tests cover both views.
 M9d export, bundle import, YNAB/Monarch importers (F-REP-6, PRD 9.10; ADR 0098-0100):
   Keel.Application/Portability/  IDataExportService (CsvExportFiles, CsvExportResult), IBundleImportService,
                               BundleFormat ("keel-export" v1), BundleInfo, BundleImportResult, BundleException(BundleError).

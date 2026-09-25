@@ -59,6 +59,12 @@ public sealed record AppSettings
     /// <summary>Check for updates on start (PRD 10: off by default until a release feed exists).</summary>
     public bool CheckForUpdates { get; init; }
 
+    /// <summary>The Budget screen shows three months side by side (F-BUD-2 P1).</summary>
+    public bool BudgetThreeMonths { get; init; }
+
+    /// <summary>The Budget screen shows the Flex view instead of the grid (F-BUD-6).</summary>
+    public bool BudgetFlexView { get; init; }
+
     /// <summary>Returns a copy with the placement for <paramref name="displayKey"/> replaced.</summary>
     public AppSettings WithWindowPlacement(string displayKey, WindowPlacement placement)
     {

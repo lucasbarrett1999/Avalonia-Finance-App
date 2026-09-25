@@ -68,6 +68,82 @@ and budget health (F-REP-5) and PNG export of report charts (PRD 9.8).
 - Interest is APR/12 on the balance at the start of each month: daily compounding, promotional rates,
   fees and minimums that shrink with the balance are not modelled.
 - Age of money is aggregated per day, so outflows on one day share one age.
+## M9a — Flex mode and three-month view
+
+P1 backlog stream A (PRD 12, M9): the three-month side-by-side budget (F-BUD-2 P1) and Flex mode
+(F-BUD-6), both from PRD 9.3. No schema change: tags use the existing `Category.FlexKind` column.
+
+### Added
+
+- **Three months side by side** (ADR 0090): `W`, a header toggle, the palette and View → Three-month
+  budget show the shown month and the next two, each with Assigned/Activity/Available, group sums and
+  its own Ready to Assign in the column header (select it for the breakdown). The cell cursor crosses
+  months with `←/→`; typing, `Enter`, `Tab`/`Shift+Tab`, `Esc`, `M`, `T`, `Q`, quick assign, Activity
+  and the inspector act in the cursor's month; clicks pick the month; `Alt+←/→` shift the window. Uses
+  the loaded ledger data (ADR 0041): switching or shifting recomputes nothing and reloads nothing inside
+  the loaded range. The mode is remembered in `settings.json` (`BudgetThreeMonths`). At 960 × 540 or
+  with the inspector open the grid scrolls sideways and keeps the cursor's cell in view.
+- **Flex mode** (ADR 0091): tag categories Fixed, Non-monthly or Flex (Automatic by default: monthly
+  targets → Fixed, savings-by-date → Non-monthly, no target → Flex; a user's tag is never overridden)
+  in the inspector ("Flex view group") and in Manage categories; each change is one undoable action
+  (`ICategoryService.SetFlexKindAsync`, `LedgerAction.TagCategoryFlex`). The **Flex view** (`F`, header
+  toggle, palette, View menu; remembered as `BudgetFlexView`) shows income (InflowRTA), Fixed assigned,
+  Non-monthly set-aside and saved so far, and one Flex number (carry + assigned of Flex categories) with
+  a spending bar, a today marker, what is left or over, days left and safe-to-spend per day. Every
+  number drills down: to the grid filtered to its categories (with a "Show all categories" banner) or,
+  for income, to the register. All numbers come from `FlexSummary.Compute` (Keel.Domain, pure) over the
+  same `BudgetMonthResult` as the grid, carried on `BudgetMonthDto.Flex`.
+- Shortcuts `budget-three-months` (`W`) and `budget-flex` (`F`) in the registry, the palette, the View
+  menu, Settings → Keyboard shortcuts and `docs/user-guide/keyboard-shortcuts.md`; the budgeting guide
+  and the QA checklist cover both views.
+
+### Changed
+
+- The grid's Assigned editor is created only while a cell edits (both templates), which keeps
+  building rows cheap.
+- At Budget view widths under 760 px, Fund targets and Move money show icons only (names and tooltips
+  unchanged) to make room for the two toggles. The Manage categories dialog is 560 px wide (the tag
+  pickers) and its list is at most 440 px high, so it fits at 960 × 540.
+
+### Verification
+
+```bash
+dotnet build Keel.sln -c Release                 # 0 warnings, 0 errors
+dotnet format Keel.sln --verify-no-changes       # clean
+dotnet test Keel.sln -m:1                        # Domain 1,051 passed; Infrastructure 473 passed, 4 skipped
+                                                 # (keys/services not present); Desktop 294 passed
+dotnet test tests/Keel.Domain.Tests --filter FlexSummaryTests                  # 19 passed (6.4.7 golden reviewed)
+dotnet test tests/Keel.Infrastructure.Tests --filter FlexTagTests              # 3 passed
+dotnet test tests/Keel.Desktop.Tests --filter "BudgetViewsTests|BudgetViewsRenderingTests|AccessibilityTests|HighDpiRenderingTests"
+```
+
+- `FlexSummaryTests`: the 6.4.7 example (plus a Non-monthly and a second Flex category) in the Flex view
+  with a Verify golden; buckets are sums of grid cells and add up to the visible group rows; generated
+  budgets put every visible regular category in exactly one bucket; default kinds from targets and tags
+  that always win; hidden categories left out; pace (days left including today, safe per day rounded
+  down, future and past months); overspent Flex.
+- `FlexTagTests`: tags stored by name, undoable, announced; protected categories refused; the month DTO
+  and the loaded-ledger path carry the same summary with target defaults and a tag override.
+- `BudgetViewsTests` (headless): three months from the loaded ledger (same `BudgetLedgerData`), per-month
+  numbers, colours and headers, rebuilt templates, remembered in settings; cursor across months, Enter
+  and Tab editing in September, move money in the cursor's month, `Alt+←/→` window shifts, clicking a
+  cell in October, undo; Flex view numbers against 6.4.7, drill-downs to the filtered grid and to the
+  register; tagging in the inspector and in Manage categories with undo; registry, palette and View
+  menu; the mode restored from settings. Over the 100k fixture a three-month window shift measured a
+  view-model median of 5.6 ms and 33.3 ms with layout on a quiet run (the test allows 100 ms and 250 ms).
+- Screenshots of both views at 1440 × 900 and 960 × 540 in light and dark (`BudgetViewsRenderingTests`,
+  also `HighDpiRenderingTests` at 2x) were reviewed; `AccessibilityTests` audit the three-month grid, the
+  Flex view, a drill-down and Manage categories in both themes.
+
+### Decisions and deviations
+
+- [ADR 0090](docs/decisions/0090-three-month-budget-view.md): one active month (`CurrentMonth` = the
+  cursor's month), row month cells, template selector, sideways scroll, `W`. A three-month window shift
+  lays out three times the cells: its headless timing budget is 250 ms (PRD 11's 100 ms stays asserted
+  for the one-month switch).
+- [ADR 0091](docs/decisions/0091-flex-mode.md): tags and computed defaults, what counts (visible regular
+  categories; card payments in no bucket), the Flex number as carry + assigned, pace rules, `F`.
+
 ## M9d — Export, bundle import and YNAB/Monarch importers
 
 Milestone 9 stream D (P1 backlog): full export to CSV and a lossless JSON bundle with re-import into a new

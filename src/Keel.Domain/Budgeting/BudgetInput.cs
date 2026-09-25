@@ -61,6 +61,7 @@ public sealed record BudgetGroup(Guid Id, string Name, int SortOrder, bool IsSys
 /// <param name="Kind">Role in the math.</param>
 /// <param name="LinkedAccountId">For <see cref="BudgetCategoryKind.CreditCardPayment"/>: the credit account it pays.</param>
 /// <param name="IsHidden">Hidden categories still count; they are left out of group rows only (6.4.3).</param>
+/// <param name="FlexTag">The user's Flex-mode tag (F-BUD-6); <see cref="FlexKind.Unset"/> means automatic. Not part of the math.</param>
 public sealed record BudgetCategory(
     Guid Id,
     Guid GroupId,
@@ -68,7 +69,8 @@ public sealed record BudgetCategory(
     int SortOrder,
     BudgetCategoryKind Kind = BudgetCategoryKind.Regular,
     Guid? LinkedAccountId = null,
-    bool IsHidden = false)
+    bool IsHidden = false,
+    FlexKind FlexTag = FlexKind.Unset)
 {
     /// <summary>
     /// Projects a category entity. Categories of the system Inflow group are
@@ -90,7 +92,7 @@ public sealed record BudgetCategory(
             kind = BudgetCategoryKind.CreditCardPayment;
         }
 
-        return new BudgetCategory(category.Id, category.GroupId, category.Name, category.SortOrder, kind, category.LinkedAccountId, category.IsHidden);
+        return new BudgetCategory(category.Id, category.GroupId, category.Name, category.SortOrder, kind, category.LinkedAccountId, category.IsHidden, category.FlexKind);
     }
 }
 

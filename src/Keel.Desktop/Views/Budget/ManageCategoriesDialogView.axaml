@@ -31,7 +31,7 @@
       </Border>
     </DataTemplate>
   </UserControl.Resources>
-  <DockPanel Width="500">
+  <DockPanel Width="560">
     <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
       <TextBlock Text="{Binding Title}" FontSize="{StaticResource Keel.FontSize.Heading}" FontWeight="SemiBold" />
       <TextBlock Classes="secondary" Text="{x:Static res:Strings.Manage_Intro}" TextWrapping="Wrap" />
@@ -49,7 +49,7 @@
       <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding HasError}" />
       <Button x:Name="DoneButton" Classes="accent" HorizontalAlignment="Right" Command="{Binding ConfirmCommand}" Content="{x:Static res:Strings.Manage_Done}" />
     </StackPanel>
-    <ScrollViewer x:Name="GroupScroller" Height="440" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer x:Name="GroupScroller" MaxHeight="440" HorizontalScrollBarVisibility="Disabled">
       <ItemsControl x:Name="GroupList" ItemsSource="{Binding Groups}" Margin="0,0,12,0">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="b:ManageGroupItem">
@@ -114,6 +114,9 @@
                             <controls:Icon Data="{StaticResource Icon.Trash}" />
                           </Button>
                         </StackPanel>
+                        <ComboBox DockPanel.Dock="Right" x:Name="FlexKindBox" Classes="flexKind" Width="132" Margin="6,0,0,0" IsVisible="{Binding IsEditable}"
+                                  ItemsSource="{Binding FlexChoices}" SelectedItem="{Binding SelectedFlex}"
+                                  ToolTip.Tip="{x:Static res:Strings.Flex_ManageTip}" AutomationProperties.Name="{Binding FlexLabel}" />
                         <TextBlock DockPanel.Dock="Right" Classes="hiddenTag" Margin="8,0" Text="{x:Static res:Strings.Manage_HiddenTag}" IsVisible="{Binding IsHidden}" />
                         <TextBox Classes="inlineName" Text="{Binding EditName}" IsReadOnly="{Binding IsSystem}"
                                  AutomationProperties.Name="{x:Static res:Strings.Manage_CategoryName}">
