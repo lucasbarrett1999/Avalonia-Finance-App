@@ -1,0 +1,59 @@
+name: Installers (on demand)
+
+# Builds the installers for one platform without a release tag, for trying a build on a real machine.
+# The result is a workflow artifact (a zip holding the Setup.exe, .pkg/.dmg or AppImage/.deb) under the
+# run's Summary page. Tagged releases still go through release.yml.
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to package
+        type: choice
+        default: windows
+        options: [windows, macos, linux]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  package:
+    name: Package (${{ inputs.platform }})
+    runs-on: ${{ inputs.platform == 'windows' && 'windows-latest' || inputs.platform == 'macos' && 'macos-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Package Windows (win-x64)
+        if: inputs.platform == 'windows'
+        shell: pwsh
+        run: ./build/package.ps1 -Rid win-x64
+
+      - name: Package macOS (osx-arm64, osx-x64)
+        if: inputs.platform == 'macos'
+        run: bash build/package.sh --rid osx-arm64 --rid osx-x64
+
+      - name: Package Linux (linux-x64)
+        if: inputs.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools
+          bash build/package.sh --rid linux-x64
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: keel-installers-${{ inputs.platform }}
+          path: artifacts/releases
+          if-no-files-found: error
